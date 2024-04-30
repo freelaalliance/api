@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Pessoa {
+  id       String    @id @default(uuid())
+  nome     String
+  Endereco Endereco?
+  Empresa  Empresa?
+  Usuario  Usuario?
+
+  @@map("pessoas")
+}
+
+model Endereco {
+  id           String   @id @default(uuid())
+  logradouro   String
+  bairro       String
+  cidade       String
+  estado       String
+  numero       String
+  complemento  String?
+  cep          String
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  excluido     Boolean  @default(false)
+  Pessoa       Pessoa   @relation(fields: [pessoaId], references: [id])
+  pessoaId     String   @unique
+
+  @@map("enderecos")
+}
+
+model Empresa {
+  id            String          @id @default(uuid())
+  cnpj          String          @unique
+  imagemLogo    String?
+  criadoEm      DateTime        @default(now())
+  atualizadoEm  DateTime        @updatedAt
+  excluido      Boolean         @default(false)
+  pessoaId      String          @unique
+  pessoa        Pessoa          @relation(fields: [pessoaId], references: [id])
+  Usuario       Usuario[]
+  ModuloEmpresa ModuloEmpresa[]
+  Instrumento   Instrumento[]
+  Perfil        Perfil[]
+
+  @@map("empresas")
+}
+
+model Perfil {
+  id                   String                 @id @default(uuid())
+  nome                 String
+  administrativo       Boolean                @default(false)
+  Usuario              Usuario[]
+  empresa              Empresa                @relation(fields: [empresaId], references: [id])
+  empresaId            String
+  PerfilPermissaFuncao PerfilPermissaFuncao[]
+
+  @@map("perfis")
+}
+
+model Usuario {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  senha        String
+  ativo        Boolean      @default(true)
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+  pessoa       Pessoa       @relation(fields: [pessoaId], references: [id])
+  pessoaId     String       @unique
+  perfil       Perfil       @relation(fields: [perfilId], references: [id])
+  perfilId     String
+  empresa      Empresa      @relation(fields: [empresaId], references: [id])
+  empresaId    String
+  Calibracao   Calibracao[]
+
+  @@map("usuarios")
+}
+
+model Modulo {
+  id            String          @id @default(uuid())
+  nome          String
+  url           String          @unique
+  ModuloEmpresa ModuloEmpresa[]
+  Funcao        Funcao[]
+
+  @@map("modulos")
+}
+
+model ModuloEmpresa {
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  empresaId String
+  modulo    Modulo  @relation(fields: [moduloId], references: [id])
+  moduloId  String
+
+  @@id([empresaId, moduloId])
+  @@map("modulos_empresa")
+}
+
+model Funcao {
+  id                   String                 @id @default(uuid())
+  nome                 String
+  url                  String                 @unique
+  modulo               Modulo                 @relation(fields: [moduloId], references: [id])
+  moduloId             String
+  PerfilPermissaFuncao PerfilPermissaFuncao[]
+
+  @@map("funcoes")
+}
+
+model PerfilPermissaFuncao {
+  perfil   Perfil @relation(fields: [perfilId], references: [id])
+  perfilId String
+  funcao   Funcao @relation(fields: [funcaoId], references: [id])
+  funcaoId String
+
+  @@id([perfilId, funcaoId])
+  @@map("perfil_permissao_funcoes")
+}
+
+model Instrumento {
+  id          String       @id @default(uuid())
+  codigo      String       @unique
+  nome        String
+  localizacao String
+  marca       String
+  resolucao   String
+  frequencia  Int
+  repeticao   Int
+  empresaId   String
+  empresa     Empresa      @relation(fields: [empresaId], references: [id])
+  criadoEm    DateTime     @default(now())
+  atualizacao DateTime     @updatedAt
+  excluido    Boolean      @default(false)
+  Calibracao  Calibracao[]
+  Agenda      Agenda[]
+
+  @@map("instrumentos")
+}
+
+model Calibracao {
+  id                           String           @id @default(uuid())
+  numeroCertificado            String           @unique
+  erroEncontrado               String
+  incertezaTendenciaEncontrado String
+  toleranciaEstabelicida       String
+  observacao                   String?          @db.LongText
+  certificado                  String           @db.LongText
+  status                       StatusCalibracao @default(reprovado)
+  realizadoEm                  DateTime
+  criadoEm                     DateTime         @default(now())
+  atualizadoEm                 DateTime         @updatedAt
+  excluido                     Boolean          @default(false)
+  usuario                      Usuario          @relation(fields: [usuarioId], references: [id])
+  usuarioId                    String
+  instrumento                  Instrumento      @relation(fields: [instrumentoId], references: [id])
+  instrumentoId                String
+
+  @@map("calibracoes")
+}
+
+model Agenda {
+  id            String      @id @default(uuid())
+  agendadoPara  DateTime
+  instrumento   Instrumento @relation(fields: [instrumentoId], references: [id])
+  instrumentoId String
+
+  @@map("agendas")
+}
+
+enum StatusCalibracao {
+  aprovado
+  reprovado
+}
