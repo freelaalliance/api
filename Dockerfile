@@ -1,8 +1,6 @@
-FROM node:20
+FROM node:lts
 
 COPY . /app
 WORKDIR /app
-
-RUN npx prisma generate
 
 CMD ["npm", "start"]

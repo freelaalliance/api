@@ -1,0 +1,66 @@
+name: Deploy API Alliance
+
+on: 
+  push: 
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies   
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+          
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: buildx
+        with:
+          install: true
+  
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: adrsilva01/works:alliance-api
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy application
+    needs: build
+    steps:
+      - name: Access VPS
+        if: success()
+        uses: appleboy/ssh-action@master
+        with:
+          key: ${{secrets.SERVER_SSH_KEY}}
+          host: ${{vars.REMOTE_HOST}}
+          port: ${{vars.REMOTE_PORT}}
+          username: ${{vars.REMOTE_USER}}          
+          script: |
+            cd /home/${{vars.REMOTE_USER}}
+            echo -e "ENV_JWT_SECRET=${{secrets.SECRET_KEY_JWT}}\nENV_COOKIE_SECRET=${{secrets.SECRET_KEY_COOKIE}}\nDATABASE_URL=${{secrets.DATABASE_URL}}" > env.api
+            docker stop api 
+            docker rm api 
+            docker pull adrsilva01/works:alliance-api 
+            docker run --name api --restart=always -d --env-file ./env.api -p${{vars.PORT_API}}:${{vars.PORT_API}} adrsilva01/works:alliance-api 
+            rm env.api
+            docker exec -i api npx prisma migrate deploy
