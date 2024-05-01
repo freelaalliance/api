@@ -51,12 +51,11 @@ jobs:
         if: success()
         uses: appleboy/ssh-action@master
         with:
-          # key: ${{secrets.SERVER_SSH_KEY}}
           host: ${{vars.REMOTE_HOST}}
           password: ${{secrets.REMOTE_PASS}}
           username: ${{vars.REMOTE_USER}}          
           script: |
-            cd /home/${{vars.REMOTE_USER}}
+            cd /home/ubuntu
             echo -e "ENV_JWT_SECRET=${{secrets.SECRET_KEY_JWT}}\nENV_COOKIE_SECRET=${{secrets.SECRET_KEY_COOKIE}}\nDATABASE_URL=${{secrets.DATABASE_URL}}" > env.api
             docker stop api 
             docker rm api 
