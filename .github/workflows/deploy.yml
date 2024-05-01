@@ -51,9 +51,9 @@ jobs:
         if: success()
         uses: appleboy/ssh-action@master
         with:
-          key: ${{secrets.SERVER_SSH_KEY}}
+          # key: ${{secrets.SERVER_SSH_KEY}}
           host: ${{vars.REMOTE_HOST}}
-          port: ${{vars.REMOTE_PORT}}
+          password: ${{secrets.REMOTE_PASS}}
           username: ${{vars.REMOTE_USER}}          
           script: |
             cd /home/${{vars.REMOTE_USER}}
