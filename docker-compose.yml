@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  bd-admin:
+  bd-alliance:
     image: mysql
     command:
       [
@@ -13,13 +13,13 @@ services:
     expose:
       - 3306
     environment:
-      MYSQL_DATABASE: admin
+      MYSQL_DATABASE: erp
       MYSQL_ROOT_PASSWORD: passw0rd
       MYSQL_ROOT_HOST: "%"
-    container_name: "db-admin"
+    container_name: "bd-alliance"
     volumes:
-      - admin_mysql_data:/var/lib/mysql
+      - alliance_erp_data:/var/lib/mysql
 
 volumes:
-  admin_mysql_data: 
+  alliance_erp_data: 
 
