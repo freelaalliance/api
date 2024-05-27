@@ -61,6 +61,6 @@ jobs:
             docker stop api 
             docker rm api 
             docker pull adrsilva01/works:alliance-api 
-            docker run --name api --restart=always -d --env-file ./env.api -p${{vars.PORT_API}}:${{vars.PORT_API}} adrsilva01/works:alliance-api 
+            docker run --network alliance-app --name api --restart=always -d --env-file ./env.api -p${{vars.PORT_API}}:${{vars.PORT_API}} adrsilva01/works:alliance-api 
             rm env.api
             docker exec -i api npx prisma migrate deploy

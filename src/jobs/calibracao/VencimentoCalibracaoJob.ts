@@ -140,6 +140,4 @@ export async function notificarVencimentoCalibracao() {
       },
     },
   )
-
-  console.log(response.status + ' - ' + response.statusText)
 }
