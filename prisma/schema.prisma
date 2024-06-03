@@ -187,10 +187,10 @@ enum StatusCalibracao {
 
 model Equipamento {
   id                        String                      @id @default(uuid())
-  codigo                    String                      @db.VarChar(255)
+  codigo                    String                      @unique @db.VarChar(255)
   nome                      String                      @db.VarChar(255)
   especificacao             String?                     @db.LongText
-  frequecia                 Int                         @default(0)
+  frequencia                Int                         @default(0)
   empresaId                 String
   empresa                   Empresa                     @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   PecasEquipamento          PecasEquipamento[]
@@ -215,10 +215,11 @@ model PecasEquipamento {
 }
 
 model AgendaInspecaoEquipamento {
-  id            Int         @id @default(autoincrement())
-  agendadoPara  DateTime    @db.Date
-  equipamentoId String
-  equipamento   Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id                Int         @id @default(autoincrement())
+  agendadoPara      DateTime    @db.Date
+  inspecaoRealizada Boolean     @default(false)
+  equipamentoId     String
+  equipamento       Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("agenda_inspecao_equipamentos")
 }

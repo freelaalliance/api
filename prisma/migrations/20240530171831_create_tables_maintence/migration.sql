@@ -4,9 +4,10 @@ CREATE TABLE `equipamentos` (
     `codigo` VARCHAR(255) NOT NULL,
     `nome` VARCHAR(255) NOT NULL,
     `especificacao` LONGTEXT NULL,
-    `frequecia` INTEGER NOT NULL DEFAULT 0,
+    `frequencia` INTEGER NOT NULL DEFAULT 0,
     `empresaId` VARCHAR(191) NOT NULL,
 
+    UNIQUE INDEX `equipamentos_codigo_key`(`codigo`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
