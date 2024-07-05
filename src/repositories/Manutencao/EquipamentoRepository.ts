@@ -196,3 +196,12 @@ export async function consultarAgendaEquipamento({id, empresaId}: EquipamentoPro
     }
   })
 }
+
+export async function consultarDadosEquipamento({id, empresaId}: EquipamentoProps){
+  return await prisma.equipamento.findUnique({
+    where: {
+      id,
+      empresaId
+    }
+  })
+}

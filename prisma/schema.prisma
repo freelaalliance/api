@@ -244,6 +244,7 @@ model Manutencao {
   equipamento   Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   usuario       Usuario     @relation(fields: [usuarioId], references: [id])
   usuarioId     String
+  observacoes   String      @db.LongText
 
   @@map("manutencoes")
 }
@@ -252,6 +253,7 @@ model InspecaoEquipamento {
   id                        String                      @id @default(uuid())
   iniciadoEm                DateTime                    @default(now())
   finalizadoEm              DateTime?
+  statusInspecao            StatusInspecaoEquipamento   @default(reprovado)
   equipamentoId             String
   equipamento               Equipamento                 @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   usuario                   Usuario                     @relation(fields: [usuarioId], references: [id])
@@ -269,8 +271,13 @@ model PontosInspecaoEquipamento {
   pecaEquipamentoId   String
   pecasEquipamento    PecasEquipamento    @relation(fields: [pecaEquipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   aprovado            Boolean             @default(false)
-  inspecionadoEm      DateTime            @default(now())
+  inspecionadoEm      DateTime?           
 
   @@id([inspecaoId, equipamentoId, pecaEquipamentoId])
   @@map("pontos_inspecao_equipamento")
+}
+
+enum StatusInspecaoEquipamento {
+  aprovado
+  reprovado
 }
