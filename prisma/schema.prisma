@@ -193,6 +193,7 @@ model Equipamento {
   frequencia                Int                         @default(0)
   empresaId                 String
   empresa                   Empresa                     @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cadastradoEm              DateTime                    @default(now())
   PecasEquipamento          PecasEquipamento[]
   AgendaInspecaoEquipamento AgendaInspecaoEquipamento[]
   HistoricoEquipamento      HistoricoEquipamento[]
@@ -235,16 +236,18 @@ model HistoricoEquipamento {
 }
 
 model Manutencao {
-  id            String      @id @default(uuid())
-  criadoEm      DateTime    @default(now())
-  iniciadoEm    DateTime?
-  finalizadoEm  DateTime?
-  canceladoEm   DateTime?
-  equipamentoId String
-  equipamento   Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  usuario       Usuario     @relation(fields: [usuarioId], references: [id])
-  usuarioId     String
-  observacoes   String      @db.LongText
+  id                String      @id @default(uuid())
+  criadoEm          DateTime    @default(now())
+  iniciadoEm        DateTime?
+  finalizadoEm      DateTime?
+  canceladoEm       DateTime?
+  equipamentoId     String
+  equipamento       Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  usuarioId         String
+  observacoes       String      @db.LongText
+  duracao           Int?
+  equipamentoParado Int?
 
   @@map("manutencoes")
 }
@@ -271,7 +274,7 @@ model PontosInspecaoEquipamento {
   pecaEquipamentoId   String
   pecasEquipamento    PecasEquipamento    @relation(fields: [pecaEquipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   aprovado            Boolean             @default(false)
-  inspecionadoEm      DateTime?           
+  inspecionadoEm      DateTime?
 
   @@id([inspecaoId, equipamentoId, pecaEquipamentoId])
   @@map("pontos_inspecao_equipamento")
