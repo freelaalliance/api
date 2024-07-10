@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify"
 import {
   consultarAgendaEquipamento,
+  consultarDadosEquipamento,
   inserirNovoEquipamento,
   inserirPecaEquipamento,
   listarEquipamentosEmpresa,
@@ -48,6 +49,10 @@ class EquipamentoController {
     })
 
     fastifyInstance.register(this.buscarAgendaEquipamento, {
+      prefix: '/equipamento'
+    })
+
+    fastifyInstance.register(this.buscarDadosEquipamento, {
       prefix: '/equipamento'
     })
   }
@@ -303,6 +308,33 @@ class EquipamentoController {
       })
 
       res.status(200).send(agendaEquipamento)
+    })
+  }
+
+
+  async buscarDadosEquipamento(app: FastifyInstance){
+    const schemaParams = z.object({
+      id: z
+        .string({
+          required_error: 'Necessário informar o id do equipamento',
+        })
+        .uuid({
+          message: 'Id do equipamento é inválido!',
+        }),
+    })
+
+    app.get('/:id', async (req, res) => {
+      await req.jwtVerify()
+
+      const { id } = await schemaParams.parseAsync(req.params)
+      const { cliente } = req.user
+
+      const dadosEquipamento = await consultarDadosEquipamento({
+        id, 
+        empresaId: cliente
+      })
+
+      res.status(200).send(dadosEquipamento)
     })
   }
 }
