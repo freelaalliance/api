@@ -37,7 +37,7 @@ export interface AgendaInstrumentoInterface {
 }
 
 export interface FiltrosRelatorioPropsInterface {
-  status?: string
+  status?: 'aprovado' | 'reprovado'
   calibradoDe?: Date
   calibradoAte?: Date
   codigoInstrumento?: string

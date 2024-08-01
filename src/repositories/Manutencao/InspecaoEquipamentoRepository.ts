@@ -1,5 +1,6 @@
 import { addDays } from "date-fns"
 import { prisma } from "../../services/PrismaClientService"
+import { EquipamentoProps } from "../../interfaces/Manutencao/EquipamentoInterface"
 
 interface salvarInspecaoProps {
   iniciadoEm: Date,
@@ -28,12 +29,7 @@ interface finalizarInspecaoProps {
   }>
 }
 
-interface EquipamentoProps{
-  equipamentoId: string,
-  empresaId: string
-} 
-
-export async function consultarInspecoesAgendadas({ empresaId, equipamentoId }: EquipamentoProps) {
+export async function consultarInspecoesAgendadas({ empresaId, id: equipamentoId }: EquipamentoProps) {
   return await prisma.agendaInspecaoEquipamento.findMany({
     select: {
       equipamento: {
@@ -57,7 +53,7 @@ export async function consultarInspecoesAgendadas({ empresaId, equipamentoId }: 
   })
 }
 
-export async function listaInspecoesEquipamentoEmpresa({ empresaId, equipamentoId }: EquipamentoProps) {
+export async function listaInspecoesEquipamentoEmpresa({ empresaId, id: equipamentoId }: EquipamentoProps) {
   return await prisma.inspecaoEquipamento.findMany({
     select: {
       id: true,
@@ -121,6 +117,15 @@ export async function listaPontosInspecionadoEquipamento(idInspecao: string, emp
 }
 
 export async function salvarInspecao({ iniciadoEm, status, equipamentoId, usuarioId, finalizadoEm, inspecaoPeca }: salvarInspecaoProps) {
+  if(finalizadoEm){
+    await prisma.equipamento.update({
+      where: { id: equipamentoId },
+      data: {
+        inspecionadoEm: finalizadoEm
+      }
+    })
+  }
+  
   return await prisma.inspecaoEquipamento.create({
     select: {
       id: true,
@@ -173,7 +178,7 @@ export async function finalizarInspecao({ inspecaoId, equipamentoId, status, fin
     },
   })
   
-  const atualizaInspecao = prisma.inspecaoEquipamento.updateMany({
+  const atualizaInspecao = prisma.inspecaoEquipamento.update({
     where: {
       id: inspecaoId,
       equipamentoId,
@@ -181,6 +186,11 @@ export async function finalizarInspecao({ inspecaoId, equipamentoId, status, fin
     data: {
       finalizadoEm,
       statusInspecao: status,
+      equipamento: {
+        update: {
+          inspecionadoEm: finalizadoEm
+        }
+      }
     },    
   })
 
@@ -199,7 +209,7 @@ export async function finalizarInspecao({ inspecaoId, equipamentoId, status, fin
   await prisma.$transaction([removePontosInspecionado, atualizaInspecao, atualizaPontosInspecao])
 }
 
-export async function atualizarAgendaEquipamento({ empresaId, equipamentoId }: EquipamentoProps){
+export async function atualizarAgendaEquipamento({ empresaId, id: equipamentoId }: EquipamentoProps){
   await prisma.agendaInspecaoEquipamento.updateMany({
     where: {
       equipamento: {
@@ -214,7 +224,7 @@ export async function atualizarAgendaEquipamento({ empresaId, equipamentoId }: E
   })
 }
 
-export async function agendarInspecaoEquipamento({ empresaId, equipamentoId }: EquipamentoProps){
+export async function agendarInspecaoEquipamento({ empresaId, id: equipamentoId }: EquipamentoProps){
   const dadosEquipamento = await prisma.equipamento.findUnique({
     where: {
       id: equipamentoId,
@@ -231,4 +241,36 @@ export async function agendarInspecaoEquipamento({ empresaId, equipamentoId }: E
       }
     })
   }
+}
+
+export async function consultarAgendaInspecaoEmpresa({empresaId}: EquipamentoProps) {
+  const dataAtual = new Date()
+
+  return await prisma.agendaInspecaoEquipamento.findMany({
+    select: {
+      id: true,
+      equipamento: {
+        select: {
+          id: true,
+          codigo: true,
+          nome: true,
+          frequencia: true,
+        }
+      },
+      agendadoPara: true,
+      inspecaoRealizada: true
+    },
+    where: {
+      equipamento: {
+        empresaId
+      },
+      agendadoPara: {
+        gte: new Date(dataAtual.getFullYear(), dataAtual.getMonth() - 1, 1),
+        lte: new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 30),
+      }      
+    },
+    orderBy: {
+      agendadoPara: 'asc'
+    }
+  })
 }

@@ -7,6 +7,20 @@ interface EquipamentosEmpresaProps {
   empresaId: string
 }
 
+interface EquipamentoCodigoEmpresaProps {
+  codigo: string
+  empresaId: string
+}
+
+export async function consultaCodigoEquipamento({codigo, empresaId}: EquipamentoCodigoEmpresaProps){
+  return await prisma.equipamento.findFirstOrThrow({
+    where: {
+      codigo,
+      empresaId
+    }
+  })
+}
+
 export async function inserirNovoEquipamento({
   codigo,
   nome,
@@ -88,19 +102,21 @@ export async function modificarDadosEquipamento({
   })
 
   if(frequencia && atualizaEquipamento){
-    const removeAgendamentosNaoRealizados = await prisma.agendaInspecaoEquipamento.deleteMany({
+    const removeAgendamentosNaoRealizados = prisma.agendaInspecaoEquipamento.deleteMany({
       where: {
         equipamentoId: id,
         inspecaoRealizada: false
       }
     })
 
-    const adicionaAgendamentoEquipamento = await prisma.agendaInspecaoEquipamento.create({
+    const adicionaAgendamentoEquipamento = prisma.agendaInspecaoEquipamento.create({
       data: {
         agendadoPara: addDays(new Date(), frequencia),
         equipamentoId: id
       }
     })
+
+    await prisma.$transaction([removeAgendamentosNaoRealizados, adicionaAgendamentoEquipamento])
   }
 
   return atualizaEquipamento
