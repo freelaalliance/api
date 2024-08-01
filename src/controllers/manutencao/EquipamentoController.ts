@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify"
 import {
+  consultaCodigoEquipamento,
   consultarAgendaEquipamento,
   consultarDadosEquipamento,
   inserirNovoEquipamento,
@@ -16,6 +17,10 @@ import { z } from "zod"
 
 class EquipamentoController {
   constructor(fastifyInstance: FastifyInstance) {
+    fastifyInstance.register(this.consultaCodigoEquipamentoEmpresa, {
+      prefix: '/equipamento'
+    })
+    
     fastifyInstance.register(this.criarEquipamento, {
       prefix: '/equipamento'
     })
@@ -54,6 +59,33 @@ class EquipamentoController {
 
     fastifyInstance.register(this.buscarDadosEquipamento, {
       prefix: '/equipamento'
+    })
+  }
+
+  async consultaCodigoEquipamentoEmpresa(app: FastifyInstance){
+    const schemaQuery = z.object({
+      codigo: z.string()
+    })
+
+    app.get('/consulta', async (req, res) => {
+      await req.jwtVerify()
+      const { cliente } = req.user
+
+      const {
+        codigo
+      } = await schemaQuery.parseAsync(req.query)
+
+      try{
+        const equipamento = await consultaCodigoEquipamento({
+          codigo,
+          empresaId: cliente
+        })
+  
+        res.status(200).send(equipamento)
+      }
+      catch(error){
+        res.status(204).send()
+      }
     })
   }
 
@@ -310,7 +342,6 @@ class EquipamentoController {
       res.status(200).send(agendaEquipamento)
     })
   }
-
 
   async buscarDadosEquipamento(app: FastifyInstance){
     const schemaParams = z.object({

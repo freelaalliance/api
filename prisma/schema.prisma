@@ -187,13 +187,17 @@ enum StatusCalibracao {
 
 model Equipamento {
   id                        String                      @id @default(uuid())
-  codigo                    String                      @unique @db.VarChar(255)
+  codigo                    String                      @db.VarChar(255)
   nome                      String                      @db.VarChar(255)
   especificacao             String?                     @db.LongText
   frequencia                Int                         @default(0)
   empresaId                 String
   empresa                   Empresa                     @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   cadastradoEm              DateTime                    @default(now())
+  atualizadoEm              DateTime?                   @updatedAt
+  inspecionadoEm            DateTime?
+  concertadoEm              DateTime?
+  status                    StatusEquipamento           @default(operando)
   PecasEquipamento          PecasEquipamento[]
   AgendaInspecaoEquipamento AgendaInspecaoEquipamento[]
   HistoricoEquipamento      HistoricoEquipamento[]
@@ -283,4 +287,9 @@ model PontosInspecaoEquipamento {
 enum StatusInspecaoEquipamento {
   aprovado
   reprovado
+}
+
+enum StatusEquipamento {
+  operando
+  parado
 }

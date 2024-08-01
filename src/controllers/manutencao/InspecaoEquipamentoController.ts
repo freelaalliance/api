@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { agendarInspecaoEquipamento, atualizarAgendaEquipamento, finalizarInspecao, listaInspecoesEquipamentoEmpresa, listaPontosInspecionadoEquipamento, removerPontosInspecionados, salvarInspecao } from "../../repositories/Manutencao/InspecaoEquipamentoRepository";
+import { agendarInspecaoEquipamento, atualizarAgendaEquipamento, consultarAgendaInspecaoEmpresa, finalizarInspecao, listaInspecoesEquipamentoEmpresa, listaPontosInspecionadoEquipamento, removerPontosInspecionados, salvarInspecao } from "../../repositories/Manutencao/InspecaoEquipamentoRepository";
 import { salvarNovaManutencao } from "../../repositories/Manutencao/ManutencaoEquipamentoRepository";
 
 class InspecaoEquipamentoController {
@@ -18,6 +18,10 @@ class InspecaoEquipamentoController {
     })
 
     fastifyInstance.register(this.finalizarInspecaoEquipamento, {
+      prefix: 'inspecao'
+    })
+
+    fastifyInstance.register(this.agendaInspecoesEmpresa, {
       prefix: 'inspecao'
     })
   }
@@ -50,9 +54,9 @@ class InspecaoEquipamentoController {
       const pontoReprovado = inspecaoPeca.find(pontos => !pontos.aprovado)
 
       if (finalizadoEm) {
-        await atualizarAgendaEquipamento({ empresaId: cliente, equipamentoId })
+        await atualizarAgendaEquipamento({ empresaId: cliente, id: equipamentoId })
 
-        await agendarInspecaoEquipamento({ empresaId: cliente, equipamentoId })
+        await agendarInspecaoEquipamento({ empresaId: cliente, id: equipamentoId })
 
         if (pontoReprovado && observacao) {
           await salvarNovaManutencao({
@@ -87,7 +91,7 @@ class InspecaoEquipamentoController {
 
       const { equipamentoId } = await schemaParamsEquipamento.parseAsync(req.params)
 
-      const inspecaoEquipamento = await listaInspecoesEquipamentoEmpresa({ equipamentoId, empresaId: cliente })
+      const inspecaoEquipamento = await listaInspecoesEquipamentoEmpresa({ id: equipamentoId, empresaId: cliente })
 
       res.status(200).send(inspecaoEquipamento)
     })
@@ -141,9 +145,9 @@ class InspecaoEquipamentoController {
 
       const pontoReprovado = inspecaoPeca.find((pontos) => !pontos.aprovado)
 
-      await atualizarAgendaEquipamento({ empresaId: cliente, equipamentoId })
+      await atualizarAgendaEquipamento({ empresaId: cliente, id: equipamentoId })
 
-      await agendarInspecaoEquipamento({ empresaId: cliente, equipamentoId })
+      await agendarInspecaoEquipamento({ empresaId: cliente, id: equipamentoId })
 
       if (pontoReprovado && observacao) {
         await salvarNovaManutencao({
@@ -162,6 +166,22 @@ class InspecaoEquipamentoController {
       })
 
       res.status(204).send()
+    })
+  }
+
+  async agendaInspecoesEmpresa(
+    app: FastifyInstance
+  ){
+    app.get('/agenda', async (req, res) => {
+      await req.jwtVerify()
+      const { cliente } = req.user
+
+      const inspecaoAgendadas = await consultarAgendaInspecaoEmpresa({
+        empresaId: cliente,
+        id: ''
+      })
+
+      res.status(200).send(inspecaoAgendadas)
     })
   }
 }
