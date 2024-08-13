@@ -95,6 +95,7 @@ class EquipamentoController {
       nome: z.string(),
       especificacao: z.string().optional(),
       frequencia: z.coerce.number().default(0),
+      tempoOperacao: z.coerce.number().default(0),
       pecas: z.array(z.object({
         nome: z.string(),
         descricao: z.string().optional()
@@ -108,6 +109,7 @@ class EquipamentoController {
         nome,
         especificacao,
         frequencia,
+        tempoOperacao,
         pecas
       } = await schemaBody.parseAsync(req.body)
 
@@ -117,6 +119,7 @@ class EquipamentoController {
         nome,
         especificacao,
         frequencia,
+        tempoOperacao,
         empresaId: cliente,
         pecas
       })
@@ -182,6 +185,7 @@ class EquipamentoController {
       nome: z.string().optional(),
       codigo: z.string().optional(),
       especificacao: z.string().optional(),
+      tempoOperacao: z.number().optional(),
       frequencia: z.number().optional(),
     })
 
@@ -193,7 +197,8 @@ class EquipamentoController {
         nome,
         codigo,
         especificacao,
-        frequencia
+        frequencia,
+        tempoOperacao
       } = await schemaBody.parseAsync(req.body)
 
       const equipamento = await modificarDadosEquipamento({
@@ -202,6 +207,7 @@ class EquipamentoController {
         codigo,
         especificacao,
         frequencia,
+        tempoOperacao,
         empresaId: cliente
       })
 

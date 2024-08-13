@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { buscaEstatisticasManutencoes, buscarManutencoesEquipamento, cancelarManutencaoEquipamento, consultaDuracaoManutencoesEquipamento, consultaQuantidadeEquipamentosFuncionando, consultaQuantidadeEquipamentosParado, consultaQuantidadeManutencoesEmAndamento, consultaQuantidadeManutencoesEmDia, finalizarManutencaoEquipamento, iniciarManutencaoEquipamento, salvarNovaManutencao } from "../../repositories/Manutencao/ManutencaoEquipamentoRepository";
+import { buscaEstatisticasManutencoes, buscaEstatisticasManutencoesEquipamentosEmpresa, buscarManutencoesEquipamento, cancelarManutencaoEquipamento, consultaDuracaoManutencoesEquipamento, consultaQuantidadeEquipamentosFuncionando, consultaQuantidadeEquipamentosParado, consultaQuantidadeManutencoesEmAndamento, consultaQuantidadeManutencoesEmDia, finalizarManutencaoEquipamento, iniciarManutencaoEquipamento, salvarNovaManutencao } from "../../repositories/Manutencao/ManutencaoEquipamentoRepository";
 import { addDays, differenceInDays } from "date-fns";
 
 class ManutencaoEquipamentoController {
@@ -38,6 +38,10 @@ class ManutencaoEquipamentoController {
     })
 
     fastifyInstance.register(this.buscaIndicadoresManutencaoEquipamento, {
+      prefix: '/manutencao'
+    })
+
+    fastifyInstance.register(this.buscaIndicadoresManutencoesEmpresa, {
       prefix: '/manutencao'
     })
   }
@@ -233,7 +237,7 @@ class ManutencaoEquipamentoController {
       equipamentoId: z.string().uuid().optional()
     })
 
-    app.get('/indicadores', async (req, res) => {
+    app.get('/indicadores/equipamento', async (req, res) => {
       await req.jwtVerify()
 
       const { cliente } = req.user
@@ -246,8 +250,31 @@ class ManutencaoEquipamentoController {
 
       res.status(200).send({
         total_tempo_parado: Number(dadosIndicadores[0].total_tempo_parado),
-        qtd_manutencoes: Number(dadosIndicadores[0].qtd_manutencoes)
+        qtd_manutencoes: Number(dadosIndicadores[0].qtd_manutencoes),
+        total_tempo_operacao: Number(dadosIndicadores[0].total_tempo_operacao)
       })
+    })
+  }
+
+  async buscaIndicadoresManutencoesEmpresa(app: FastifyInstance){
+    app.get('/indicadores/equipamentos/empresa', async (req, res) => {
+      await req.jwtVerify()
+
+      const { cliente } = req.user
+
+      const dadosIndicadores = await buscaEstatisticasManutencoesEquipamentosEmpresa({
+        empresaId: cliente,
+        equipamentoId: ''
+      })
+
+      res.status(200).send(dadosIndicadores.map((equipamento) => {
+        return {
+          nome: equipamento.nome,
+          total_tempo_parado: Number(equipamento.total_tempo_parado),
+          qtd_manutencoes: Number(equipamento.qtd_manutencoes),
+          total_tempo_operacao: Number(equipamento.total_tempo_operacao)
+        }
+      }))
     })
   }
 }
