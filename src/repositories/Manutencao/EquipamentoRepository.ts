@@ -27,6 +27,7 @@ export async function inserirNovoEquipamento({
   especificacao,
   frequencia,
   empresaId,
+  tempoOperacao,
   pecas
 }: NovoEquipamentoProps) {
   return await prisma.equipamento.create({
@@ -36,6 +37,7 @@ export async function inserirNovoEquipamento({
       especificacao,
       frequencia,
       empresaId,
+      tempoOperacao,
       PecasEquipamento: {
         createMany: {
           data: pecas
@@ -86,6 +88,7 @@ export async function modificarDadosEquipamento({
   nome,
   especificacao,
   frequencia,
+  tempoOperacao,
   empresaId
 }: AtualizaEquipamentoProps) {
   const atualizaEquipamento = await prisma.equipamento.update({
@@ -94,6 +97,7 @@ export async function modificarDadosEquipamento({
       codigo,
       especificacao,
       frequencia,
+      tempoOperacao
     },
     where: {
       id,

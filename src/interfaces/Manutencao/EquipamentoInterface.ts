@@ -14,6 +14,7 @@ export interface AtualizaEquipamentoProps{
   nome?: string
   especificacao?: string
   frequencia?: number
+  tempoOperacao?: number
   empresaId: string
 }
 
@@ -29,6 +30,7 @@ export interface NovoEquipamentoProps {
   nome: string
   especificacao?: string
   frequencia: number
+  tempoOperacao: number
   empresaId: string
   pecas: Array<{
     nome: string

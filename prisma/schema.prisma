@@ -197,6 +197,7 @@ model Equipamento {
   atualizadoEm              DateTime?                   @updatedAt
   inspecionadoEm            DateTime?
   concertadoEm              DateTime?
+  tempoOperacao             Int                         @default(0)
   status                    StatusEquipamento           @default(operando)
   PecasEquipamento          PecasEquipamento[]
   AgendaInspecaoEquipamento AgendaInspecaoEquipamento[]
@@ -240,18 +241,19 @@ model HistoricoEquipamento {
 }
 
 model Manutencao {
-  id                String      @id @default(uuid())
-  criadoEm          DateTime    @default(now())
-  iniciadoEm        DateTime?
-  finalizadoEm      DateTime?
-  canceladoEm       DateTime?
-  equipamentoId     String
-  equipamento       Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
-  usuarioId         String
-  observacoes       String      @db.LongText
-  duracao           Int?
-  equipamentoParado Int?
+  id                   String      @id @default(uuid())
+  criadoEm             DateTime    @default(now())
+  iniciadoEm           DateTime?
+  finalizadoEm         DateTime?
+  canceladoEm          DateTime?
+  equipamentoId        String
+  equipamento          Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuario              Usuario     @relation(fields: [usuarioId], references: [id])
+  usuarioId            String
+  observacoes          String      @db.LongText
+  duracao              Int?
+  equipamentoParado    Int?
+  tempoMaquinaOperacao Int         @default(0)
 
   @@map("manutencoes")
 }
