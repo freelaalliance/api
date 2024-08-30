@@ -3,7 +3,7 @@ name: Deploy API Alliance
 on: 
   push: 
     branches: [main]
-  pull_request:
+  merge_group: 
     branches: [main]
   workflow_dispatch:
 

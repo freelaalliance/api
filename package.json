@@ -13,6 +13,9 @@
     "lint": "eslint src --ext [.ts] --fix",
     "start": "node dist/index.cjs"
   },
+  "prisma" : {
+    "seed": "tsx prisma/seeds/dev.ts"
+  },
   "keywords": [],
   "author": "Adriano Silva",
   "license": "ISC",

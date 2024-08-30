@@ -52,6 +52,7 @@ model Empresa {
   ModuloEmpresa ModuloEmpresa[]
   Instrumento   Instrumento[]
   Perfil        Perfil[]
+  Equipamento   Equipamento[]
 
   @@map("empresas")
 }
@@ -69,19 +70,21 @@ model Perfil {
 }
 
 model Usuario {
-  id           String       @id @default(uuid())
-  email        String       @unique
-  senha        String
-  ativo        Boolean      @default(true)
-  criadoEm     DateTime     @default(now())
-  atualizadoEm DateTime     @updatedAt
-  pessoa       Pessoa       @relation(fields: [pessoaId], references: [id])
-  pessoaId     String       @unique
-  perfil       Perfil       @relation(fields: [perfilId], references: [id])
-  perfilId     String
-  empresa      Empresa      @relation(fields: [empresaId], references: [id])
-  empresaId    String
-  Calibracao   Calibracao[]
+  id                  String                @id @default(uuid())
+  email               String                @unique
+  senha               String
+  ativo               Boolean               @default(true)
+  criadoEm            DateTime              @default(now())
+  atualizadoEm        DateTime              @updatedAt
+  pessoa              Pessoa                @relation(fields: [pessoaId], references: [id])
+  pessoaId            String                @unique
+  perfil              Perfil                @relation(fields: [perfilId], references: [id])
+  perfilId            String
+  empresa             Empresa               @relation(fields: [empresaId], references: [id])
+  empresaId           String
+  Calibracao          Calibracao[]
+  Manutencao          Manutencao[]
+  InspecaoEquipamento InspecaoEquipamento[]
 
   @@map("usuarios")
 }
@@ -180,4 +183,115 @@ model Agenda {
 enum StatusCalibracao {
   aprovado
   reprovado
+}
+
+model Equipamento {
+  id                        String                      @id @default(uuid())
+  codigo                    String                      @db.VarChar(255)
+  nome                      String                      @db.VarChar(255)
+  especificacao             String?                     @db.LongText
+  frequencia                Int                         @default(0)
+  empresaId                 String
+  empresa                   Empresa                     @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cadastradoEm              DateTime                    @default(now())
+  atualizadoEm              DateTime?                   @updatedAt
+  inspecionadoEm            DateTime?
+  concertadoEm              DateTime?
+  tempoOperacao             Int                         @default(0)
+  status                    StatusEquipamento           @default(operando)
+  PecasEquipamento          PecasEquipamento[]
+  AgendaInspecaoEquipamento AgendaInspecaoEquipamento[]
+  HistoricoEquipamento      HistoricoEquipamento[]
+  Manutencao                Manutencao[]
+  InspecaoEquipamento       InspecaoEquipamento[]
+  PontosInspecaoEquipamento PontosInspecaoEquipamento[]
+
+  @@map("equipamentos")
+}
+
+model PecasEquipamento {
+  id                        String                      @id @default(uuid())
+  nome                      String                      @db.VarChar(255)
+  descricao                 String?                     @db.MediumText
+  equipamentoId             String
+  equipamento               Equipamento                 @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  PontosInspecaoEquipamento PontosInspecaoEquipamento[]
+
+  @@map("pecas_equipamento")
+}
+
+model AgendaInspecaoEquipamento {
+  id                Int         @id @default(autoincrement())
+  agendadoPara      DateTime    @db.Date
+  inspecaoRealizada Boolean     @default(false)
+  equipamentoId     String
+  equipamento       Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("agenda_inspecao_equipamentos")
+}
+
+model HistoricoEquipamento {
+  id            Int         @id @default(autoincrement())
+  data          DateTime
+  descricao     String      @db.Text
+  equipamentoId String
+  equipamento   Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("historico_equipamento")
+}
+
+model Manutencao {
+  id                   String      @id @default(uuid())
+  criadoEm             DateTime    @default(now())
+  iniciadoEm           DateTime?
+  finalizadoEm         DateTime?
+  canceladoEm          DateTime?
+  equipamentoId        String
+  equipamento          Equipamento @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuario              Usuario     @relation(fields: [usuarioId], references: [id])
+  usuarioId            String
+  observacoes          String      @db.LongText
+  duracao              Int?
+  equipamentoParado    Int?
+  tempoMaquinaOperacao Int         @default(0)
+
+  @@map("manutencoes")
+}
+
+model InspecaoEquipamento {
+  id                        String                      @id @default(uuid())
+  iniciadoEm                DateTime                    @default(now())
+  finalizadoEm              DateTime?
+  statusInspecao            StatusInspecaoEquipamento   @default(reprovado)
+  equipamentoId             String
+  equipamento               Equipamento                 @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuario                   Usuario                     @relation(fields: [usuarioId], references: [id])
+  usuarioId                 String
+  PontosInspecaoEquipamento PontosInspecaoEquipamento[]
+
+  @@map("inspecao_equipamentos")
+}
+
+model PontosInspecaoEquipamento {
+  inspecaoId          String
+  inspecaoEquipamento InspecaoEquipamento @relation(fields: [inspecaoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  equipamentoId       String
+  equipamento         Equipamento         @relation(fields: [equipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pecaEquipamentoId   String
+  pecasEquipamento    PecasEquipamento    @relation(fields: [pecaEquipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  aprovado            Boolean             @default(false)
+  inspecionadoEm      DateTime?
+
+  @@id([inspecaoId, equipamentoId, pecaEquipamentoId])
+  @@map("pontos_inspecao_equipamento")
+}
+
+enum StatusInspecaoEquipamento {
+  aprovado
+  reprovado
+}
+
+enum StatusEquipamento {
+  operando
+  parado
 }

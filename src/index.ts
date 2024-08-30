@@ -11,6 +11,9 @@ import RelatorioCalibracaoController from './controllers/calibracao/RelatoriosCa
 import Servidor from './controllers/ServerController'
 import ModuloController from './controllers/sistema/ModuloController'
 import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
+import EquipamentoController from './controllers/manutencao/EquipamentoController'
+import InspecaoEquipamentoController from './controllers/manutencao/InspecaoEquipamentoController'
+import ManutencaoEquipamentoController from './controllers/manutencao/ManutencaoEquipamentoController'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -25,6 +28,9 @@ new UsuarioController(server.servico)
 new ModuloController(server.servico)
 new InstrumentosController(server.servico)
 new RelatorioCalibracaoController(server.servico)
+new EquipamentoController(server.servico)
+new InspecaoEquipamentoController(server.servico)
+new ManutencaoEquipamentoController(server.servico)
 
 cron.schedule('0 2 1 * *', () => {
   notificarVencimentoCalibracao()
