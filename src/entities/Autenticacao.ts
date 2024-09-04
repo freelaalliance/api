@@ -1,5 +1,5 @@
-import { RespostaAutenticacaoInterface } from '../interfaces/ResponseInterface'
 import UsuarioEntity from '../entities/UsuarioEntity'
+import { RespostaAutenticacaoInterface } from '../interfaces/ResponseInterface'
 
 export type AutenticacaoUsuarioType = {
   id: string

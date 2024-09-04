@@ -1,14 +1,15 @@
-import {
-  FiltrosRelatorioPropsInterface,
-  InstrumentoInterface,
-} from './../interfaces/ModuloCalibracaoInterface'
 import CalibracaoEntity from '../entities/CalibracaoEntity'
 import { CalibracaoInterface } from '../interfaces/ModuloCalibracaoInterface'
-import { prisma } from '../services/PrismaClientService'
 import {
   PessoaInterface,
   PessoaUsuarioInterface,
 } from '../interfaces/PessoaInterface'
+import { prisma } from '../services/PrismaClientService'
+
+import {
+  FiltrosRelatorioPropsInterface,
+  InstrumentoInterface,
+} from './../interfaces/ModuloCalibracaoInterface'
 
 export type DataCalibracaoIntrumentoType = CalibracaoInterface & {
   instrumento: InstrumentoInterface
@@ -38,7 +39,9 @@ class CalibracaoInstrumentoRepository {
           this.calibracaoInstrumentoEntity.getTolerancia(),
         observacao: this.calibracaoInstrumentoEntity.getObservacao(),
         certificado: this.calibracaoInstrumentoEntity.getCertificado(),
-        status: this.calibracaoInstrumentoEntity.getStatus() as 'aprovado'|'reprovado',
+        status: this.calibracaoInstrumentoEntity.getStatus() as
+          | 'aprovado'
+          | 'reprovado',
         realizadoEm: this.calibracaoInstrumentoEntity.getRealizadoEm(),
         usuarioId: this.calibracaoInstrumentoEntity.getUsuarioId(),
         instrumentoId,
@@ -61,7 +64,9 @@ class CalibracaoInstrumentoRepository {
           this.calibracaoInstrumentoEntity.getTolerancia(),
         observacao: this.calibracaoInstrumentoEntity.getObservacao(),
         certificado: this.calibracaoInstrumentoEntity.getCertificado(),
-        status: this.calibracaoInstrumentoEntity.getStatus() as 'aprovado'|'reprovado',
+        status: this.calibracaoInstrumentoEntity.getStatus() as
+          | 'aprovado'
+          | 'reprovado',
         realizadoEm: this.calibracaoInstrumentoEntity.getRealizadoEm(),
         usuarioId: this.calibracaoInstrumentoEntity.getUsuarioId(),
       },

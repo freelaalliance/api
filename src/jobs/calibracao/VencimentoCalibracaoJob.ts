@@ -129,15 +129,22 @@ export async function notificarVencimentoCalibracao() {
   const urlBase = process.env.ENV_URL_BASE_EMAIL ?? 'http://localhost:3334/'
   const tokenBase = process.env.ENV_TOKEN_EMAIL ?? 'token@exemplo.com'
 
-  const response = await axiosInstance.post(
-    `${urlBase}/email/enviar`,
-    {
-      email: mensagensParaDisparo,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${tokenBase}`,
+  await axiosInstance
+    .post(
+      `${urlBase}/email/enviar`,
+      {
+        email: mensagensParaDisparo,
       },
-    },
-  )
+      {
+        headers: {
+          Authorization: `Bearer ${tokenBase}`,
+        },
+      },
+    )
+    .then((response) => {
+      console.log('Email disparado com sucesso: ', response.data)
+    })
+    .catch((error) => {
+      console.error('Erro ao disparar emails: ', error.response.data)
+    })
 }

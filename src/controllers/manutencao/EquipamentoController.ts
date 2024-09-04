@@ -1,4 +1,6 @@
-import { FastifyInstance } from "fastify"
+import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
+
 import {
   consultaCodigoEquipamento,
   consultarAgendaEquipamento,
@@ -10,80 +12,75 @@ import {
   modificarDadosEquipamento,
   modificarPecaEquipamento,
   removerEquipamento,
-  removerPecaEquipamento
-} from "../../repositories/Manutencao/EquipamentoRepository"
-
-import { z } from "zod"
+  removerPecaEquipamento,
+} from '../../repositories/Manutencao/EquipamentoRepository'
 
 class EquipamentoController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.consultaCodigoEquipamentoEmpresa, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
-    
+
     fastifyInstance.register(this.criarEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.equipamentosEmpresa, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.pecasEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.atualizarEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.adicionarPecaEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.atualizarPecaEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.excluirPecaEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.excluirEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.buscarAgendaEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
 
     fastifyInstance.register(this.buscarDadosEquipamento, {
-      prefix: '/equipamento'
+      prefix: '/equipamento',
     })
   }
 
-  async consultaCodigoEquipamentoEmpresa(app: FastifyInstance){
+  async consultaCodigoEquipamentoEmpresa(app: FastifyInstance) {
     const schemaQuery = z.object({
-      codigo: z.string()
+      codigo: z.string(),
     })
 
     app.get('/consulta', async (req, res) => {
       await req.jwtVerify()
       const { cliente } = req.user
 
-      const {
-        codigo
-      } = await schemaQuery.parseAsync(req.query)
+      const { codigo } = await schemaQuery.parseAsync(req.query)
 
-      try{
+      try {
         const equipamento = await consultaCodigoEquipamento({
           codigo,
-          empresaId: cliente
+          empresaId: cliente,
         })
-  
+
         res.status(200).send(equipamento)
-      }
-      catch(error){
+      } catch (error) {
         res.status(204).send()
       }
     })
@@ -96,22 +93,18 @@ class EquipamentoController {
       especificacao: z.string().optional(),
       frequencia: z.coerce.number().default(0),
       tempoOperacao: z.coerce.number().default(0),
-      pecas: z.array(z.object({
-        nome: z.string(),
-        descricao: z.string().optional()
-      }))
+      pecas: z.array(
+        z.object({
+          nome: z.string(),
+          descricao: z.string().optional(),
+        }),
+      ),
     })
 
     app.post('/', async (req, res) => {
       await req.jwtVerify()
-      const {
-        codigo,
-        nome,
-        especificacao,
-        frequencia,
-        tempoOperacao,
-        pecas
-      } = await schemaBody.parseAsync(req.body)
+      const { codigo, nome, especificacao, frequencia, tempoOperacao, pecas } =
+        await schemaBody.parseAsync(req.body)
 
       const { cliente } = req.user
       const salvaEquipamento = await inserirNovoEquipamento({
@@ -121,7 +114,7 @@ class EquipamentoController {
         frequencia,
         tempoOperacao,
         empresaId: cliente,
-        pecas
+        pecas,
       })
 
       if (salvaEquipamento) {
@@ -138,7 +131,7 @@ class EquipamentoController {
       const { cliente } = req.user
 
       const equipamentos = await listarEquipamentosEmpresa({
-        empresaId: cliente
+        empresaId: cliente,
       })
 
       res.status(200).send(equipamentos)
@@ -163,7 +156,7 @@ class EquipamentoController {
 
       const pecas = await listarPecasEquipamento({
         id,
-        empresaId: cliente
+        empresaId: cliente,
       })
 
       res.status(200).send(pecas)
@@ -193,13 +186,8 @@ class EquipamentoController {
       await req.jwtVerify()
       const { id } = await schemaParams.parseAsync(req.params)
       const { cliente } = req.user
-      const {
-        nome,
-        codigo,
-        especificacao,
-        frequencia,
-        tempoOperacao
-      } = await schemaBody.parseAsync(req.body)
+      const { nome, codigo, especificacao, frequencia, tempoOperacao } =
+        await schemaBody.parseAsync(req.body)
 
       const equipamento = await modificarDadosEquipamento({
         id,
@@ -208,7 +196,7 @@ class EquipamentoController {
         especificacao,
         frequencia,
         tempoOperacao,
-        empresaId: cliente
+        empresaId: cliente,
       })
 
       res.status(200).send(equipamento)
@@ -239,14 +227,16 @@ class EquipamentoController {
     })
 
     app.put('/:idEquipamento/peca/:idPeca', async (req, res) => {
-      const { idEquipamento, idPeca } = await schemaParams.parseAsync(req.params)
+      const { idEquipamento, idPeca } = await schemaParams.parseAsync(
+        req.params,
+      )
       const { nome, descricao } = await schemaBody.parseAsync(req.body)
 
       const atualizaDadosPeca = await modificarPecaEquipamento({
         id: idPeca,
         descricao,
         nome,
-        equipamentoId: idEquipamento
+        equipamentoId: idEquipamento,
       })
 
       res.status(200).send(atualizaDadosPeca)
@@ -254,13 +244,14 @@ class EquipamentoController {
   }
 
   async adicionarPecaEquipamento(app: FastifyInstance) {
-    
     const schemaBody = z.object({
-      pecas: z.array(z.object({
-        nome: z.string(),
-        descricao: z.string().optional(),
-        equipamentoId: z.string()
-      }))
+      pecas: z.array(
+        z.object({
+          nome: z.string(),
+          descricao: z.string().optional(),
+          equipamentoId: z.string(),
+        }),
+      ),
     })
 
     app.post('/pecas', async (req, res) => {
@@ -291,7 +282,7 @@ class EquipamentoController {
 
       await removerPecaEquipamento({
         id,
-        empresaId: cliente
+        empresaId: cliente,
       })
 
       res.status(204).send()
@@ -317,14 +308,14 @@ class EquipamentoController {
 
       await removerEquipamento({
         id,
-        empresaId: cliente
+        empresaId: cliente,
       })
 
       res.status(204).send()
     })
   }
 
-  async buscarAgendaEquipamento(app: FastifyInstance){
+  async buscarAgendaEquipamento(app: FastifyInstance) {
     const schemaParams = z.object({
       id: z
         .string({
@@ -342,14 +333,14 @@ class EquipamentoController {
 
       const agendaEquipamento = await consultarAgendaEquipamento({
         id,
-        empresaId: cliente
+        empresaId: cliente,
       })
 
       res.status(200).send(agendaEquipamento)
     })
   }
 
-  async buscarDadosEquipamento(app: FastifyInstance){
+  async buscarDadosEquipamento(app: FastifyInstance) {
     const schemaParams = z.object({
       id: z
         .string({
@@ -367,8 +358,8 @@ class EquipamentoController {
       const { cliente } = req.user
 
       const dadosEquipamento = await consultarDadosEquipamento({
-        id, 
-        empresaId: cliente
+        id,
+        empresaId: cliente,
       })
 
       res.status(200).send(dadosEquipamento)

@@ -8,12 +8,12 @@ import AutenticacaoController from './controllers/auth/AutenticacaoUsuarioContro
 import AutorizacaoUsuario from './controllers/auth/AutorizacaoUsuarioController'
 import InstrumentosController from './controllers/calibracao/InstrumentosController'
 import RelatorioCalibracaoController from './controllers/calibracao/RelatoriosCalibracaoController'
-import Servidor from './controllers/ServerController'
-import ModuloController from './controllers/sistema/ModuloController'
-import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
 import EquipamentoController from './controllers/manutencao/EquipamentoController'
 import InspecaoEquipamentoController from './controllers/manutencao/InspecaoEquipamentoController'
 import ManutencaoEquipamentoController from './controllers/manutencao/ManutencaoEquipamentoController'
+import Servidor from './controllers/ServerController'
+import ModuloController from './controllers/sistema/ModuloController'
+import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',

@@ -1,9 +1,10 @@
-import { RespostaRequisicaoInterface } from './../interfaces/ResponseInterface'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
+import InstrumentoEntity from '../entities/InstrumentoEntity'
 import { InstrumentoInterface } from '../interfaces/ModuloCalibracaoInterface'
 import { prisma } from '../services/PrismaClientService'
-import InstrumentoEntity from '../entities/InstrumentoEntity'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+
+import { RespostaRequisicaoInterface } from './../interfaces/ResponseInterface'
 
 class InstrumentoRepository {
   private instrumentoEntity: InstrumentoEntity
