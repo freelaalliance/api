@@ -12,11 +12,14 @@ datasource db {
 }
 
 model Pessoa {
-  id       String    @id @default(uuid())
-  nome     String
-  Endereco Endereco?
-  Empresa  Empresa?
-  Usuario  Usuario?
+  id             String           @id @default(uuid())
+  nome           String
+  Endereco       Endereco?
+  Empresa        Empresa?
+  Usuario        Usuario?
+  TelefonePessoa TelefonePessoa[]
+  EmailPessoa    EmailPessoa[]
+  Fornecedor     Fornecedor?
 
   @@map("pessoas")
 }
@@ -53,6 +56,7 @@ model Empresa {
   Instrumento   Instrumento[]
   Perfil        Perfil[]
   Equipamento   Equipamento[]
+  Fornecedor    Fornecedor[]
 
   @@map("empresas")
 }
@@ -70,21 +74,22 @@ model Perfil {
 }
 
 model Usuario {
-  id                  String                @id @default(uuid())
-  email               String                @unique
-  senha               String
-  ativo               Boolean               @default(true)
-  criadoEm            DateTime              @default(now())
-  atualizadoEm        DateTime              @updatedAt
-  pessoa              Pessoa                @relation(fields: [pessoaId], references: [id])
-  pessoaId            String                @unique
-  perfil              Perfil                @relation(fields: [perfilId], references: [id])
-  perfilId            String
-  empresa             Empresa               @relation(fields: [empresaId], references: [id])
-  empresaId           String
-  Calibracao          Calibracao[]
-  Manutencao          Manutencao[]
-  InspecaoEquipamento InspecaoEquipamento[]
+  id                   String                 @id @default(uuid())
+  email                String                 @unique
+  senha                String
+  ativo                Boolean                @default(true)
+  criadoEm             DateTime               @default(now())
+  atualizadoEm         DateTime               @updatedAt
+  pessoa               Pessoa                 @relation(fields: [pessoaId], references: [id])
+  pessoaId             String                 @unique
+  perfil               Perfil                 @relation(fields: [perfilId], references: [id])
+  perfilId             String
+  empresa              Empresa                @relation(fields: [empresaId], references: [id])
+  empresaId            String
+  Calibracao           Calibracao[]
+  Manutencao           Manutencao[]
+  InspecaoEquipamento  InspecaoEquipamento[]
+  AvaliacoesFornecedor AvaliacoesFornecedor[]
 
   @@map("usuarios")
 }
@@ -294,4 +299,84 @@ enum StatusInspecaoEquipamento {
 enum StatusEquipamento {
   operando
   parado
+}
+
+model TelefonePessoa {
+  id           String   @id @default(uuid())
+  codigoArea   String   @db.VarChar(3)
+  numero       String   @unique @db.VarChar(9)
+  cadastradoEm DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  excluido     Boolean  @default(false)
+  pessoaId     String
+  pessoa       Pessoa   @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("telefones_pessoa")
+}
+
+model EmailPessoa {
+  id           String   @id @default(uuid())
+  email        String   @unique @db.VarChar(255)
+  cadastradoEm DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  excluido     Boolean  @default(false)
+  pessoaId     String
+  pessoa       Pessoa   @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("emails_pessoa")
+}
+
+model Fornecedor {
+  id                   String                 @id @default(uuid())
+  documento            String                 @unique @db.VarChar(14)
+  critico              Boolean                @default(false)
+  aprovado             Boolean                @default(false)
+  desempenho           Decimal                @default(0) @db.Decimal(3, 1)
+  ultimaAvaliacao      DateTime?
+  pessoa               Pessoa                 @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pessoaId             String                 @unique
+  empresa              Empresa                @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  empresaId            String
+  cadastradoEm         DateTime               @default(now())
+  atualizadoEm         DateTime?              @updatedAt
+  excluido             Boolean                @default(false)
+  DocumentosFornecedor DocumentosFornecedor[]
+  AvaliacoesFornecedor AvaliacoesFornecedor[]
+  DesempenhoFornecedor DesempenhoFornecedor[]
+
+  @@map("fornecedores")
+}
+
+model DocumentosFornecedor {
+  id           String     @id @default(uuid())
+  nome         String     @db.VarChar(255)
+  arquivo      String     @db.LongText
+  fornecedorId String
+  fornecedor   Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("documentos_fornecedor")
+}
+
+model AvaliacoesFornecedor {
+  id           String     @id @default(uuid())
+  nota         Int
+  validade     DateTime   @db.Date
+  avaliadoEm   DateTime   @default(now())
+  aprovado     Boolean
+  fornecedorId String
+  fornecedor   Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuarioId    String
+  usuario      Usuario    @relation(fields: [usuarioId], references: [id])
+
+  @@map("avaliacoes_fornecedor")
+}
+
+model DesempenhoFornecedor {
+  id           Int        @id @default(autoincrement())
+  nota         Decimal
+  cadastradoEm DateTime   @default(now())
+  fornecedorId String
+  fornecedor   Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("desempenho_fornecedor")
 }

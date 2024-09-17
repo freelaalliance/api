@@ -39,17 +39,6 @@ async function seed() {
     data: {
       id: '1cb25fa9-bacf-498d-b1e4-be4fd8c4a9b4',
       nome: 'Usuario Dev',
-      Endereco: {
-        create: {
-          logradouro: 'Rua Teste',
-          numero: '123',
-          bairro: 'Bairro Teste',
-          cidade: 'Cidade Teste',
-          estado: 'SP',
-          cep: '12345-678',
-          complemento: 'Complemento Teste',
-        },
-      },
     },
   })
 
@@ -85,7 +74,7 @@ async function seed() {
       {
         id: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
         nome: 'Compras',
-        url: '/modulo/compras/painel',
+        url: '/modulo/compras/[id]/painel',
       },
     ],
   })
@@ -105,18 +94,6 @@ async function seed() {
         url: '/modulo/calibracao/painel',
       },
       {
-        id: 'f3c45aa5-ead6-4c6c-a6fb-abefae3a6012',
-        nome: 'Calibrações',
-        moduloId: 'bdd37c9e-e8a3-4df6-8a79-f86db4b3d57f',
-        url: '/modulo/calibracao/listar',
-      },
-      {
-        id: '68895fa1-c34d-4c18-ae1c-739220389ddd',
-        nome: 'Nova calibração',
-        moduloId: 'bdd37c9e-e8a3-4df6-8a79-f86db4b3d57f',
-        url: '/modulo/calibracao/novo',
-      },
-      {
         id: '2c07f0c1-6b1b-4915-9d37-aacba2771e95',
         nome: 'Equipamentos',
         moduloId: '0b917870-1142-4703-983c-475564b05527',
@@ -125,26 +102,26 @@ async function seed() {
       {
         id: 'b100168b-d945-4fe2-ade6-7c4fbe2f2f16',
         nome: 'Painel',
-        moduloId: '0b917870-1142-4703-983c-475564b05527',
-        url: '/modulo/compras/painel',
+        moduloId: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
+        url: '/modulo/compras/[id]/painel',
       },
       {
         id: 'fe8dcd57-938b-45c6-a9f9-eed4b2a42db2',
         nome: 'Fornecedores',
-        moduloId: '0b917870-1142-4703-983c-475564b05527',
-        url: '/modulo/compras/fornecedor',
+        moduloId: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
+        url: '/modulo/compras/[id]/fornecedor',
       },
       {
         id: '56d21fe0-38c0-415a-b7c8-eeeb06fbb64b',
         nome: 'Pedidos',
-        moduloId: '0b917870-1142-4703-983c-475564b05527',
-        url: '/modulo/compras/pedido',
+        moduloId: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
+        url: '/modulo/compras/[id]/pedido',
       },
       {
         id: '5eaa6870-0d41-40b3-977f-f842bd0ea17b',
         nome: 'Recebimentos',
-        moduloId: '0b917870-1142-4703-983c-475564b05527',
-        url: '/modulo/compras/recebimento',
+        moduloId: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
+        url: '/modulo/compras/[id]/recebimento',
       },
     ],
   })
@@ -161,6 +138,10 @@ async function seed() {
       },
       {
         moduloId: '0b917870-1142-4703-983c-475564b05527',
+        empresaId: '00c99ee1-eccf-4d71-88fa-2e1d2c085867',
+      },
+      {
+        moduloId: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
         empresaId: '00c99ee1-eccf-4d71-88fa-2e1d2c085867',
       },
     ],
