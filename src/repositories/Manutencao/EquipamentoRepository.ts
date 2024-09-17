@@ -233,7 +233,6 @@ export async function consultarAgendaEquipamento({
     },
   })
 }
-
 export async function consultarDadosEquipamento({
   id,
   empresaId,
