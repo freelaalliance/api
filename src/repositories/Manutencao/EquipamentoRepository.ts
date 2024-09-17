@@ -1,7 +1,14 @@
-import { addDays } from "date-fns";
-import { 
-  AtualizaEquipamentoProps, AtualizaPecaEquipamentoProps, EquipamentoProps, NovaPecaEquipamentoProps, NovoEquipamentoProps, PecaEquipamentoProps } from "../../interfaces/Manutencao/EquipamentoInterface";
-import { prisma } from "../../services/PrismaClientService";
+import { addDays } from 'date-fns'
+
+import {
+  AtualizaEquipamentoProps,
+  AtualizaPecaEquipamentoProps,
+  EquipamentoProps,
+  NovaPecaEquipamentoProps,
+  NovoEquipamentoProps,
+  PecaEquipamentoProps,
+} from '../../interfaces/Manutencao/EquipamentoInterface'
+import { prisma } from '../../services/PrismaClientService'
 
 interface EquipamentosEmpresaProps {
   empresaId: string
@@ -12,12 +19,15 @@ interface EquipamentoCodigoEmpresaProps {
   empresaId: string
 }
 
-export async function consultaCodigoEquipamento({codigo, empresaId}: EquipamentoCodigoEmpresaProps){
+export async function consultaCodigoEquipamento({
+  codigo,
+  empresaId,
+}: EquipamentoCodigoEmpresaProps) {
   return await prisma.equipamento.findFirstOrThrow({
     where: {
       codigo,
-      empresaId
-    }
+      empresaId,
+    },
   })
 }
 
@@ -28,7 +38,7 @@ export async function inserirNovoEquipamento({
   frequencia,
   empresaId,
   tempoOperacao,
-  pecas
+  pecas,
 }: NovoEquipamentoProps) {
   return await prisma.equipamento.create({
     data: {
@@ -40,45 +50,45 @@ export async function inserirNovoEquipamento({
       tempoOperacao,
       PecasEquipamento: {
         createMany: {
-          data: pecas
-        }
+          data: pecas,
+        },
       },
       AgendaInspecaoEquipamento: {
         create: {
           agendadoPara: addDays(new Date(), frequencia),
-        }
-      }
+        },
+      },
     },
   })
 }
 
 export async function listarEquipamentosEmpresa({
-  empresaId
+  empresaId,
 }: EquipamentosEmpresaProps) {
   return await prisma.equipamento.findMany({
     where: {
-      empresaId
+      empresaId,
     },
     orderBy: {
-      nome: 'asc'
-    }
+      nome: 'asc',
+    },
   })
 }
 
 export async function listarPecasEquipamento({
   id,
-  empresaId
+  empresaId,
 }: PecaEquipamentoProps) {
   return await prisma.pecasEquipamento.findMany({
     where: {
       equipamentoId: id,
       equipamento: {
-        empresaId
-      }
+        empresaId,
+      },
     },
     orderBy: {
-      nome: 'asc'
-    }
+      nome: 'asc',
+    },
   })
 }
 
@@ -89,7 +99,7 @@ export async function modificarDadosEquipamento({
   especificacao,
   frequencia,
   tempoOperacao,
-  empresaId
+  empresaId,
 }: AtualizaEquipamentoProps) {
   const atualizaEquipamento = await prisma.equipamento.update({
     data: {
@@ -97,30 +107,35 @@ export async function modificarDadosEquipamento({
       codigo,
       especificacao,
       frequencia,
-      tempoOperacao
+      tempoOperacao,
     },
     where: {
       id,
-      empresaId
-    }
+      empresaId,
+    },
   })
 
-  if(frequencia && atualizaEquipamento){
-    const removeAgendamentosNaoRealizados = prisma.agendaInspecaoEquipamento.deleteMany({
-      where: {
-        equipamentoId: id,
-        inspecaoRealizada: false
-      }
-    })
+  if (frequencia && atualizaEquipamento) {
+    const removeAgendamentosNaoRealizados =
+      prisma.agendaInspecaoEquipamento.deleteMany({
+        where: {
+          equipamentoId: id,
+          inspecaoRealizada: false,
+        },
+      })
 
-    const adicionaAgendamentoEquipamento = prisma.agendaInspecaoEquipamento.create({
-      data: {
-        agendadoPara: addDays(new Date(), frequencia),
-        equipamentoId: id
-      }
-    })
+    const adicionaAgendamentoEquipamento =
+      prisma.agendaInspecaoEquipamento.create({
+        data: {
+          agendadoPara: addDays(new Date(), frequencia),
+          equipamentoId: id,
+        },
+      })
 
-    await prisma.$transaction([removeAgendamentosNaoRealizados, adicionaAgendamentoEquipamento])
+    await prisma.$transaction([
+      removeAgendamentosNaoRealizados,
+      adicionaAgendamentoEquipamento,
+    ])
   }
 
   return atualizaEquipamento
@@ -130,98 +145,102 @@ export async function modificarPecaEquipamento({
   id,
   descricao,
   nome,
-  equipamentoId
+  equipamentoId,
 }: AtualizaPecaEquipamentoProps) {
   return await prisma.pecasEquipamento.update({
     data: {
       descricao,
-      nome
+      nome,
     },
     where: {
       id,
-      equipamentoId
-    }
+      equipamentoId,
+    },
   })
 }
 
-export async function inserirPecaEquipamento(pecas: Array<NovaPecaEquipamentoProps>) {
+export async function inserirPecaEquipamento(
+  pecas: Array<NovaPecaEquipamentoProps>,
+) {
   return await prisma.pecasEquipamento.createMany({
-    data: pecas
+    data: pecas,
   })
 }
 
 export async function removerPecaEquipamento({
   id,
-  empresaId
+  empresaId,
 }: PecaEquipamentoProps) {
   return await prisma.pecasEquipamento.delete({
     where: {
       id,
       equipamento: {
-        empresaId
-      }
-    }
+        empresaId,
+      },
+    },
   })
 }
 
-export async function removerEquipamento({
-  id,
-  empresaId
-}: EquipamentoProps) {
+export async function removerEquipamento({ id, empresaId }: EquipamentoProps) {
   const removePecasEquipamento = prisma.pecasEquipamento.deleteMany({
     where: {
       equipamentoId: id,
       equipamento: {
-        empresaId
-      }
-    }
+        empresaId,
+      },
+    },
   })
   const removeAgendaEquipamento = prisma.agendaInspecaoEquipamento.deleteMany({
     where: {
       equipamentoId: id,
       equipamento: {
-        empresaId
-      }
-    }
+        empresaId,
+      },
+    },
   })
   const removeEquipamento = prisma.equipamento.delete({
     where: {
       id,
-      empresaId
-    }
+      empresaId,
+    },
   })
 
   await prisma.$transaction([
     removePecasEquipamento,
     removeAgendaEquipamento,
-    removeEquipamento
+    removeEquipamento,
   ])
 }
 
-export async function consultarAgendaEquipamento({id, empresaId}: EquipamentoProps) {
+export async function consultarAgendaEquipamento({
+  id,
+  empresaId,
+}: EquipamentoProps) {
   return await prisma.agendaInspecaoEquipamento.findMany({
     select: {
       id: true,
       agendadoPara: true,
-      inspecaoRealizada: true
+      inspecaoRealizada: true,
     },
     where: {
       equipamentoId: id,
       equipamento: {
-        empresaId
-      }
+        empresaId,
+      },
     },
     orderBy: {
-      agendadoPara: 'asc'
-    }
+      agendadoPara: 'asc',
+    },
   })
 }
-
-export async function consultarDadosEquipamento({id, empresaId}: EquipamentoProps){
+export async function consultarDadosEquipamento({
+  id,
+  empresaId,
+}: EquipamentoProps) {
   return await prisma.equipamento.findUnique({
     where: {
       id,
-      empresaId
-    }
+      empresaId,
+    },
   })
 }

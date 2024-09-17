@@ -1,9 +1,11 @@
-import { PessoaInterface } from './../interfaces/PessoaInterface'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+
 import EmpresaEntity from '../entities/EmpresaEntity'
 import { PessoaEmpresaInterface } from '../interfaces/PessoaInterface'
-import { prisma } from '../services/PrismaClientService'
 import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import { prisma } from '../services/PrismaClientService'
+
+import { PessoaInterface } from './../interfaces/PessoaInterface'
 
 class EmpresaRepository {
   private empresaEntity: EmpresaEntity

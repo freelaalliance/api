@@ -1,5 +1,6 @@
 import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import EmpresaRepository from '../repositories/EmpresaRepository'
+
 import PessoaEntity from './PessoaEntity'
 
 class EmpresaEntity extends PessoaEntity {

@@ -1,14 +1,14 @@
-export interface EquipamentoProps{
+export interface EquipamentoProps {
   id: string
   empresaId: string
 }
 
-export interface PecaEquipamentoProps{
+export interface PecaEquipamentoProps {
   id: string
   empresaId: string
 }
 
-export interface AtualizaEquipamentoProps{
+export interface AtualizaEquipamentoProps {
   id: string
   codigo?: string
   nome?: string
@@ -38,7 +38,7 @@ export interface NovoEquipamentoProps {
   }>
 }
 
-export interface NovaPecaEquipamentoProps{
+export interface NovaPecaEquipamentoProps {
   nome: string
   descricao?: string
   equipamentoId: string
@@ -48,7 +48,7 @@ export type DadosEquipamentoType = {
   id: string
   codigo: string
   nome: string
-  especificacao?: string|null
+  especificacao?: string | null
   frequencia: number
   empresaId: string
 }

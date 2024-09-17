@@ -1,8 +1,9 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+
 import { InstrumentoInterface } from '../interfaces/ModuloCalibracaoInterface'
 import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
-import InstrumentoRepository from '../repositories/InstrumentoRepository'
 import AgendaRepository from '../repositories/AgendaRepository'
+import InstrumentoRepository from '../repositories/InstrumentoRepository'
 
 export type EstatisticaInstrumentoEmpresaType = {
   quantidadeInstrumentosEmpresa: number

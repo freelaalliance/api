@@ -1,8 +1,9 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+
 import EnderecoEntity from '../entities/EnderecoEntity'
 import { EnderecoRepositoryInterface } from '../interfaces/EnderecoInterface'
-import { prisma } from '../services/PrismaClientService'
 import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import { prisma } from '../services/PrismaClientService'
 
 class EnderecoRepository {
   private enderecoEntity: EnderecoEntity

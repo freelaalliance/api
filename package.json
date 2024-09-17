@@ -10,38 +10,40 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsup src",
-    "lint": "eslint src --ext [.ts] --fix",
+    "lint": "eslint src --fix",
     "start": "node dist/index.cjs"
   },
-  "prisma" : {
+  "prisma": {
     "seed": "tsx prisma/seeds/dev.ts"
   },
   "keywords": [],
   "author": "Adriano Silva",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.9.1",
     "@rocketseat/eslint-config": "^2.2.2",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^20.12.3",
+    "@types/node": "^20.16.5",
     "@types/node-cron": "^3.0.11",
     "date-fns": "^3.6.0",
     "eslint": "^8.57.0",
-    "prisma": "^5.12.0",
-    "tsup": "^8.0.2",
-    "tsx": "^4.7.1",
-    "typescript": "^5.4.3"
+    "prisma": "^5.19.1",
+    "tsup": "^8.2.4",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@fastify/cookie": "^9.3.1",
+    "@fastify/cookie": "^9.4.0",
     "@fastify/cors": "^8.5.0",
-    "@fastify/jwt": "^8.0.0",
-    "@prisma/client": "5.7.1",
-    "axios": "^1.6.8",
+    "@fastify/jwt": "^8.0.1",
+    "@prisma/client": "5.19.1",
+    "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
-    "fastify": "^4.26.2",
+    "fastify": "^4.28.1",
     "node-cron": "^3.0.3",
-    "zod": "^3.22.4"
+    "zod": "^3.23.8"
   },
   "packageManager": "pnpm@9.1.1+sha512.14e915759c11f77eac07faba4d019c193ec8637229e62ec99eefb7cf3c3b75c64447882b7c485142451ee3a6b408059cdfb7b7fa0341b975f12d0f7629c71195"
 }

@@ -1,36 +1,40 @@
-import { differenceInMinutes } from "date-fns";
-import { prisma } from "../../services/PrismaClientService";
+import { differenceInMinutes } from 'date-fns'
+
+import { prisma } from '../../services/PrismaClientService'
 
 interface NovaManutencaoProps {
-  equipamentoId: string,
-  usuarioId: string,
-  observacao: string,
+  equipamentoId: string
+  usuarioId: string
+  observacao: string
 }
 
 interface IniciarManutencaoEquipamentoProps {
-  equipamentoId: string,
-  manutencaoId: string,
+  equipamentoId: string
+  manutencaoId: string
   iniciadoEm: Date
 }
 
 interface FinalizarManutencaoEquipamentoProps {
-  equipamentoId: string,
-  manutencaoId: string,
-  finalizadoEm: Date,
+  equipamentoId: string
+  manutencaoId: string
+  finalizadoEm: Date
 }
 
 interface CancelarManutencaoEquipamentoProps {
-  equipamentoId: string,
-  manutencaoId: string,
+  equipamentoId: string
+  manutencaoId: string
   canceladoEm: Date
 }
 
 interface ConsultaManutencoesEquipamentoProps {
-  equipamentoId: string | null,
-  empresaId: string,
+  equipamentoId?: string | null
+  empresaId: string
 }
 
-export async function consultaDuracaoManutencoesEquipamento({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
+export async function consultaDuracaoManutencoesEquipamento({
+  equipamentoId,
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   return await prisma.$queryRaw`SELECT SUM(duracao) AS 'duracao', DATE_FORMAT(manutencoes.iniciadoEm, '%Y-%m') AS 'inicioManutencao' 
       FROM manutencoes 
       JOIN equipamentos ON manutencoes.equipamentoId = equipamentos.id 
@@ -45,7 +49,10 @@ export async function consultaDuracaoManutencoesEquipamento({ equipamentoId, emp
     `
 }
 
-export async function buscarManutencoesEquipamento({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
+export async function buscarManutencoesEquipamento({
+  equipamentoId,
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   return await prisma.manutencao.findMany({
     select: {
       id: true,
@@ -62,25 +69,28 @@ export async function buscarManutencoesEquipamento({ equipamentoId, empresaId }:
         select: {
           pessoa: {
             select: {
-              nome: true
-            }
-          }
-        }
-      }
+              nome: true,
+            },
+          },
+        },
+      },
     },
     where: {
       equipamentoId: equipamentoId ?? '',
       equipamento: {
-        empresaId
-      }
+        empresaId,
+      },
     },
     orderBy: {
-      criadoEm: 'desc'
-    }
+      criadoEm: 'desc',
+    },
   })
 }
 
-export async function buscarManutencoesFinalizadasEquipamento({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
+export async function buscarManutencoesFinalizadasEquipamento({
+  equipamentoId,
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   return await prisma.manutencao.findMany({
     select: {
       id: true,
@@ -96,61 +106,72 @@ export async function buscarManutencoesFinalizadasEquipamento({ equipamentoId, e
         select: {
           pessoa: {
             select: {
-              nome: true
-            }
-          }
-        }
-      }
+              nome: true,
+            },
+          },
+        },
+      },
     },
     where: {
       equipamentoId: equipamentoId ?? '',
       equipamento: {
-        empresaId
+        empresaId,
       },
       canceladoEm: null,
       finalizadoEm: {
-        not: null
-      }
+        not: null,
+      },
     },
     orderBy: {
-      iniciadoEm: 'desc'
-    }
+      iniciadoEm: 'desc',
+    },
   })
 }
 
-export async function salvarNovaManutencao({ equipamentoId, usuarioId, observacao: observacoes }: NovaManutencaoProps) {
-
-  let tempoMaquinaOperacao = 0;
+export async function salvarNovaManutencao({
+  equipamentoId,
+  usuarioId,
+  observacao: observacoes,
+}: NovaManutencaoProps) {
+  let tempoMaquinaOperacao = 0
 
   const verificaManutencoesEquipamento = await prisma.manutencao.findFirst({
     where: {
       equipamentoId,
       finalizadoEm: {
-        not: null
-      }
-    }
+        not: null,
+      },
+    },
   })
 
-  if(verificaManutencoesEquipamento && verificaManutencoesEquipamento.finalizadoEm){
-    tempoMaquinaOperacao = differenceInMinutes(new Date(), new Date(verificaManutencoesEquipamento.finalizadoEm))
-  }
-  else{
+  if (
+    verificaManutencoesEquipamento &&
+    verificaManutencoesEquipamento.finalizadoEm
+  ) {
+    tempoMaquinaOperacao = differenceInMinutes(
+      new Date(),
+      new Date(verificaManutencoesEquipamento.finalizadoEm),
+    )
+  } else {
     const dadosEquipamento = await prisma.equipamento.findUniqueOrThrow({
       where: {
-        id: equipamentoId
-      }
+        id: equipamentoId,
+      },
     })
 
-    if(dadosEquipamento){
-      tempoMaquinaOperacao = differenceInMinutes(new Date(), new Date(dadosEquipamento.cadastradoEm))
+    if (dadosEquipamento) {
+      tempoMaquinaOperacao = differenceInMinutes(
+        new Date(),
+        new Date(dadosEquipamento.cadastradoEm),
+      )
     }
   }
 
   await prisma.equipamento.update({
     where: { id: equipamentoId },
     data: {
-      status: 'parado'
-    }
+      status: 'parado',
+    },
   })
 
   return await prisma.manutencao.create({
@@ -168,39 +189,47 @@ export async function salvarNovaManutencao({ equipamentoId, usuarioId, observaca
         select: {
           pessoa: {
             select: {
-              nome: true
-            }
-          }
-        }
-      }
+              nome: true,
+            },
+          },
+        },
+      },
     },
     data: {
       equipamentoId,
       usuarioId,
       observacoes,
-      tempoMaquinaOperacao
-    }
+      tempoMaquinaOperacao,
+    },
   })
 }
 
-export async function cancelarManutencaoEquipamento({ equipamentoId, manutencaoId, canceladoEm }: CancelarManutencaoEquipamentoProps) {
+export async function cancelarManutencaoEquipamento({
+  equipamentoId,
+  manutencaoId,
+  canceladoEm,
+}: CancelarManutencaoEquipamentoProps) {
   return await prisma.manutencao.update({
     data: {
       canceladoEm,
       equipamento: {
         update: {
-          status: 'operando'
+          status: 'operando',
         },
-      }
+      },
     },
     where: {
       id: manutencaoId,
       equipamentoId,
-    }
+    },
   })
 }
 
-export async function iniciarManutencaoEquipamento({ equipamentoId, manutencaoId, iniciadoEm }: IniciarManutencaoEquipamentoProps) {
+export async function iniciarManutencaoEquipamento({
+  equipamentoId,
+  manutencaoId,
+  iniciadoEm,
+}: IniciarManutencaoEquipamentoProps) {
   return await prisma.manutencao.update({
     data: {
       iniciadoEm,
@@ -208,21 +237,31 @@ export async function iniciarManutencaoEquipamento({ equipamentoId, manutencaoId
     where: {
       id: manutencaoId,
       equipamentoId,
-    }
+    },
   })
 }
 
-export async function finalizarManutencaoEquipamento({ equipamentoId, manutencaoId, finalizadoEm }: FinalizarManutencaoEquipamentoProps) {
+export async function finalizarManutencaoEquipamento({
+  equipamentoId,
+  manutencaoId,
+  finalizadoEm,
+}: FinalizarManutencaoEquipamentoProps) {
   const dadosManutencao = await prisma.manutencao.findFirstOrThrow({
     where: {
       id: manutencaoId,
       equipamentoId,
-    }
+    },
   })
 
   if (dadosManutencao && dadosManutencao.iniciadoEm) {
-    const duracaoManutencaoEmMinutos = differenceInMinutes(new Date(finalizadoEm), new Date(dadosManutencao.iniciadoEm))
-    const duracaoEquipamentoParadoEmMinutos = differenceInMinutes(new Date(finalizadoEm), new Date(dadosManutencao.criadoEm))
+    const duracaoManutencaoEmMinutos = differenceInMinutes(
+      new Date(finalizadoEm),
+      new Date(dadosManutencao.iniciadoEm),
+    )
+    const duracaoEquipamentoParadoEmMinutos = differenceInMinutes(
+      new Date(finalizadoEm),
+      new Date(dadosManutencao.criadoEm),
+    )
 
     return await prisma.manutencao.update({
       data: {
@@ -232,19 +271,21 @@ export async function finalizarManutencaoEquipamento({ equipamentoId, manutencao
         equipamento: {
           update: {
             concertadoEm: finalizadoEm,
-            status: 'operando'
+            status: 'operando',
           },
-        }
+        },
       },
       where: {
         id: manutencaoId,
         equipamentoId,
-      }
+      },
     })
   }
 }
 
-export async function consultaQuantidadeEquipamentosParado({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
+export async function consultaQuantidadeEquipamentosParado({
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   return await prisma.$queryRaw`SELECT COUNT(equipamentos.id) AS 'qtd_equipamentos_parados' 
     FROM equipamentos 
     WHERE equipamentos.empresaId = ${empresaId}
@@ -252,7 +293,9 @@ export async function consultaQuantidadeEquipamentosParado({ equipamentoId, empr
   `
 }
 
-export async function consultaQuantidadeEquipamentosFuncionando({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
+export async function consultaQuantidadeEquipamentosFuncionando({
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   return await prisma.$queryRaw`
     SELECT COUNT(equipamentos.id) AS 'qtd_equipamentos_funcionando'
     FROM equipamentos
@@ -261,7 +304,9 @@ export async function consultaQuantidadeEquipamentosFuncionando({ equipamentoId,
   `
 }
 
-export async function consultaQuantidadeManutencoesEmAndamento({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
+export async function consultaQuantidadeManutencoesEmAndamento({
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   return await prisma.$queryRaw`
     SELECT
       COUNT(equipamentos.id) AS 'qtd_equipamentos_em_manutencao'
@@ -277,13 +322,17 @@ export async function consultaQuantidadeManutencoesEmAndamento({ equipamentoId, 
   `
 }
 
-export async function consultaQuantidadeManutencoesEmDia({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
-  return await prisma.$queryRaw<Array<{
-    id: string,
-    cadastradoEm: Date,
-    inspecionadoEm: Date | null,
-    frequencia: number
-  }>>`SELECT
+export async function consultaQuantidadeManutencoesEmDia({
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
+  return await prisma.$queryRaw<
+    Array<{
+      id: string
+      cadastradoEm: Date
+      inspecionadoEm: Date | null
+      frequencia: number
+    }>
+  >`SELECT
       equipamentos.id,
       equipamentos.cadastradoEm,
       equipamentos.inspecionadoEm,
@@ -295,7 +344,10 @@ export async function consultaQuantidadeManutencoesEmDia({ equipamentoId, empres
   `
 }
 
-export async function buscaEstatisticasManutencoes({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps) {
+export async function buscaEstatisticasManutencoes({
+  equipamentoId,
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   if (equipamentoId) {
     return await prisma.$queryRaw`
       SELECT 
@@ -311,7 +363,9 @@ export async function buscaEstatisticasManutencoes({ equipamentoId, empresaId }:
   }
 }
 
-export async function buscaEstatisticasManutencoesEquipamentosEmpresa({ equipamentoId, empresaId }: ConsultaManutencoesEquipamentoProps){
+export async function buscaEstatisticasManutencoesEquipamentosEmpresa({
+  empresaId,
+}: ConsultaManutencoesEquipamentoProps) {
   return await prisma.$queryRaw`
     SELECT 
       SUM(manutencoes.equipamentoParado) AS total_tempo_parado, 

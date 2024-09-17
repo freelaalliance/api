@@ -1,54 +1,68 @@
-import { FastifyInstance } from "fastify";
-import { z } from "zod";
-import { buscaEstatisticasManutencoes, buscaEstatisticasManutencoesEquipamentosEmpresa, buscarManutencoesEquipamento, cancelarManutencaoEquipamento, consultaDuracaoManutencoesEquipamento, consultaQuantidadeEquipamentosFuncionando, consultaQuantidadeEquipamentosParado, consultaQuantidadeManutencoesEmAndamento, consultaQuantidadeManutencoesEmDia, finalizarManutencaoEquipamento, iniciarManutencaoEquipamento, salvarNovaManutencao } from "../../repositories/Manutencao/ManutencaoEquipamentoRepository";
-import { addDays, differenceInDays } from "date-fns";
+import { addDays, differenceInDays } from 'date-fns'
+import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
+
+import {
+  buscaEstatisticasManutencoes,
+  buscaEstatisticasManutencoesEquipamentosEmpresa,
+  buscarManutencoesEquipamento,
+  cancelarManutencaoEquipamento,
+  consultaDuracaoManutencoesEquipamento,
+  consultaQuantidadeEquipamentosFuncionando,
+  consultaQuantidadeEquipamentosParado,
+  consultaQuantidadeManutencoesEmAndamento,
+  consultaQuantidadeManutencoesEmDia,
+  finalizarManutencaoEquipamento,
+  iniciarManutencaoEquipamento,
+  salvarNovaManutencao,
+} from '../../repositories/Manutencao/ManutencaoEquipamentoRepository'
 
 class ManutencaoEquipamentoController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.listarManutencoesEquipamento, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.novaManutencaoEquipamento, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.cancelarManutencao, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.iniciarManutencao, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.encerrarManutencao, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.buscarDuracoesManutencaoEquipamento, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.buscaEstatisticasEquipamentoStatus, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.buscaEstatisticasManutencoes, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.buscaIndicadoresManutencaoEquipamento, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
 
     fastifyInstance.register(this.buscaIndicadoresManutencoesEmpresa, {
-      prefix: '/manutencao'
+      prefix: '/manutencao',
     })
   }
 
   async listarManutencoesEquipamento(app: FastifyInstance) {
     const schemaParamsEquipamento = z.object({
-      idEquipamento: z.string()
+      idEquipamento: z.string(),
     })
 
     app.get('/equipamento/:idEquipamento', async (req, res) => {
@@ -58,7 +72,10 @@ class ManutencaoEquipamentoController {
 
       const { idEquipamento: id } = schemaParamsEquipamento.parse(req.params)
 
-      const manutencoes = await buscarManutencoesEquipamento({ equipamentoId: id, empresaId: cliente })
+      const manutencoes = await buscarManutencoesEquipamento({
+        equipamentoId: id,
+        empresaId: cliente,
+      })
 
       res.status(200).send(manutencoes)
     })
@@ -81,7 +98,11 @@ class ManutencaoEquipamentoController {
       const { observacao } = await schemaBodyNovaManutencao.parseAsync(req.body)
       const { equipamentoId } = schemaParamsManutencao.parse(req.params)
 
-      const novaManutencao = await salvarNovaManutencao({ equipamentoId, observacao, usuarioId: id })
+      const novaManutencao = await salvarNovaManutencao({
+        equipamentoId,
+        observacao,
+        usuarioId: id,
+      })
 
       res.status(201).send(novaManutencao)
     })
@@ -97,10 +118,18 @@ class ManutencaoEquipamentoController {
     })
 
     app.patch('/cancelar/:id', async (req, res) => {
-      const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(req.params)
-      const { equipamentoId } = await schemaBodyCancelaManutencao.parseAsync(req.body)
+      const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(
+        req.params,
+      )
+      const { equipamentoId } = await schemaBodyCancelaManutencao.parseAsync(
+        req.body,
+      )
 
-      const cancelaManutencao = await cancelarManutencaoEquipamento({ equipamentoId, manutencaoId, canceladoEm: new Date() })
+      const cancelaManutencao = await cancelarManutencaoEquipamento({
+        equipamentoId,
+        manutencaoId,
+        canceladoEm: new Date(),
+      })
 
       res.status(200).send(cancelaManutencao)
     })
@@ -117,16 +146,17 @@ class ManutencaoEquipamentoController {
     })
 
     app.patch('/finalizar/:id', async (req, res) => {
-      const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(req.params)
-      const { equipamentoId, finalizadoEm } = await schemaBodyFinalizaManutencao.parseAsync(req.body)
-
-      const finalizaManutencao = await finalizarManutencaoEquipamento(
-        {
-          equipamentoId,
-          manutencaoId,
-          finalizadoEm,
-        }
+      const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(
+        req.params,
       )
+      const { equipamentoId, finalizadoEm } =
+        await schemaBodyFinalizaManutencao.parseAsync(req.body)
+
+      const finalizaManutencao = await finalizarManutencaoEquipamento({
+        equipamentoId,
+        manutencaoId,
+        finalizadoEm,
+      })
 
       res.status(200).send(finalizaManutencao)
     })
@@ -142,16 +172,18 @@ class ManutencaoEquipamentoController {
     })
 
     app.patch('/iniciar/:id', async (req, res) => {
+      const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(
+        req.params,
+      )
+      const { equipamentoId } = await schemaBodyIniciarManutencao.parseAsync(
+        req.body,
+      )
 
-      const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(req.params)
-      const { equipamentoId } = await schemaBodyIniciarManutencao.parseAsync(req.body)
-
-      const iniciaManutencao = await iniciarManutencaoEquipamento(
-        {
-          equipamentoId,
-          manutencaoId,
-          iniciadoEm: new Date()
-        })
+      const iniciaManutencao = await iniciarManutencaoEquipamento({
+        equipamentoId,
+        manutencaoId,
+        iniciadoEm: new Date(),
+      })
 
       res.status(200).send(iniciaManutencao)
     })
@@ -167,9 +199,14 @@ class ManutencaoEquipamentoController {
 
       const { cliente } = req.user
 
-      const { idEquipamento } = await schemaParamsManutencao.parseAsync(req.params)
+      const { idEquipamento } = await schemaParamsManutencao.parseAsync(
+        req.params,
+      )
 
-      const duracoesManutencoes = await consultaDuracaoManutencoesEquipamento({ equipamentoId: idEquipamento, empresaId: cliente })
+      const duracoesManutencoes = await consultaDuracaoManutencoesEquipamento({
+        equipamentoId: idEquipamento,
+        empresaId: cliente,
+      })
 
       res.status(200).send(duracoesManutencoes)
     })
@@ -183,17 +220,22 @@ class ManutencaoEquipamentoController {
 
       const equipamentoParado = await consultaQuantidadeEquipamentosParado({
         empresaId: cliente,
-        equipamentoId: ''
+        equipamentoId: '',
       })
 
-      const equipamentoFuncionando = await consultaQuantidadeEquipamentosFuncionando({
-        empresaId: cliente,
-        equipamentoId: ''
-      })
+      const equipamentoFuncionando =
+        await consultaQuantidadeEquipamentosFuncionando({
+          empresaId: cliente,
+          equipamentoId: '',
+        })
 
       res.status(200).send({
-        qtd_equipamentos_parados: equipamentoParado[0] ? Number(equipamentoParado[0].qtd_equipamentos_parados) : 0,
-        qtd_equipamentos_funcionando: equipamentoFuncionando[0] ? Number(equipamentoFuncionando[0].qtd_equipamentos_funcionando) : 0,
+        qtd_equipamentos_parados: equipamentoParado[0]
+          ? Number(equipamentoParado[0].qtd_equipamentos_parados)
+          : 0,
+        qtd_equipamentos_funcionando: equipamentoFuncionando[0]
+          ? Number(equipamentoFuncionando[0].qtd_equipamentos_funcionando)
+          : 0,
       })
     })
   }
@@ -204,37 +246,54 @@ class ManutencaoEquipamentoController {
 
       const { cliente } = req.user
 
-      const manutencoesEmAndamento = await consultaQuantidadeManutencoesEmAndamento({
-        empresaId: cliente,
-        equipamentoId: ''
-      })
+      const manutencoesEmAndamento =
+        await consultaQuantidadeManutencoesEmAndamento({
+          empresaId: cliente,
+          equipamentoId: '',
+        })
 
       const manutencoesEmDia = await consultaQuantidadeManutencoesEmDia({
         empresaId: cliente,
-        equipamentoId: ''
+        equipamentoId: '',
       })
 
-      const equipamentosManutencaoEmDia = manutencoesEmDia.filter((equipamento) => {
-        const proximaManutencaoPreventiva = equipamento.inspecionadoEm ? addDays(new Date(equipamento.inspecionadoEm), equipamento.frequencia) : addDays(new Date(equipamento.cadastradoEm), equipamento.frequencia)
+      const equipamentosManutencaoEmDia = manutencoesEmDia.filter(
+        (equipamento) => {
+          const proximaManutencaoPreventiva = equipamento.inspecionadoEm
+            ? addDays(
+                new Date(equipamento.inspecionadoEm),
+                equipamento.frequencia,
+              )
+            : addDays(
+                new Date(equipamento.cadastradoEm),
+                equipamento.frequencia,
+              )
 
-        const diasProximaManutencao = differenceInDays(proximaManutencaoPreventiva, new Date())
+          const diasProximaManutencao = differenceInDays(
+            proximaManutencaoPreventiva,
+            new Date(),
+          )
 
-        if(diasProximaManutencao >= 0){
-          return equipamento
-        }
-      })
+          if (diasProximaManutencao >= 0) {
+            return equipamento
+          }
 
+          return null
+        },
+      )
 
       res.status(200).send({
         qtd_equipamentos_manutencao_em_dia: equipamentosManutencaoEmDia.length,
-        qtd_manutencoes_em_andamento: manutencoesEmAndamento[0] ? Number(manutencoesEmAndamento[0].qtd_equipamentos_em_manutencao) : 0,
+        qtd_manutencoes_em_andamento: manutencoesEmAndamento[0]
+          ? Number(manutencoesEmAndamento[0].qtd_equipamentos_em_manutencao)
+          : 0,
       })
     })
   }
 
   async buscaIndicadoresManutencaoEquipamento(app: FastifyInstance) {
     const schemaQueryParams = z.object({
-      equipamentoId: z.string().uuid().optional()
+      equipamentoId: z.string().uuid().optional(),
     })
 
     app.get('/indicadores/equipamento', async (req, res) => {
@@ -245,36 +304,39 @@ class ManutencaoEquipamentoController {
 
       const dadosIndicadores = await buscaEstatisticasManutencoes({
         empresaId: cliente,
-        equipamentoId: equipamentoId ?? null
+        equipamentoId: equipamentoId ?? null,
       })
 
       res.status(200).send({
         total_tempo_parado: Number(dadosIndicadores[0].total_tempo_parado),
         qtd_manutencoes: Number(dadosIndicadores[0].qtd_manutencoes),
-        total_tempo_operacao: Number(dadosIndicadores[0].total_tempo_operacao)
+        total_tempo_operacao: Number(dadosIndicadores[0].total_tempo_operacao),
       })
     })
   }
 
-  async buscaIndicadoresManutencoesEmpresa(app: FastifyInstance){
+  async buscaIndicadoresManutencoesEmpresa(app: FastifyInstance) {
     app.get('/indicadores/equipamentos/empresa', async (req, res) => {
       await req.jwtVerify()
 
       const { cliente } = req.user
 
-      const dadosIndicadores = await buscaEstatisticasManutencoesEquipamentosEmpresa({
-        empresaId: cliente,
-        equipamentoId: ''
-      })
+      const dadosIndicadores =
+        await buscaEstatisticasManutencoesEquipamentosEmpresa({
+          empresaId: cliente,
+          equipamentoId: '',
+        })
 
-      res.status(200).send(dadosIndicadores.map((equipamento) => {
-        return {
-          nome: equipamento.nome,
-          total_tempo_parado: Number(equipamento.total_tempo_parado),
-          qtd_manutencoes: Number(equipamento.qtd_manutencoes),
-          total_tempo_operacao: Number(equipamento.total_tempo_operacao)
-        }
-      }))
+      res.status(200).send(
+        dadosIndicadores.map((equipamento) => {
+          return {
+            nome: equipamento.nome,
+            total_tempo_parado: Number(equipamento.total_tempo_parado),
+            qtd_manutencoes: Number(equipamento.qtd_manutencoes),
+            total_tempo_operacao: Number(equipamento.total_tempo_operacao),
+          }
+        }),
+      )
     })
   }
 }

@@ -1,28 +1,37 @@
-import { FastifyInstance } from "fastify";
-import { z } from "zod";
-import { agendarInspecaoEquipamento, atualizarAgendaEquipamento, consultarAgendaInspecaoEmpresa, finalizarInspecao, listaInspecoesEquipamentoEmpresa, listaPontosInspecionadoEquipamento, removerPontosInspecionados, salvarInspecao } from "../../repositories/Manutencao/InspecaoEquipamentoRepository";
-import { salvarNovaManutencao } from "../../repositories/Manutencao/ManutencaoEquipamentoRepository";
+import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
+
+import {
+  agendarInspecaoEquipamento,
+  atualizarAgendaEquipamento,
+  consultarAgendaInspecaoEmpresa,
+  finalizarInspecao,
+  listaInspecoesEquipamentoEmpresa,
+  listaPontosInspecionadoEquipamento,
+  salvarInspecao,
+} from '../../repositories/Manutencao/InspecaoEquipamentoRepository'
+import { salvarNovaManutencao } from '../../repositories/Manutencao/ManutencaoEquipamentoRepository'
 
 class InspecaoEquipamentoController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.registrarInspecao, {
-      prefix: 'inspecao'
+      prefix: 'inspecao',
     })
 
     fastifyInstance.register(this.consultarInspecoesEquipamento, {
-      prefix: 'inspecao'
+      prefix: 'inspecao',
     })
 
     fastifyInstance.register(this.listarPontosInspecionados, {
-      prefix: 'inspecao'
+      prefix: 'inspecao',
     })
 
     fastifyInstance.register(this.finalizarInspecaoEquipamento, {
-      prefix: 'inspecao'
+      prefix: 'inspecao',
     })
 
     fastifyInstance.register(this.agendaInspecoesEmpresa, {
-      prefix: 'inspecao'
+      prefix: 'inspecao',
     })
   }
 
@@ -31,12 +40,14 @@ class InspecaoEquipamentoController {
       iniciadoEm: z.coerce.date(),
       finalizadoEm: z.coerce.date().optional(),
       observacao: z.string().optional(),
-      inspecaoPeca: z.array(z.object({
-        pecaEquipamentoId: z.string().uuid(),
-        aprovado: z.boolean(),
-        inspecionadoEm: z.coerce.date().optional().nullable(),
-        inspecionado: z.boolean()
-      }))
+      inspecaoPeca: z.array(
+        z.object({
+          pecaEquipamentoId: z.string().uuid(),
+          aprovado: z.boolean(),
+          inspecionadoEm: z.coerce.date().optional().nullable(),
+          inspecionado: z.boolean(),
+        }),
+      ),
     })
 
     const schemaParamsEquipamento = z.object({
@@ -48,21 +59,30 @@ class InspecaoEquipamentoController {
 
       const { id, cliente } = req.user
 
-      const { iniciadoEm, finalizadoEm, inspecaoPeca, observacao } = await schemaDadosInspecao.parseAsync(req.body)
-      const { id: equipamentoId } = await schemaParamsEquipamento.parseAsync(req.params)
+      const { iniciadoEm, finalizadoEm, inspecaoPeca, observacao } =
+        await schemaDadosInspecao.parseAsync(req.body)
+      const { id: equipamentoId } = await schemaParamsEquipamento.parseAsync(
+        req.params,
+      )
 
-      const pontoReprovado = inspecaoPeca.find(pontos => !pontos.aprovado)
+      const pontoReprovado = inspecaoPeca.find((pontos) => !pontos.aprovado)
 
       if (finalizadoEm) {
-        await atualizarAgendaEquipamento({ empresaId: cliente, id: equipamentoId })
+        await atualizarAgendaEquipamento({
+          empresaId: cliente,
+          id: equipamentoId,
+        })
 
-        await agendarInspecaoEquipamento({ empresaId: cliente, id: equipamentoId })
+        await agendarInspecaoEquipamento({
+          empresaId: cliente,
+          id: equipamentoId,
+        })
 
         if (pontoReprovado && observacao) {
           await salvarNovaManutencao({
             equipamentoId,
             usuarioId: id,
-            observacao
+            observacao,
           })
         }
       }
@@ -73,7 +93,7 @@ class InspecaoEquipamentoController {
         usuarioId: id,
         status: pontoReprovado ? 'reprovado' : 'aprovado',
         finalizadoEm,
-        inspecaoPeca
+        inspecaoPeca,
       })
 
       res.status(201).send(salvaInspecao)
@@ -89,9 +109,14 @@ class InspecaoEquipamentoController {
       await req.jwtVerify()
       const { cliente } = req.user
 
-      const { equipamentoId } = await schemaParamsEquipamento.parseAsync(req.params)
+      const { equipamentoId } = await schemaParamsEquipamento.parseAsync(
+        req.params,
+      )
 
-      const inspecaoEquipamento = await listaInspecoesEquipamentoEmpresa({ id: equipamentoId, empresaId: cliente })
+      const inspecaoEquipamento = await listaInspecoesEquipamentoEmpresa({
+        id: equipamentoId,
+        empresaId: cliente,
+      })
 
       res.status(200).send(inspecaoEquipamento)
     })
@@ -107,10 +132,13 @@ class InspecaoEquipamentoController {
 
       const { cliente } = req.user
 
-      const { id: inspecaoId } = await schemaParamsInspecao.parseAsync(req.params)
+      const { id: inspecaoId } = await schemaParamsInspecao.parseAsync(
+        req.params,
+      )
 
       const pontosInspecionados = await listaPontosInspecionadoEquipamento(
-        inspecaoId, cliente
+        inspecaoId,
+        cliente,
       )
 
       res.status(200).send(pontosInspecionados)
@@ -123,12 +151,14 @@ class InspecaoEquipamentoController {
       iniciadoEm: z.coerce.date(),
       finalizadoEm: z.coerce.date(),
       observacao: z.string().optional(),
-      inspecaoPeca: z.array(z.object({
-        pecaEquipamentoId: z.string().uuid(),
-        aprovado: z.boolean(),
-        inspecionadoEm: z.coerce.date(),
-        inspecionado: z.boolean()
-      }))
+      inspecaoPeca: z.array(
+        z.object({
+          pecaEquipamentoId: z.string().uuid(),
+          aprovado: z.boolean(),
+          inspecionadoEm: z.coerce.date(),
+          inspecionado: z.boolean(),
+        }),
+      ),
     })
 
     const schemaParamsInspecao = z.object({
@@ -140,20 +170,29 @@ class InspecaoEquipamentoController {
 
       const { id, cliente } = req.user
 
-      const { equipamentoId, finalizadoEm, inspecaoPeca, observacao } = await schemaDadosInspecao.parseAsync(req.body)
-      const { id: inspecaoId } = await schemaParamsInspecao.parseAsync(req.params)
+      const { equipamentoId, finalizadoEm, inspecaoPeca, observacao } =
+        await schemaDadosInspecao.parseAsync(req.body)
+      const { id: inspecaoId } = await schemaParamsInspecao.parseAsync(
+        req.params,
+      )
 
       const pontoReprovado = inspecaoPeca.find((pontos) => !pontos.aprovado)
 
-      await atualizarAgendaEquipamento({ empresaId: cliente, id: equipamentoId })
+      await atualizarAgendaEquipamento({
+        empresaId: cliente,
+        id: equipamentoId,
+      })
 
-      await agendarInspecaoEquipamento({ empresaId: cliente, id: equipamentoId })
+      await agendarInspecaoEquipamento({
+        empresaId: cliente,
+        id: equipamentoId,
+      })
 
       if (pontoReprovado && observacao) {
         await salvarNovaManutencao({
           equipamentoId,
           usuarioId: id,
-          observacao
+          observacao,
         })
       }
 
@@ -162,23 +201,21 @@ class InspecaoEquipamentoController {
         equipamentoId,
         status: pontoReprovado ? 'reprovado' : 'aprovado',
         finalizadoEm: new Date(finalizadoEm),
-        inspecaoPeca
+        inspecaoPeca,
       })
 
       res.status(204).send()
     })
   }
 
-  async agendaInspecoesEmpresa(
-    app: FastifyInstance
-  ){
+  async agendaInspecoesEmpresa(app: FastifyInstance) {
     app.get('/agenda', async (req, res) => {
       await req.jwtVerify()
       const { cliente } = req.user
 
       const inspecaoAgendadas = await consultarAgendaInspecaoEmpresa({
         empresaId: cliente,
-        id: ''
+        id: '',
       })
 
       res.status(200).send(inspecaoAgendadas)

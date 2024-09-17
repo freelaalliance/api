@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
-import CalibracaoEntity from '../../entities/CalibracaoEntity'
 import { z } from 'zod'
+
+import CalibracaoEntity from '../../entities/CalibracaoEntity'
 
 class RelatorioCalibracaoController {
   constructor(fastify: FastifyInstance) {
