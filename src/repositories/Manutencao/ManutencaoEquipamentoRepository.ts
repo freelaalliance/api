@@ -307,19 +307,31 @@ export async function consultaQuantidadeEquipamentosFuncionando({
 export async function consultaQuantidadeManutencoesEmAndamento({
   empresaId,
 }: ConsultaManutencoesEquipamentoProps) {
-  return await prisma.$queryRaw`
-    SELECT
-      COUNT(equipamentos.id) AS 'qtd_equipamentos_em_manutencao'
-    FROM manutencoes 
-    JOIN equipamentos ON manutencoes.equipamentoId = equipamentos.id
-    WHERE
-      equipamentos.empresaId = ${empresaId}
-      AND manutencoes.criadoEm IS NOT NULL
-      AND manutencoes.iniciadoEm IS NOT NULL
-      AND manutencoes.finalizadoEm IS NULL
-      AND manutencoes.canceladoEm IS NULL
-    GROUP BY equipamentos.id
+  const estatisticasManutencoesEmpresa: {
+    media_duracao: number
+    total_duracao_manutencoes: number
+    qtd_manutencoes_realizadas: number
+  }[] = await prisma.$queryRaw`SELECT 
+        COUNT(
+          manutencoes.id
+        ) AS 'qtd_manutencoes_realizadas',
+        AVG(manutencoes.duracao) AS 'media_duracao',
+        SUM(manutencoes.duracao) AS 'total_duracao_manutencoes'
+        FROM manutencoes
+        JOIN equipamentos ON manutencoes.equipamentoId = equipamentos.id
+        WHERE equipamentos.empresaId = ${empresaId}
+        AND manutencoes.finalizadoEm IS NOT NULL
   `
+
+  return {
+    media_duracao: Number(estatisticasManutencoesEmpresa[0].media_duracao),
+    qtd_manutencoes_realizadas: Number(
+      estatisticasManutencoesEmpresa[0].qtd_manutencoes_realizadas,
+    ),
+    total_duracao_manutencoes: Number(
+      estatisticasManutencoesEmpresa[0].total_duracao_manutencoes,
+    ),
+  }
 }
 
 export async function consultaQuantidadeManutencoesEmDia({
