@@ -284,9 +284,11 @@ class ManutencaoEquipamentoController {
 
       res.status(200).send({
         qtd_equipamentos_manutencao_em_dia: equipamentosManutencaoEmDia.length,
-        qtd_manutencoes_em_andamento: manutencoesEmAndamento[0]
-          ? Number(manutencoesEmAndamento[0].qtd_equipamentos_em_manutencao)
-          : 0,
+        media_duracao: manutencoesEmAndamento.media_duracao,
+        total_duracao_manutencoes:
+          manutencoesEmAndamento.total_duracao_manutencoes,
+        qtd_manutencoes_realizadas:
+          manutencoesEmAndamento.qtd_manutencoes_realizadas,
       })
     })
   }
