@@ -1,3 +1,4 @@
+import { separarDDDTelefone } from '../../controllers/compras/utils/FornecedorUtil'
 import {
   AnexoFornecedorProps,
   EnderecoFornecedorProps,
@@ -56,6 +57,7 @@ export async function cadastrarFornecedor({
 }: NovoFornecedorProps) {
   const insereFornecedor = await prisma.pessoa.create({
     select: {
+      id: true,
       nome: true,
       Fornecedor: {
         select: {
@@ -82,7 +84,11 @@ export async function cadastrarFornecedor({
       },
       TelefonePessoa: {
         createMany: {
-          data: telefoneFornecedor,
+          data: telefoneFornecedor.map((telefone) => {
+            return {
+              numero: `${telefone.codigoArea}${telefone.numero}`,
+            }
+          }),
           skipDuplicates: true,
         },
       },
@@ -93,26 +99,49 @@ export async function cadastrarFornecedor({
         },
       },
       Fornecedor: {
-        connectOrCreate: {
-          create: {
-            empresaId,
-            critico,
-            aprovado,
-            documento,
-            DocumentosFornecedor: {
-              createMany: {
-                data: anexos,
-              },
+        create: {
+          empresaId,
+          critico,
+          aprovado,
+          documento,
+          DocumentosFornecedor: {
+            createMany: {
+              data: anexos,
             },
-          },
-          where: {
-            documento,
-            empresaId,
           },
         },
       },
     },
   })
+
+  const atualizaEmailsFornecedor = prisma.emailPessoa.updateMany({
+    where: {
+      email: {
+        in: emailFornecedor.map((emails) => emails.email),
+      },
+    },
+    data: {
+      pessoaId: insereFornecedor.id,
+    },
+  })
+
+  const atualizaTelefonesFornecedor = prisma.telefonePessoa.updateMany({
+    where: {
+      numero: {
+        in: telefoneFornecedor.map((telefone) => {
+          return `${telefone.codigoArea}${telefone.numero}`
+        }),
+      },
+    },
+    data: {
+      pessoaId: insereFornecedor.id,
+    },
+  })
+
+  await prisma.$transaction([
+    atualizaEmailsFornecedor,
+    atualizaTelefonesFornecedor,
+  ])
 
   return {
     id: insereFornecedor.Fornecedor?.id,
@@ -235,10 +264,12 @@ export async function recuperarDadosFornecedor({
       complemento: dadosFornecedor.pessoa.Endereco?.complemento,
     },
     telefones: dadosFornecedor.pessoa.TelefonePessoa.map((telefone) => {
+      const { numero, codigoArea } = separarDDDTelefone(telefone.numero)
+
       return {
         id: telefone.id,
-        codigoArea: telefone.codigoArea,
-        numero: telefone.numero,
+        numero,
+        codigoArea,
       }
     }),
     emails: dadosFornecedor.pessoa.EmailPessoa.map((email) => {
@@ -397,13 +428,20 @@ export async function adicionarNovoTelefone({
     },
   })
 
-  return await prisma.telefonePessoa.create({
+  const salvaTelefone = await prisma.telefonePessoa.create({
     data: {
       pessoaId: dadosFornecedor.pessoaId,
-      codigoArea: telefone.codigoArea,
-      numero: telefone.numero,
+      numero: `${telefone.codigoArea}${telefone.numero}`,
     },
   })
+
+  const { numero, codigoArea } = separarDDDTelefone(salvaTelefone.numero)
+
+  return {
+    id: salvaTelefone.id,
+    numero,
+    codigoArea,
+  }
 }
 
 export async function removerTelefone({

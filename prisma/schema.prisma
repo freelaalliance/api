@@ -305,8 +305,7 @@ enum StatusEquipamento {
 
 model TelefonePessoa {
   id           String   @id @default(uuid())
-  codigoArea   String   @db.VarChar(3)
-  numero       String   @unique @db.VarChar(9)
+  numero       String   @unique @db.VarChar(12)
   cadastradoEm DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   excluido     Boolean  @default(false)
