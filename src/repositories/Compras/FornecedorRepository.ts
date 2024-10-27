@@ -83,23 +83,31 @@ export async function cadastrarFornecedor({
       TelefonePessoa: {
         createMany: {
           data: telefoneFornecedor,
+          skipDuplicates: true,
         },
       },
       EmailPessoa: {
         createMany: {
           data: emailFornecedor,
+          skipDuplicates: true,
         },
       },
       Fornecedor: {
-        create: {
-          empresaId,
-          critico,
-          aprovado,
-          documento,
-          DocumentosFornecedor: {
-            createMany: {
-              data: anexos,
+        connectOrCreate: {
+          create: {
+            empresaId,
+            critico,
+            aprovado,
+            documento,
+            DocumentosFornecedor: {
+              createMany: {
+                data: anexos,
+              },
             },
+          },
+          where: {
+            documento,
+            empresaId,
           },
         },
       },
