@@ -90,6 +90,8 @@ model Usuario {
   Manutencao           Manutencao[]
   InspecaoEquipamento  InspecaoEquipamento[]
   AvaliacoesFornecedor AvaliacoesFornecedor[]
+  Compras              Compras[]
+  RecebimentoCompras   RecebimentoCompras[]
 
   @@map("usuarios")
 }
@@ -303,8 +305,7 @@ enum StatusEquipamento {
 
 model TelefonePessoa {
   id           String   @id @default(uuid())
-  codigoArea   String   @db.VarChar(3)
-  numero       String   @unique @db.VarChar(9)
+  numero       String   @unique @db.VarChar(12)
   cadastradoEm DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   excluido     Boolean  @default(false)
@@ -328,10 +329,10 @@ model EmailPessoa {
 
 model Fornecedor {
   id                   String                 @id @default(uuid())
-  documento            String                 @unique @db.VarChar(14)
+  documento            String                 @db.VarChar(14)
   critico              Boolean                @default(false)
   aprovado             Boolean                @default(false)
-  desempenho           Decimal                @default(0) @db.Decimal(3, 1)
+  desempenho           Decimal
   ultimaAvaliacao      DateTime?
   pessoa               Pessoa                 @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   pessoaId             String                 @unique
@@ -343,6 +344,7 @@ model Fornecedor {
   DocumentosFornecedor DocumentosFornecedor[]
   AvaliacoesFornecedor AvaliacoesFornecedor[]
   DesempenhoFornecedor DesempenhoFornecedor[]
+  Compras              Compras[]
 
   @@map("fornecedores")
 }
@@ -379,4 +381,62 @@ model DesempenhoFornecedor {
   fornecedor   Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("desempenho_fornecedor")
+}
+
+model Compras {
+  id                    String               @id @default(uuid())
+  permiteEntregaParcial Boolean              @default(false)
+  prazoEntrega          DateTime             @db.Date()
+  condicoesEntrega      String?
+  codigo                String               @unique
+  numPedido             Int
+  recebido              Boolean              @default(false)
+  cancelado             Boolean              @default(false)
+  excluido              Boolean              @default(false)
+  cadastradoEm          DateTime             @default(now())
+  atualizadoEm          DateTime             @updatedAt
+  fornecedorId          String
+  fornecedor            Fornecedor           @relation(fields: [fornecedorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuarioId             String
+  usuario               Usuario              @relation(fields: [usuarioId], references: [id])
+  ItensCompra           ItensCompra[]
+  RecebimentoCompras    RecebimentoCompras[]
+
+  @@map("compras")
+}
+
+model ItensCompra {
+  id         Int     @id @default(autoincrement())
+  quantidade Int
+  descricao  String
+  compraId   String
+  compra     Compras @relation(fields: [compraId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("itens_compra")
+}
+
+model RecebimentoCompras {
+  id                   String                @id @default(uuid())
+  recebidoEm           DateTime              @db.Date
+  cadastradoEm         DateTime              @default(now())
+  avaliacaoEntrega     Decimal
+  compraId             String
+  compra               Compras               @relation(fields: [compraId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuarioId            String
+  usuario              Usuario               @relation(fields: [usuarioId], references: [id])
+  AvaliacaoRecebimento AvaliacaoRecebimento?
+
+  @@map("recebimento_compras")
+}
+
+model AvaliacaoRecebimento {
+  id                  Int                @id @default(autoincrement())
+  numeroNota          String?
+  numeroCertificado   String?
+  avaria              Boolean
+  quantidadeIncorreta Boolean
+  recebimentoId       String             @unique
+  recebimentoCompras  RecebimentoCompras @relation(fields: [recebimentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("avaliacao_recebimento")
 }

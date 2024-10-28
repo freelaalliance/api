@@ -1,3 +1,4 @@
+import { separarDDDTelefone } from '../../controllers/compras/utils/FornecedorUtil'
 import {
   AnexoFornecedorProps,
   EnderecoFornecedorProps,
@@ -9,7 +10,12 @@ import { prisma } from '../../services/PrismaClientService'
 
 import { ConsultaFornecedorProps } from './../../interfaces/Compras/FornecedorInterface'
 
-interface empresaProps {
+interface ConsultaDadosFornecedorProps {
+  id?: string
+  empresaId: string
+}
+
+interface EmpresaProps {
   empresaId: string
 }
 
@@ -19,9 +25,8 @@ interface edicaoEnderecoFornecedorProps {
   endereco: EnderecoFornecedorProps
 }
 
-interface exclusaoDadosFornecedorProps {
+interface DadosFornecedorProps {
   id: string
-  idFornecedor?: string
   empresaId: string
 }
 
@@ -56,6 +61,7 @@ export async function cadastrarFornecedor({
 }: NovoFornecedorProps) {
   const insereFornecedor = await prisma.pessoa.create({
     select: {
+      id: true,
       nome: true,
       Fornecedor: {
         select: {
@@ -82,18 +88,25 @@ export async function cadastrarFornecedor({
       },
       TelefonePessoa: {
         createMany: {
-          data: telefoneFornecedor,
+          data: telefoneFornecedor.map((telefone) => {
+            return {
+              numero: `${telefone.codigoArea}${telefone.numero}`,
+            }
+          }),
+          skipDuplicates: true,
         },
       },
       EmailPessoa: {
         createMany: {
           data: emailFornecedor,
+          skipDuplicates: true,
         },
       },
       Fornecedor: {
         create: {
           empresaId,
           critico,
+          desempenho: 100,
           aprovado,
           documento,
           DocumentosFornecedor: {
@@ -105,6 +118,35 @@ export async function cadastrarFornecedor({
       },
     },
   })
+
+  const atualizaEmailsFornecedor = prisma.emailPessoa.updateMany({
+    where: {
+      email: {
+        in: emailFornecedor.map((emails) => emails.email),
+      },
+    },
+    data: {
+      pessoaId: insereFornecedor.id,
+    },
+  })
+
+  const atualizaTelefonesFornecedor = prisma.telefonePessoa.updateMany({
+    where: {
+      numero: {
+        in: telefoneFornecedor.map((telefone) => {
+          return `${telefone.codigoArea}${telefone.numero}`
+        }),
+      },
+    },
+    data: {
+      pessoaId: insereFornecedor.id,
+    },
+  })
+
+  await prisma.$transaction([
+    atualizaEmailsFornecedor,
+    atualizaTelefonesFornecedor,
+  ])
 
   return {
     id: insereFornecedor.Fornecedor?.id,
@@ -148,7 +190,7 @@ export async function salvarAvaliacaoFornecedor({
 
 export async function recuperarFornecedoresEmpresa({
   empresaId,
-}: empresaProps) {
+}: EmpresaProps) {
   const listaFornecedores = await prisma.fornecedor.findMany({
     select: {
       id: true,
@@ -227,10 +269,12 @@ export async function recuperarDadosFornecedor({
       complemento: dadosFornecedor.pessoa.Endereco?.complemento,
     },
     telefones: dadosFornecedor.pessoa.TelefonePessoa.map((telefone) => {
+      const { numero, codigoArea } = separarDDDTelefone(telefone.numero)
+
       return {
         id: telefone.id,
-        codigoArea: telefone.codigoArea,
-        numero: telefone.numero,
+        numero,
+        codigoArea,
       }
     }),
     emails: dadosFornecedor.pessoa.EmailPessoa.map((email) => {
@@ -389,19 +433,23 @@ export async function adicionarNovoTelefone({
     },
   })
 
-  return await prisma.telefonePessoa.create({
+  const salvaTelefone = await prisma.telefonePessoa.create({
     data: {
       pessoaId: dadosFornecedor.pessoaId,
-      codigoArea: telefone.codigoArea,
-      numero: telefone.numero,
+      numero: `${telefone.codigoArea}${telefone.numero}`,
     },
   })
+
+  const { numero, codigoArea } = separarDDDTelefone(salvaTelefone.numero)
+
+  return {
+    id: salvaTelefone.id,
+    numero,
+    codigoArea,
+  }
 }
 
-export async function removerTelefone({
-  id,
-  empresaId,
-}: exclusaoDadosFornecedorProps) {
+export async function removerTelefone({ id, empresaId }: DadosFornecedorProps) {
   return await prisma.telefonePessoa.delete({
     where: {
       id,
@@ -434,10 +482,7 @@ export async function adicionarNovoEmail({
   })
 }
 
-export async function removerEmail({
-  id,
-  empresaId,
-}: exclusaoDadosFornecedorProps) {
+export async function removerEmail({ id, empresaId }: DadosFornecedorProps) {
   return await prisma.emailPessoa.delete({
     where: {
       id,
@@ -476,10 +521,7 @@ export async function adicionarNovoAnexo({
   })
 }
 
-export async function removerAnexo({
-  id,
-  empresaId,
-}: exclusaoDadosFornecedorProps) {
+export async function removerAnexo({ id, empresaId }: DadosFornecedorProps) {
   return await prisma.documentosFornecedor.delete({
     where: {
       id,
@@ -488,4 +530,88 @@ export async function removerAnexo({
       },
     },
   })
+}
+
+export async function buscaResumoFornecedorEmpresa({
+  empresaId,
+}: ConsultaDadosFornecedorProps) {
+  const dadosFornecedorEmpresa = await prisma.fornecedor.aggregate({
+    _count: {
+      _all: true,
+    },
+    _avg: {
+      desempenho: true,
+    },
+    where: {
+      empresaId,
+      excluido: false,
+    },
+  })
+
+  const resumoFornecedoresCriticos = await prisma.fornecedor.groupBy({
+    by: ['critico'],
+    _count: {
+      _all: true,
+    },
+    where: {
+      empresaId,
+      excluido: false,
+    },
+  })
+
+  const resumoFornecedoresAprovados = await prisma.fornecedor.groupBy({
+    by: ['aprovado'],
+    _count: {
+      _all: true,
+    },
+    where: {
+      empresaId,
+      excluido: false,
+    },
+  })
+
+  const resumoAvaliacoesFornecedores =
+    await prisma.avaliacoesFornecedor.aggregate({
+      _max: {
+        nota: true,
+      },
+      _min: {
+        nota: true,
+      },
+      _avg: {
+        nota: true,
+      },
+      _count: {
+        _all: true,
+      },
+      where: {
+        fornecedor: {
+          empresaId,
+          excluido: false,
+        },
+      },
+    })
+
+  return {
+    totalFornecedores: dadosFornecedorEmpresa._count._all,
+    mediaDesempenho: dadosFornecedorEmpresa._avg.desempenho ?? 0,
+    fornecedoresCriticos: resumoFornecedoresCriticos.map((criticos) => {
+      return {
+        critico: criticos.critico,
+        total: criticos._count._all,
+      }
+    }),
+    fornecedoresAprovados: resumoFornecedoresAprovados.map((aprovado) => {
+      return {
+        aprovado: aprovado.aprovado,
+        total: aprovado._count._all,
+      }
+    }),
+    avaliacoes: {
+      maxima: resumoAvaliacoesFornecedores._max.nota ?? 0,
+      minima: resumoAvaliacoesFornecedores._min.nota ?? 0,
+      media: resumoAvaliacoesFornecedores._avg.nota ?? 0,
+      total: resumoAvaliacoesFornecedores._count._all,
+    },
+  }
 }

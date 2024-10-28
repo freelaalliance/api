@@ -8,7 +8,9 @@ import AutenticacaoController from './controllers/auth/AutenticacaoUsuarioContro
 import AutorizacaoUsuario from './controllers/auth/AutorizacaoUsuarioController'
 import InstrumentosController from './controllers/calibracao/InstrumentosController'
 import RelatorioCalibracaoController from './controllers/calibracao/RelatoriosCalibracaoController'
+import ComprasController from './controllers/compras/Compras'
 import FornecedorController from './controllers/compras/Fornecedor'
+import RelatorioComprasController from './controllers/compras/Relatorio'
 import EquipamentoController from './controllers/manutencao/EquipamentoController'
 import InspecaoEquipamentoController from './controllers/manutencao/InspecaoEquipamentoController'
 import ManutencaoEquipamentoController from './controllers/manutencao/ManutencaoEquipamentoController'
@@ -33,6 +35,8 @@ new EquipamentoController(server.servico)
 new InspecaoEquipamentoController(server.servico)
 new ManutencaoEquipamentoController(server.servico)
 new FornecedorController(server.servico)
+new ComprasController(server.servico)
+new RelatorioComprasController(server.servico)
 
 cron.schedule('0 2 1 * *', () => {
   notificarVencimentoCalibracao()
