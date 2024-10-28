@@ -10,7 +10,12 @@ import { prisma } from '../../services/PrismaClientService'
 
 import { ConsultaFornecedorProps } from './../../interfaces/Compras/FornecedorInterface'
 
-interface empresaProps {
+interface ConsultaDadosFornecedorProps {
+  id?: string
+  empresaId: string
+}
+
+interface EmpresaProps {
   empresaId: string
 }
 
@@ -20,9 +25,8 @@ interface edicaoEnderecoFornecedorProps {
   endereco: EnderecoFornecedorProps
 }
 
-interface exclusaoDadosFornecedorProps {
+interface DadosFornecedorProps {
   id: string
-  idFornecedor?: string
   empresaId: string
 }
 
@@ -102,6 +106,7 @@ export async function cadastrarFornecedor({
         create: {
           empresaId,
           critico,
+          desempenho: 100,
           aprovado,
           documento,
           DocumentosFornecedor: {
@@ -185,7 +190,7 @@ export async function salvarAvaliacaoFornecedor({
 
 export async function recuperarFornecedoresEmpresa({
   empresaId,
-}: empresaProps) {
+}: EmpresaProps) {
   const listaFornecedores = await prisma.fornecedor.findMany({
     select: {
       id: true,
@@ -444,10 +449,7 @@ export async function adicionarNovoTelefone({
   }
 }
 
-export async function removerTelefone({
-  id,
-  empresaId,
-}: exclusaoDadosFornecedorProps) {
+export async function removerTelefone({ id, empresaId }: DadosFornecedorProps) {
   return await prisma.telefonePessoa.delete({
     where: {
       id,
@@ -480,10 +482,7 @@ export async function adicionarNovoEmail({
   })
 }
 
-export async function removerEmail({
-  id,
-  empresaId,
-}: exclusaoDadosFornecedorProps) {
+export async function removerEmail({ id, empresaId }: DadosFornecedorProps) {
   return await prisma.emailPessoa.delete({
     where: {
       id,
@@ -522,10 +521,7 @@ export async function adicionarNovoAnexo({
   })
 }
 
-export async function removerAnexo({
-  id,
-  empresaId,
-}: exclusaoDadosFornecedorProps) {
+export async function removerAnexo({ id, empresaId }: DadosFornecedorProps) {
   return await prisma.documentosFornecedor.delete({
     where: {
       id,
@@ -534,4 +530,88 @@ export async function removerAnexo({
       },
     },
   })
+}
+
+export async function buscaResumoFornecedorEmpresa({
+  empresaId,
+}: ConsultaDadosFornecedorProps) {
+  const dadosFornecedorEmpresa = await prisma.fornecedor.aggregate({
+    _count: {
+      _all: true,
+    },
+    _avg: {
+      desempenho: true,
+    },
+    where: {
+      empresaId,
+      excluido: false,
+    },
+  })
+
+  const resumoFornecedoresCriticos = await prisma.fornecedor.groupBy({
+    by: ['critico'],
+    _count: {
+      _all: true,
+    },
+    where: {
+      empresaId,
+      excluido: false,
+    },
+  })
+
+  const resumoFornecedoresAprovados = await prisma.fornecedor.groupBy({
+    by: ['aprovado'],
+    _count: {
+      _all: true,
+    },
+    where: {
+      empresaId,
+      excluido: false,
+    },
+  })
+
+  const resumoAvaliacoesFornecedores =
+    await prisma.avaliacoesFornecedor.aggregate({
+      _max: {
+        nota: true,
+      },
+      _min: {
+        nota: true,
+      },
+      _avg: {
+        nota: true,
+      },
+      _count: {
+        _all: true,
+      },
+      where: {
+        fornecedor: {
+          empresaId,
+          excluido: false,
+        },
+      },
+    })
+
+  return {
+    totalFornecedores: dadosFornecedorEmpresa._count._all,
+    mediaDesempenho: dadosFornecedorEmpresa._avg.desempenho ?? 0,
+    fornecedoresCriticos: resumoFornecedoresCriticos.map((criticos) => {
+      return {
+        critico: criticos.critico,
+        total: criticos._count._all,
+      }
+    }),
+    fornecedoresAprovados: resumoFornecedoresAprovados.map((aprovado) => {
+      return {
+        aprovado: aprovado.aprovado,
+        total: aprovado._count._all,
+      }
+    }),
+    avaliacoes: {
+      maxima: resumoAvaliacoesFornecedores._max.nota ?? 0,
+      minima: resumoAvaliacoesFornecedores._min.nota ?? 0,
+      media: resumoAvaliacoesFornecedores._avg.nota ?? 0,
+      total: resumoAvaliacoesFornecedores._count._all,
+    },
+  }
 }
