@@ -200,62 +200,11 @@ export async function listarPedidosEmpresa({
             },
           },
           documento: true,
-          empresa: {
-            select: {
-              id: true,
-              pessoa: {
-                select: {
-                  nome: true,
-                  Endereco: {
-                    select: {
-                      logradouro: true,
-                      numero: true,
-                      complemento: true,
-                      bairro: true,
-                      cidade: true,
-                      estado: true,
-                      cep: true,
-                    },
-                  },
-                },
-              },
-              cnpj: true,
-            },
-          },
-        },
-      },
-      RecebimentoCompras: {
-        select: {
-          id: true,
-          recebidoEm: true,
-          avaliacaoEntrega: true,
-          AvaliacaoRecebimento: {
-            select: {
-              numeroNota: true,
-              numeroCertificado: true,
-              avaria: true,
-              quantidadeIncorreta: true,
-            },
-          },
-          usuario: {
-            select: {
-              id: true,
-              pessoa: {
-                select: {
-                  nome: true,
-                },
-              },
-            },
-          },
         },
       },
     },
     where: {
-      numPedido,
       fornecedor: {
-        AND: {
-          id: fornecedorId,
-        },
         empresaId,
       },
       excluido: false,
