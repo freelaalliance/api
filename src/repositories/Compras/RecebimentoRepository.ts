@@ -104,16 +104,74 @@ export async function registrarRecebimentoPedido({
   return null
 }
 
-export async function listarRecebimentosFornecedorEmpresa({
+export async function resumoEstatisticosRecebimentoPedidosEmpresa({
   empresaId,
   fornecedorId,
   numPedido,
   dataFim,
   dataInicio,
 }: ConsultaRecebimentosFornecedorProps) {
+  const dadosRecebimentoPedido = await prisma.recebimentoCompras.groupBy({
+    by: ['recebidoEm'],
+    _count: {
+      _all: true,
+    },
+    _max: {
+      avaliacaoEntrega: true,
+    },
+    _min: {
+      avaliacaoEntrega: true,
+    },
+    _avg: {
+      avaliacaoEntrega: true,
+    },
+    where: {
+      compra: {
+        AND: {
+          numPedido,
+        },
+        fornecedor: {
+          id: fornecedorId,
+          empresaId,
+        },
+      },
+      recebidoEm: {
+        gte: dataInicio,
+        lte: dataFim,
+      },
+    },
+    orderBy: {
+      recebidoEm: 'desc',
+    },
+  })
+
+  return {
+    totalRecebimentos: dadosRecebimentoPedido.length,
+    recebimentos: dadosRecebimentoPedido.map((recebimento) => {
+      return {
+        data: recebimento.recebidoEm,
+        quantidade: recebimento._count._all,
+        mediaAvaliacaoEntrega: recebimento._avg.avaliacaoEntrega,
+        minimaAvaliacaoEntrega: recebimento._min.avaliacaoEntrega,
+        maximaAvaliacaoEntrega: recebimento._max.avaliacaoEntrega,
+      }
+    }),
+  }
+}
+
+export async function listarRecebimentosFornecedorEmpresa({
+  empresaId,
+  dataFim,
+  dataInicio,
+}: ConsultaRecebimentosFornecedorProps) {
   return await prisma.recebimentoCompras.findMany({
     select: {
       id: true,
+      compra: {
+        select: {
+          numPedido: true,
+        },
+      },
       recebidoEm: true,
       avaliacaoEntrega: true,
       AvaliacaoRecebimento: {
@@ -137,11 +195,7 @@ export async function listarRecebimentosFornecedorEmpresa({
     },
     where: {
       compra: {
-        AND: {
-          numPedido,
-        },
         fornecedor: {
-          id: fornecedorId,
           empresaId,
         },
       },
@@ -158,8 +212,6 @@ export async function listarRecebimentosFornecedorEmpresa({
 
 export async function resumoRecebimentoPedidosEmpresa({
   empresaId,
-  fornecedorId,
-  numPedido,
   dataFim,
   dataInicio,
 }: ConsultaRecebimentosFornecedorProps) {
@@ -167,15 +219,10 @@ export async function resumoRecebimentoPedidosEmpresa({
     _avg: {
       avaliacaoEntrega: true,
     },
-    _count: {
-      _all: true,
-    },
     where: {
       compra: {
-        numPedido,
         fornecedor: {
           empresaId,
-          id: fornecedorId,
         },
       },
       recebidoEm: {
@@ -185,34 +232,47 @@ export async function resumoRecebimentoPedidosEmpresa({
     },
   })
 
-  const dadosAvaliacaoRecebimento = await prisma.avaliacaoRecebimento.aggregate(
-    {
-      _count: {
-        avaria: true,
-        quantidadeIncorreta: true,
-      },
-      where: {
-        recebimentoCompras: {
-          compra: {
-            numPedido,
-            fornecedor: {
-              empresaId,
-              id: fornecedorId,
-            },
-          },
-          recebidoEm: {
-            gte: dataInicio,
-            lte: dataFim,
-          },
+  const dadosRecebimentoPedido = await prisma.recebimentoCompras.groupBy({
+    by: ['recebidoEm'],
+    _count: {
+      _all: true,
+    },
+    _max: {
+      avaliacaoEntrega: true,
+    },
+    _min: {
+      avaliacaoEntrega: true,
+    },
+    _avg: {
+      avaliacaoEntrega: true,
+    },
+    where: {
+      compra: {
+        fornecedor: {
+          empresaId,
         },
       },
+      recebidoEm: {
+        gte: dataInicio,
+        lte: dataFim,
+      },
     },
-  )
+    orderBy: {
+      recebidoEm: 'desc',
+    },
+  })
 
   return {
-    recebimento: dadosRecebimento._avg.avaliacaoEntrega,
-    avaria: dadosAvaliacaoRecebimento._count.avaria,
-    quantidadeIncorreta: dadosAvaliacaoRecebimento._count.quantidadeIncorreta,
-    totalRecebimentos: dadosRecebimento._count._all,
+    avaliacao: dadosRecebimento._avg.avaliacaoEntrega,
+    totalRecebimentos: dadosRecebimentoPedido.length,
+    recebimentos: dadosRecebimentoPedido.map((recebimento) => {
+      return {
+        data: recebimento.recebidoEm,
+        quantidade: recebimento._count._all,
+        mediaAvaliacaoEntrega: recebimento._avg.avaliacaoEntrega,
+        minimaAvaliacaoEntrega: recebimento._min.avaliacaoEntrega,
+        maximaAvaliacaoEntrega: recebimento._max.avaliacaoEntrega,
+      }
+    }),
   }
 }
