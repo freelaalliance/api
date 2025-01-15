@@ -164,6 +164,7 @@ export async function salvarAvaliacaoFornecedor({
   validade,
   aprovado,
   usuarioId,
+  critico,
 }: NovaAvaliacaoFornecedorProps) {
   const avaliacaoFornecedor = prisma.avaliacoesFornecedor.create({
     data: {
@@ -181,6 +182,7 @@ export async function salvarAvaliacaoFornecedor({
     },
     data: {
       aprovado,
+      critico,
       ultimaAvaliacao: new Date(),
     },
   })
