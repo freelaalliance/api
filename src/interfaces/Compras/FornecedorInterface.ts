@@ -41,6 +41,7 @@ export interface NovaAvaliacaoFornecedorProps {
   nota: number
   validade: Date
   aprovado: boolean
+  critico: boolean
   usuarioId: string
 }
 
