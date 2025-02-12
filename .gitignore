@@ -6,3 +6,5 @@ dev.db-journal
 writable/*
 dist
 migrations/migrations_lock.toml
+.vscode
+.early.coverage

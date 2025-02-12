@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import {
@@ -8,9 +8,11 @@ import {
   excluirPedido,
   listarPedidosFornecedor,
   listarPedidosPendentesEmpresa,
+  listarPedidosRecebidosEmpresa,
 } from '../../repositories/Compras/CompraRepository'
 import { registrarRecebimentoPedido } from '../../repositories/Compras/RecebimentoRepository'
 
+import { buscarItensAvaliacaoRecebimentoAtivoEmpresa } from '../../repositories/Compras/ItensAvaliacaoRecebimentoRepository'
 import { getNumeroPedido } from './utils/CompraUtil'
 
 class ComprasController {
@@ -31,6 +33,10 @@ class ComprasController {
       prefix: '/pedido',
     })
 
+    fastifyInstance.register(this.buscaPedidosRecebidosEmpresa, {
+      prefix: '/pedido',
+    })
+
     fastifyInstance.register(this.inserirRecebimentoPedido, {
       prefix: '/pedido',
     })
@@ -41,6 +47,10 @@ class ComprasController {
 
     fastifyInstance.register(this.excluirPedidoFornecedor, {
       prefix: '/pedido',
+    })
+
+    fastifyInstance.register(this.itensAvaliacaoRecebimentoEmpresa, {
+      prefix: 'pedido/recebimento',
     })
   }
 
@@ -66,7 +76,7 @@ class ComprasController {
             .min(1, {
               message: 'A quantidade do item deve ser no mínimo 1',
             }),
-        }),
+        })
       ),
     })
 
@@ -270,7 +280,7 @@ class ComprasController {
         res.status(200).send({
           status: true,
           msg: 'Pedidos encontrados com sucesso!',
-          dados: pedidos.map((pedido) => {
+          dados: pedidos.map(pedido => {
             return {
               id: pedido.id,
               numPedido: String(pedido.numPedido),
@@ -307,18 +317,14 @@ class ComprasController {
               },
               recebimento: !pedido.RecebimentoCompras
                 ? undefined
-                : pedido.RecebimentoCompras.map((recebimento) => {
+                : pedido.RecebimentoCompras.map(recebimento => {
                     return {
                       id: recebimento.id,
                       usuario: recebimento.usuario.pessoa.nome,
                       dataRecebimento: recebimento.recebidoEm,
                       avaliacaoEntrega: recebimento.avaliacaoEntrega,
-                      quantidadeIncorreta:
-                        recebimento.AvaliacaoRecebimento?.quantidadeIncorreta,
-                      avaria: recebimento.AvaliacaoRecebimento?.avaria,
-                      numeroNota: recebimento.AvaliacaoRecebimento?.numeroNota,
-                      numeroCertificado:
-                        recebimento.AvaliacaoRecebimento?.numeroCertificado,
+                      numeroNota: recebimento.numeroNota,
+                      numeroCertificado: recebimento.numeroCertificado,
                     }
                   }),
             }
@@ -348,7 +354,7 @@ class ComprasController {
         res.status(200).send({
           status: true,
           msg: 'Pedidos encontrados com sucesso!',
-          dados: pedidos.map((pedido) => {
+          dados: pedidos.map(pedido => {
             return {
               id: pedido.id,
               numPedido: String(pedido.numPedido),
@@ -385,18 +391,88 @@ class ComprasController {
               },
               recebimento: !pedido.RecebimentoCompras
                 ? undefined
-                : pedido.RecebimentoCompras.map((recebimento) => {
+                : pedido.RecebimentoCompras.map(recebimento => {
                     return {
                       id: recebimento.id,
                       usuario: recebimento.usuario.pessoa.nome,
-                      dataRecebimento: new Date(recebimento.recebidoEm),
+                      dataRecebimento: recebimento.recebidoEm,
                       avaliacaoEntrega: recebimento.avaliacaoEntrega,
-                      quantidadeIncorreta:
-                        recebimento.AvaliacaoRecebimento?.quantidadeIncorreta,
-                      avaria: recebimento.AvaliacaoRecebimento?.avaria,
-                      numeroNota: recebimento.AvaliacaoRecebimento?.numeroNota,
-                      numeroCertificado:
-                        recebimento.AvaliacaoRecebimento?.numeroCertificado,
+                      numeroNota: recebimento.numeroNota,
+                      numeroCertificado: recebimento.numeroCertificado,
+                    }
+                  }),
+            }
+          }),
+        })
+      } catch (error) {
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao listar pedidos do fornecedor',
+          dados: null,
+          error,
+        })
+      }
+    })
+  }
+
+  async buscaPedidosRecebidosEmpresa(app: FastifyInstance) {
+    app.get('/recebidos', async (req, res) => {
+      try {
+        await req.jwtVerify()
+        const { cliente } = req.user
+
+        const pedidos = await listarPedidosRecebidosEmpresa({
+          empresaId: cliente,
+        })
+
+        res.status(200).send({
+          status: true,
+          msg: 'Pedidos encontrados com sucesso!',
+          dados: pedidos.map(pedido => {
+            return {
+              id: pedido.id,
+              numPedido: String(pedido.numPedido),
+              codigo: pedido.codigo,
+              permiteEntregaParcial: pedido.permiteEntregaParcial,
+              prazoEntrega: pedido.prazoEntrega,
+              condicoesEntrega: pedido.condicoesEntrega,
+              recebido: pedido.recebido,
+              cancelado: pedido.cancelado,
+              itens: pedido.ItensCompra,
+              cadastro: {
+                usuario: pedido.usuario.pessoa.nome,
+                dataCadastro: pedido.cadastradoEm,
+              },
+              empresa: {
+                nome: pedido.fornecedor.empresa.pessoa.nome,
+                documento: pedido.fornecedor.empresa.cnpj,
+                endereco: {
+                  logradouro:
+                    pedido.fornecedor.empresa.pessoa.Endereco?.logradouro,
+                  numero: pedido.fornecedor.empresa.pessoa.Endereco?.numero,
+                  complemento:
+                    pedido.fornecedor.empresa.pessoa.Endereco?.complemento,
+                  bairro: pedido.fornecedor.empresa.pessoa.Endereco?.bairro,
+                  cidade: pedido.fornecedor.empresa.pessoa.Endereco?.cidade,
+                  estado: pedido.fornecedor.empresa.pessoa.Endereco?.estado,
+                  cep: pedido.fornecedor.empresa.pessoa.Endereco?.cep,
+                },
+              },
+              fornecedor: {
+                id: pedido.fornecedor.id,
+                nome: pedido.fornecedor.pessoa.nome,
+                documento: pedido.fornecedor.documento,
+              },
+              recebimento: !pedido.RecebimentoCompras
+                ? undefined
+                : pedido.RecebimentoCompras.map(recebimento => {
+                    return {
+                      id: recebimento.id,
+                      usuario: recebimento.usuario.pessoa.nome,
+                      dataRecebimento: recebimento.recebidoEm,
+                      avaliacaoEntrega: recebimento.avaliacaoEntrega,
+                      numeroNota: recebimento.numeroNota,
+                      numeroCertificado: recebimento.numeroCertificado,
                     }
                   }),
             }
@@ -415,13 +491,24 @@ class ComprasController {
 
   async inserirRecebimentoPedido(app: FastifyInstance) {
     const schemaBody = z.object({
-      qtdIncorreta: z.boolean(),
       numeroCertificado: z.string().optional(),
       numeroNotaFiscal: z.string().optional(),
       dataRecebimento: z.coerce.date(),
-      entregaAvarias: z.boolean(),
       pedidoRecebidoCompleto: z.boolean().default(true),
-      notaRecebimento: z.number(),
+      avaliacoes: z.array(
+        z.object({
+          id: z.string().uuid(),
+          nota: z.coerce
+            .number()
+            .min(0, {
+              message: 'O valor deve ser de no mínimo 0',
+            })
+            .max(100, {
+              message: 'O valor deve ser de no máximo 100',
+            })
+            .default(0),
+        })
+      ),
     })
 
     const schemaParams = z.object({
@@ -433,13 +520,11 @@ class ComprasController {
         await req.jwtVerify()
 
         const {
-          qtdIncorreta,
           numeroCertificado,
           numeroNotaFiscal,
           dataRecebimento,
-          entregaAvarias,
           pedidoRecebidoCompleto,
-          notaRecebimento,
+          avaliacoes,
         } = await schemaBody.parseAsync(req.body)
 
         const { compraId } = await schemaParams.parseAsync(req.params)
@@ -449,11 +534,12 @@ class ComprasController {
         const salvaRecebimento = await registrarRecebimentoPedido({
           compraId,
           usuarioId: id,
-          quantidadeIncorreta: qtdIncorreta,
-          avaliacaoEntrega: notaRecebimento,
           numeroNota: numeroNotaFiscal,
           numeroCertificado,
-          avaria: entregaAvarias,
+          avaliacoes: avaliacoes.map(avaliacao => ({
+            itemAvaliacaoId: avaliacao.id,
+            notaAvaliacao: avaliacao.nota,
+          })),
           entregaCompleta: pedidoRecebidoCompleto,
           recebidoEm: dataRecebimento,
           empresaId: cliente,
@@ -476,6 +562,20 @@ class ComprasController {
           msg: 'Erro inserir recebimento do pedido',
         })
       }
+    })
+  }
+
+  async itensAvaliacaoRecebimentoEmpresa(app: FastifyInstance) {
+    app.get('/avaliacao/itens', async (req, reply) => {
+      await req.jwtVerify()
+      const { cliente } = req.user
+
+      const listaItensRecebimento =
+        await buscarItensAvaliacaoRecebimentoAtivoEmpresa({
+          empresaId: cliente,
+        })
+
+      return reply.status(200).send(listaItensRecebimento)
     })
   }
 }
