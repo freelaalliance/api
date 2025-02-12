@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import EmpresaEntity from '../../entities/EmpresaEntity'
@@ -6,8 +6,8 @@ import EnderecoEntity from '../../entities/EnderecoEntity'
 import ModuloEntity from '../../entities/ModuloEntity'
 import PerfilEntity from '../../entities/PerfilEntity'
 import UsuarioEntity from '../../entities/UsuarioEntity'
-import { PerfilInterface } from '../../interfaces/PerfilInterface'
-import { RespostaRequisicaoInterface } from '../../interfaces/ResponseInterface'
+import type { PerfilInterface } from '../../interfaces/PerfilInterface'
+import type { RespostaRequisicaoInterface } from '../../interfaces/ResponseInterface'
 
 class EmpresaController {
   constructor(fastify: FastifyInstance) {
@@ -94,7 +94,7 @@ class EmpresaController {
         undefined,
         false,
         undefined,
-        nome,
+        nome
       )
 
       const cadastraEmpresa: RespostaRequisicaoInterface =
@@ -123,7 +123,7 @@ class EmpresaController {
         false,
         undefined,
         undefined,
-        dadosEmpresa.getIdPessoa(),
+        dadosEmpresa.getIdPessoa()
       )
 
       const cadastrarEndereco: RespostaRequisicaoInterface =
@@ -144,13 +144,13 @@ class EmpresaController {
       if (empresas.length === 0) return []
 
       return Promise.all(
-        empresas.map(async (empresa) => {
+        empresas.map(async empresa => {
           return {
             id: empresa.getIdEmpresa(),
             imagemLogo: empresa.getImagemLogo(),
             nome: empresa.getNomePessoa(),
           }
-        }),
+        })
       )
     })
   }
@@ -227,7 +227,7 @@ class EmpresaController {
         undefined,
         false,
         idPessoa,
-        nome,
+        nome
       )
 
       const alteraEmpresa: RespostaRequisicaoInterface =
@@ -249,7 +249,7 @@ class EmpresaController {
         false,
         undefined,
         undefined,
-        idPessoa,
+        idPessoa
       )
 
       const alteraEndereco: RespostaRequisicaoInterface =
@@ -314,7 +314,7 @@ class EmpresaController {
           .uuid({
             message: 'O id do modulo é inválido!',
           }),
-      }),
+      })
     )
 
     const schemaParamEmpresa = z.object({
@@ -337,9 +337,9 @@ class EmpresaController {
 
         const empresaEntity = new EmpresaEntity()
 
-        modulos.forEach((modulo) => {
+        modulos.forEach(modulo => {
           promises.push(
-            empresaEntity.desvincularModuloEmpresa(id, modulo.idModulo),
+            empresaEntity.desvincularModuloEmpresa(id, modulo.idModulo)
           )
         })
 
@@ -367,7 +367,7 @@ class EmpresaController {
         .uuid({ message: 'O id da empresa é inválido!' }),
     })
 
-    app.get('/:id/modulos', async (req) => {
+    app.get('/:id/modulos', async req => {
       const { id } = schemaParams.parse(req.params)
 
       const moduloEntity = new ModuloEntity()
@@ -385,7 +385,7 @@ class EmpresaController {
         .uuid({ message: 'O id da empresa é inválido!' }),
     })
 
-    app.get('/:id/perfis', async (req) => {
+    app.get('/:id/perfis', async req => {
       const { id } = schemaParams.parse(req.params)
       const perfilEntity = new PerfilEntity()
 
@@ -405,7 +405,7 @@ class EmpresaController {
         .uuid({ message: 'O id da empresa é inválido!' }),
     })
 
-    app.get('/:id/usuarios', async (req) => {
+    app.get('/:id/usuarios', async req => {
       const { id } = schemaParams.parse(req.params)
 
       const usuarioEntity = new UsuarioEntity()
@@ -415,7 +415,7 @@ class EmpresaController {
         return []
       }
 
-      return usuarios.map((usuario) => {
+      return usuarios.map(usuario => {
         return {
           id: usuario.getId(),
           nome: usuario.getNomePessoa(),

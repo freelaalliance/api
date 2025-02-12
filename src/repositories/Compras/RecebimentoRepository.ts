@@ -4,11 +4,12 @@ interface InserirRecebimentoPedidoProps {
   compraId: string
   usuarioId: string
   recebidoEm: Date
-  avaliacaoEntrega: number
   numeroNota?: string
   numeroCertificado?: string
-  avaria: boolean
-  quantidadeIncorreta: boolean
+  avaliacoes: Array<{
+    itemAvaliacaoId: string
+    notaAvaliacao: number
+  }>
   entregaCompleta: boolean
   empresaId: string
 }
@@ -26,11 +27,9 @@ export async function registrarRecebimentoPedido({
   compraId,
   usuarioId,
   recebidoEm,
-  avaliacaoEntrega,
   numeroNota,
   numeroCertificado,
-  avaria,
-  quantidadeIncorreta,
+  avaliacoes,
   entregaCompleta,
   empresaId,
 }: InserirRecebimentoPedidoProps) {
@@ -47,27 +46,33 @@ export async function registrarRecebimentoPedido({
   })
 
   if (consultaPedido) {
+    const somaTotalNotasAvaliacao = avaliacoes.reduce(
+      (total, avaliacao) => total + avaliacao.notaAvaliacao,
+      0
+    )
+    const mediaAvaliacao = somaTotalNotasAvaliacao / avaliacoes.length
+
     const recebimento = await prisma.recebimentoCompras.create({
       data: {
         compraId,
         usuarioId,
         recebidoEm,
-        avaliacaoEntrega: Number(avaliacaoEntrega.toFixed(1)),
+        entregaCompleta,
+        avaliacaoEntrega: mediaAvaliacao,
+        numeroNota,
+        numeroCertificado,
         AvaliacaoRecebimento: {
-          create: {
-            numeroNota,
-            numeroCertificado,
-            avaria,
-            quantidadeIncorreta,
-          },
-        },
+          createMany: {
+            data: avaliacoes
+          }
+        }
       },
     })
 
     await prisma.desempenhoFornecedor.create({
       data: {
         fornecedorId: consultaPedido.fornecedorId,
-        nota: avaliacaoEntrega,
+        nota: mediaAvaliacao,
       },
     })
 
@@ -147,7 +152,7 @@ export async function resumoEstatisticosRecebimentoPedidosEmpresa({
 
   return {
     totalRecebimentos: dadosRecebimentoPedido.length,
-    recebimentos: dadosRecebimentoPedido.map((recebimento) => {
+    recebimentos: dadosRecebimentoPedido.map(recebimento => {
       return {
         data: recebimento.recebidoEm,
         quantidade: recebimento._count._all,
@@ -174,12 +179,16 @@ export async function listarRecebimentosFornecedorEmpresa({
       },
       recebidoEm: true,
       avaliacaoEntrega: true,
+      numeroNota: true,
+      numeroCertificado: true,
       AvaliacaoRecebimento: {
         select: {
-          numeroNota: true,
-          numeroCertificado: true,
-          avaria: true,
-          quantidadeIncorreta: true,
+          notaAvaliacao: true,
+          itemAvaliativo: {
+            select: {
+              descricao: true,
+            },
+          },
         },
       },
       usuario: {
@@ -265,7 +274,7 @@ export async function resumoRecebimentoPedidosEmpresa({
   return {
     avaliacao: dadosRecebimento._avg.avaliacaoEntrega,
     totalRecebimentos: dadosRecebimentoPedido.length,
-    recebimentos: dadosRecebimentoPedido.map((recebimento) => {
+    recebimentos: dadosRecebimentoPedido.map(recebimento => {
       return {
         data: recebimento.recebidoEm,
         quantidade: recebimento._count._all,

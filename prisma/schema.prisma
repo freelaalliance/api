@@ -43,20 +43,21 @@ model Endereco {
 }
 
 model Empresa {
-  id            String          @id @default(uuid())
-  cnpj          String          @unique
-  imagemLogo    String?
-  criadoEm      DateTime        @default(now())
-  atualizadoEm  DateTime        @updatedAt
-  excluido      Boolean         @default(false)
-  pessoaId      String          @unique
-  pessoa        Pessoa          @relation(fields: [pessoaId], references: [id])
-  Usuario       Usuario[]
-  ModuloEmpresa ModuloEmpresa[]
-  Instrumento   Instrumento[]
-  Perfil        Perfil[]
-  Equipamento   Equipamento[]
-  Fornecedor    Fornecedor[]
+  id                                 String                               @id @default(uuid())
+  cnpj                               String                               @unique
+  imagemLogo                         String?
+  criadoEm                           DateTime                             @default(now())
+  atualizadoEm                       DateTime                             @updatedAt
+  excluido                           Boolean                              @default(false)
+  pessoaId                           String                               @unique
+  pessoa                             Pessoa                               @relation(fields: [pessoaId], references: [id])
+  Usuario                            Usuario[]
+  ModuloEmpresa                      ModuloEmpresa[]
+  Instrumento                        Instrumento[]
+  Perfil                             Perfil[]
+  Equipamento                        Equipamento[]
+  Fornecedor                         Fornecedor[]
+  ItensAvaliativosRecebimentoEmpresa ItensAvaliativosRecebimentoEmpresa[]
 
   @@map("empresas")
 }
@@ -416,27 +417,40 @@ model ItensCompra {
 }
 
 model RecebimentoCompras {
-  id                   String                @id @default(uuid())
-  recebidoEm           DateTime              @db.Date
-  cadastradoEm         DateTime              @default(now())
+  id                   String                 @id @default(uuid())
+  recebidoEm           DateTime               @db.Date
+  cadastradoEm         DateTime               @default(now())
   avaliacaoEntrega     Decimal
+  entregaCompleta      Boolean                @default(false)
+  numeroNota           String?
+  numeroCertificado    String?
   compraId             String
-  compra               Compras               @relation(fields: [compraId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  compra               Compras                @relation(fields: [compraId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   usuarioId            String
-  usuario              Usuario               @relation(fields: [usuarioId], references: [id])
-  AvaliacaoRecebimento AvaliacaoRecebimento?
+  usuario              Usuario                @relation(fields: [usuarioId], references: [id])
+  AvaliacaoRecebimento AvaliacaoRecebimento[]
 
   @@map("recebimento_compras")
 }
 
+model ItensAvaliativosRecebimentoEmpresa {
+  id                   String                 @id @default(uuid())
+  descricao            String                 @db.MediumText()
+  ativo                Boolean                @default(true)
+  empresa              Empresa                @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  empresaId            String
+  AvaliacaoRecebimento AvaliacaoRecebimento[]
+
+  @@map("itens_avaliativos_recebimento_empresa")
+}
+
 model AvaliacaoRecebimento {
-  id                  Int                @id @default(autoincrement())
-  numeroNota          String?
-  numeroCertificado   String?
-  avaria              Boolean
-  quantidadeIncorreta Boolean
-  recebimentoId       String             @unique
-  recebimentoCompras  RecebimentoCompras @relation(fields: [recebimentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id                 String                             @id @default(uuid())
+  notaAvaliacao      Decimal
+  itemAvaliacaoId    String
+  itemAvaliativo     ItensAvaliativosRecebimentoEmpresa @relation(fields: [itemAvaliacaoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  recebimentoId      String
+  recebimentoCompras RecebimentoCompras                 @relation(fields: [recebimentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("avaliacao_recebimento")
 }

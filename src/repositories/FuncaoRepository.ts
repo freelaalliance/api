@@ -1,10 +1,10 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
 import FuncaoEntity from '../entities/FuncaoEntity'
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import { prisma } from '../services/PrismaClientService'
 
-import { FuncaoInterface } from './../interfaces/ModulosSistemaInterface'
+import type { FuncaoInterface } from './../interfaces/ModulosSistemaInterface'
 
 class FuncaoRepository {
   private funcaoEntity: FuncaoEntity
@@ -99,12 +99,12 @@ class FuncaoRepository {
 
     if (funcao.length === 0) return []
 
-    return funcao.map((funcao) => {
+    return funcao.map(funcao => {
       return new FuncaoEntity(
         funcao.id,
         funcao.nome,
         funcao.url,
-        funcao.moduloId,
+        funcao.moduloId
       )
     })
   }
@@ -125,7 +125,7 @@ class FuncaoRepository {
         funcao.nome,
         funcao.url,
         funcao.modulo.id,
-        funcao.modulo.nome,
+        funcao.modulo.nome
       )
     }
 
@@ -133,7 +133,7 @@ class FuncaoRepository {
   }
 
   async listarFuncoesPermitidosPerfil(
-    perfilId: string,
+    perfilId: string
   ): Promise<FuncaoInterface[]> {
     const funcoesPerfil = await prisma.perfilPermissaFuncao.findMany({
       where: {
