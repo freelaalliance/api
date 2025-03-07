@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import {
@@ -102,18 +102,18 @@ class FornecedorController {
         z.object({
           numero: z.string(),
           codigoArea: z.string(),
-        }),
+        })
       ),
       emails: z.array(
         z.object({
           email: z.string().email(),
-        }),
+        })
       ),
       documentos: z.array(
         z.object({
           nome: z.string(),
           arquivo: z.string(),
-        }),
+        })
       ),
     })
     app.post('/', async (req, res) => {
@@ -286,6 +286,7 @@ class FornecedorController {
       nota: z.number().min(0).max(100),
       validade: z.coerce.date(),
       aprovado: z.boolean(),
+      critico: z.boolean(),
     })
 
     const schemaParams = z.object({
@@ -297,7 +298,9 @@ class FornecedorController {
       const { id: fornecedorId } = await schemaParams.parseAsync(req.params)
       const { cliente, id } = req.user
 
-      const { nota, validade, aprovado } = await schemaBody.parseAsync(req.body)
+      const { nota, validade, aprovado, critico } = await schemaBody.parseAsync(
+        req.body
+      )
 
       try {
         await salvarAvaliacaoFornecedor({
@@ -305,6 +308,7 @@ class FornecedorController {
           nota,
           validade,
           aprovado,
+          critico,
           usuarioId: id,
         })
 

@@ -122,14 +122,8 @@ export async function listarPedidosFornecedor({
           id: true,
           recebidoEm: true,
           avaliacaoEntrega: true,
-          AvaliacaoRecebimento: {
-            select: {
-              numeroNota: true,
-              numeroCertificado: true,
-              avaria: true,
-              quantidadeIncorreta: true,
-            },
-          },
+          numeroNota: true,
+          numeroCertificado: true,
           usuario: {
             select: {
               id: true,
@@ -200,62 +194,11 @@ export async function listarPedidosEmpresa({
             },
           },
           documento: true,
-          empresa: {
-            select: {
-              id: true,
-              pessoa: {
-                select: {
-                  nome: true,
-                  Endereco: {
-                    select: {
-                      logradouro: true,
-                      numero: true,
-                      complemento: true,
-                      bairro: true,
-                      cidade: true,
-                      estado: true,
-                      cep: true,
-                    },
-                  },
-                },
-              },
-              cnpj: true,
-            },
-          },
-        },
-      },
-      RecebimentoCompras: {
-        select: {
-          id: true,
-          recebidoEm: true,
-          avaliacaoEntrega: true,
-          AvaliacaoRecebimento: {
-            select: {
-              numeroNota: true,
-              numeroCertificado: true,
-              avaria: true,
-              quantidadeIncorreta: true,
-            },
-          },
-          usuario: {
-            select: {
-              id: true,
-              pessoa: {
-                select: {
-                  nome: true,
-                },
-              },
-            },
-          },
         },
       },
     },
     where: {
-      numPedido,
       fornecedor: {
-        AND: {
-          id: fornecedorId,
-        },
         empresaId,
       },
       excluido: false,
@@ -339,14 +282,107 @@ export async function listarPedidosPendentesEmpresa({
           id: true,
           recebidoEm: true,
           avaliacaoEntrega: true,
-          AvaliacaoRecebimento: {
+          numeroCertificado: true,
+          numeroNota: true,
+          usuario: {
             select: {
-              numeroNota: true,
-              numeroCertificado: true,
-              avaria: true,
-              quantidadeIncorreta: true,
+              id: true,
+              pessoa: {
+                select: {
+                  nome: true,
+                },
+              },
             },
           },
+        },
+      },
+    },
+    where: {
+
+      fornecedor: {
+        empresaId,
+      },
+      excluido: false,
+      cancelado: false,
+      recebido: false
+    },
+    orderBy: {
+      prazoEntrega: 'asc',
+    },
+  })
+}
+
+export async function listarPedidosRecebidosEmpresa({
+  empresaId,
+}: ConsultaPedidosFornecedorProps) {
+  return await prisma.compras.findMany({
+    select: {
+      id: true,
+      codigo: true,
+      numPedido: true,
+      permiteEntregaParcial: true,
+      prazoEntrega: true,
+      condicoesEntrega: true,
+      recebido: true,
+      cancelado: true,
+      cadastradoEm: true,
+      usuario: {
+        select: {
+          id: true,
+          pessoa: {
+            select: {
+              nome: true,
+            },
+          },
+        },
+      },
+      ItensCompra: {
+        select: {
+          id: true,
+          descricao: true,
+          quantidade: true,
+        },
+      },
+      fornecedor: {
+        select: {
+          id: true,
+          pessoa: {
+            select: {
+              nome: true,
+            },
+          },
+          documento: true,
+          empresa: {
+            select: {
+              id: true,
+              pessoa: {
+                select: {
+                  nome: true,
+                  Endereco: {
+                    select: {
+                      logradouro: true,
+                      numero: true,
+                      complemento: true,
+                      bairro: true,
+                      cidade: true,
+                      estado: true,
+                      cep: true,
+                    },
+                  },
+                },
+              },
+              cnpj: true,
+            },
+          },
+        },
+      },
+      RecebimentoCompras: {
+        select: {
+          id: true,
+          recebidoEm: true,
+          avaliacaoEntrega: true,
+          numeroCertificado: true,
+          numeroNota: true,
           usuario: {
             select: {
               id: true,
@@ -365,6 +401,8 @@ export async function listarPedidosPendentesEmpresa({
         empresaId,
       },
       excluido: false,
+      cancelado: false,
+      recebido: true
     },
     orderBy: {
       prazoEntrega: 'asc',

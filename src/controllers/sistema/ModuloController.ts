@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import FuncaoEntity from '../../entities/FuncaoEntity'
@@ -29,6 +29,10 @@ class ModuloController {
     fastify.register(this.listarFuncoesModulo, {
       prefix: '/modulo',
     })
+
+    fastify.register(this.adicionarFuncaoModulo, {
+      prefix: '/modulo',
+    })
   }
 
   async criarModulo(app: FastifyInstance) {
@@ -47,7 +51,7 @@ class ModuloController {
           url: z.string({
             required_error: 'Necessário informar a url da função',
           }),
-        }),
+        })
       ),
     })
 
@@ -62,7 +66,8 @@ class ModuloController {
 
       const funcaoEntity = new FuncaoEntity()
 
-      funcoes.forEach(async (funcao) => {
+      // biome-ignore lint/complexity/noForEach: <explanation>
+      funcoes.forEach(async funcao => {
         funcaoEntity.setNomeFuncao(funcao.nome)
         funcaoEntity.setUrlFuncao(funcao.url)
         funcaoEntity.setIdModulo(salvaModulo.msg)
@@ -153,7 +158,7 @@ class ModuloController {
       const moduloEntity = new ModuloEntity()
       const listaModulos = await moduloEntity.consultarTodosModulos()
 
-      return listaModulos.map((modulo) => {
+      return listaModulos.map(modulo => {
         return {
           id: modulo.getIdModulo(),
           nome: modulo.getNomeModulo(),
@@ -172,13 +177,13 @@ class ModuloController {
         .uuid({ message: 'O id do modulo é inválido!' }),
     })
 
-    app.get('/:id/funcoes', async (req) => {
+    app.get('/:id/funcoes', async req => {
       const { id } = schemaParams.parse(req.params)
 
       const funcaoEntity = new FuncaoEntity()
       const listaFuncoesModulo = await funcaoEntity.listarFuncaoModulo(id)
 
-      return listaFuncoesModulo.map((funcao) => {
+      return listaFuncoesModulo.map(funcao => {
         return {
           id: funcao.getIdFuncao(),
           nome: funcao.getNomeFuncao(),
@@ -197,7 +202,7 @@ class ModuloController {
         .uuid({ message: 'O id do modulo é inválido!' }),
     })
 
-    app.get('/:id', async (req) => {
+    app.get('/:id', async req => {
       const { id } = schemaParams.parse(req.params)
 
       const moduloEntity = new ModuloEntity()
@@ -220,7 +225,7 @@ class ModuloController {
         .uuid({ message: 'O id da função é inválido!' }),
     })
 
-    app.get('/:id', async (req) => {
+    app.get('/:id', async req => {
       const { id } = schemaParams.parse(req.params)
 
       const funcaoEntity = new FuncaoEntity()
@@ -232,6 +237,42 @@ class ModuloController {
         url: dadosFuncao.getUrlFuncao(),
         idModulo: dadosFuncao.getIdModulo(),
       }
+    })
+  }
+
+  async adicionarFuncaoModulo(app: FastifyInstance) {
+    const schemaFuncaoModulo = z.object({
+      nome: z.string().min(1, {
+        message: 'O nome da função é obrigatório',
+      }),
+      url: z.string({
+        required_error: 'Necessário informar a url da função',
+      }),
+    })
+
+    const schemaParamModulo = z.object({
+      id: z
+        .string({
+          required_error: 'Obrigatório informar o id do módulo',
+        })
+        .uuid({
+          message: 'Id do módulo inválido',
+        }),
+    })
+
+    app.post('/:id/funcao', async (req, reply) => {
+      const { id } = await schemaParamModulo.parseAsync(req.params)
+      const { nome, url } = await schemaFuncaoModulo.parseAsync(req.body)
+
+      const funcaoEntity = new FuncaoEntity()
+
+      funcaoEntity.setNomeFuncao(nome)
+      funcaoEntity.setUrlFuncao(url)
+      funcaoEntity.setIdModulo(id)
+
+      const salvaFuncao = await funcaoEntity.cadastrarFuncao()
+
+      return reply.status(201).send(salvaFuncao)
     })
   }
 }

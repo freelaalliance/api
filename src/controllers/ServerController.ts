@@ -1,9 +1,9 @@
-import fastifyCookie, { FastifyCookieOptions } from '@fastify/cookie'
+import fastifyCookie, { type FastifyCookieOptions } from '@fastify/cookie'
 import cors from '@fastify/cors'
-import fastifyJwt, { FastifyJWTOptions } from '@fastify/jwt'
-import fastify, { FastifyInstance } from 'fastify'
+import fastifyJwt, { type FastifyJWTOptions } from '@fastify/jwt'
+import fastify, { type FastifyInstance } from 'fastify'
 
-import { AutenticacaoUsuarioType } from '../entities/Autenticacao'
+import type { AutenticacaoUsuarioType } from '../entities/Autenticacao'
 
 class Servidor {
   public servico: FastifyInstance
@@ -52,7 +52,7 @@ class Servidor {
         authorizationTokenUntrusted: 'Untrusted authorization token',
         authorizationTokenUnsigned: 'Unsigned authorization token',
         // for the below message you can pass a sync function that must return a string as shown or a string
-        authorizationTokenInvalid: (err) => {
+        authorizationTokenInvalid: err => {
           return `Authorization token is invalid: ${err.message}`
         },
       },
