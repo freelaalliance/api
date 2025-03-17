@@ -35,7 +35,7 @@ class AutenticacaoController {
             .setCookie('sessionUser', tokenJWT, {
               path: '/',
               maxAge: 60 * 60 * 24 * 1,
-              domain: 'localhost',
+              domain: 'alliancequality.net',
               secure: false,
               sameSite: true,
             })
