@@ -422,6 +422,7 @@ model RecebimentoCompras {
   cadastradoEm         DateTime               @default(now())
   avaliacaoEntrega     Decimal
   entregaCompleta      Boolean                @default(false)
+  observacoes          String?                @db.LongText
   numeroNota           String?
   numeroCertificado    String?
   compraId             String

@@ -66,10 +66,10 @@ class Servidor {
         port: this.port,
       })
       .then(() => {
-        console.log('🚀 Servidor online na porta: ' + this.port)
+        console.log(`🚀 Servidor online na porta: ${this.port}`)
       })
       .catch((error: string) => {
-        console.log('🪲 Erro ao inicializar o servidor: ' + error)
+        console.log(`🪲 Erro ao inicializar o servidor: ${error}`)
         process.exit(1)
       })
   }

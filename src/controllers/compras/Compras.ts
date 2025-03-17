@@ -495,6 +495,7 @@ class ComprasController {
       numeroNotaFiscal: z.string().optional(),
       dataRecebimento: z.coerce.date(),
       pedidoRecebidoCompleto: z.boolean().default(true),
+      observacoes: z.string().optional(),
       avaliacoes: z.array(
         z.object({
           id: z.string().uuid(),
@@ -524,6 +525,7 @@ class ComprasController {
           numeroNotaFiscal,
           dataRecebimento,
           pedidoRecebidoCompleto,
+          observacoes,
           avaliacoes,
         } = await schemaBody.parseAsync(req.body)
 
@@ -543,6 +545,7 @@ class ComprasController {
           entregaCompleta: pedidoRecebidoCompleto,
           recebidoEm: dataRecebimento,
           empresaId: cliente,
+          observacoes
         })
 
         if (salvaRecebimento) {

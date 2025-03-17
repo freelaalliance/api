@@ -6,6 +6,7 @@ interface InserirRecebimentoPedidoProps {
   recebidoEm: Date
   numeroNota?: string
   numeroCertificado?: string
+  observacoes?: string
   avaliacoes: Array<{
     itemAvaliacaoId: string
     notaAvaliacao: number
@@ -30,6 +31,7 @@ export async function registrarRecebimentoPedido({
   numeroNota,
   numeroCertificado,
   avaliacoes,
+  observacoes,
   entregaCompleta,
   empresaId,
 }: InserirRecebimentoPedidoProps) {
@@ -61,6 +63,7 @@ export async function registrarRecebimentoPedido({
         avaliacaoEntrega: mediaAvaliacao,
         numeroNota,
         numeroCertificado,
+        observacoes,
         AvaliacaoRecebimento: {
           createMany: {
             data: avaliacoes
