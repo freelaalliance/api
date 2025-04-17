@@ -1,10 +1,10 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
 import ModuloEntity from '../entities/ModuloEntity'
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import { prisma } from '../services/PrismaClientService'
 
-import {
+import type {
   ModuloEmpresaInteface,
   ModuloInterface,
 } from './../interfaces/ModulosSistemaInterface'

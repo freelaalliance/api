@@ -58,6 +58,8 @@ model Empresa {
   Equipamento                        Equipamento[]
   Fornecedor                         Fornecedor[]
   ItensAvaliativosRecebimentoEmpresa ItensAvaliativosRecebimentoEmpresa[]
+  CategoriasDocumento                CategoriasDocumento[]
+  Documentos                         Documentos[]
 
   @@map("empresas")
 }
@@ -75,24 +77,27 @@ model Perfil {
 }
 
 model Usuario {
-  id                   String                 @id @default(uuid())
-  email                String                 @unique
-  senha                String
-  ativo                Boolean                @default(true)
-  criadoEm             DateTime               @default(now())
-  atualizadoEm         DateTime               @updatedAt
-  pessoa               Pessoa                 @relation(fields: [pessoaId], references: [id])
-  pessoaId             String                 @unique
-  perfil               Perfil                 @relation(fields: [perfilId], references: [id])
-  perfilId             String
-  empresa              Empresa                @relation(fields: [empresaId], references: [id])
-  empresaId            String
-  Calibracao           Calibracao[]
-  Manutencao           Manutencao[]
-  InspecaoEquipamento  InspecaoEquipamento[]
-  AvaliacoesFornecedor AvaliacoesFornecedor[]
-  Compras              Compras[]
-  RecebimentoCompras   RecebimentoCompras[]
+  id                      String                    @id @default(uuid())
+  email                   String                    @unique
+  senha                   String
+  ativo                   Boolean                   @default(true)
+  criadoEm                DateTime                  @default(now())
+  atualizadoEm            DateTime                  @updatedAt
+  pessoa                  Pessoa                    @relation(fields: [pessoaId], references: [id])
+  pessoaId                String                    @unique
+  perfil                  Perfil                    @relation(fields: [perfilId], references: [id])
+  perfilId                String
+  empresa                 Empresa                   @relation(fields: [empresaId], references: [id])
+  empresaId               String
+  Calibracao              Calibracao[]
+  Manutencao              Manutencao[]
+  InspecaoEquipamento     InspecaoEquipamento[]
+  AvaliacoesFornecedor    AvaliacoesFornecedor[]
+  Compras                 Compras[]
+  RecebimentoCompras      RecebimentoCompras[]
+  Documentos              Documentos[]
+  UsuarioAcessoDocumentos UsuarioAcessoDocumentos[]
+  Revisoes                Revisoes[]
 
   @@map("usuarios")
 }
@@ -454,4 +459,69 @@ model AvaliacaoRecebimento {
   recebimentoCompras RecebimentoCompras                 @relation(fields: [recebimentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("avaliacao_recebimento")
+}
+
+model CategoriasDocumento {
+  id         String       @id @default(uuid())
+  nome       String
+  empresa    Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  empresaId  String
+  Documentos Documentos[]
+
+  @@map("categorias_documento")
+}
+
+model Documentos {
+  id                      String                    @id @default(uuid())
+  nome                    String
+  descricao               String
+  copias                  Int                       @default(0)
+  recuperacao             String
+  presElegibilidade       String
+  disposicao              String
+  retencao                DateTime                  @db.Date
+  uso                     String
+  cadastradoEm            DateTime                  @default(now())
+  categoriaDocumentoId    String
+  categoriasDocumento     CategoriasDocumento       @relation(fields: [categoriaDocumentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuarioId               String
+  usuario                 Usuario                   @relation(fields: [usuarioId], references: [id])
+  UsuarioAcessoDocumentos UsuarioAcessoDocumentos[]
+  Revisoes                Revisoes[]
+  empresaId               String
+  empresa                 Empresa                   @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("documentos")
+}
+
+model UsuarioAcessoDocumentos {
+  usuarioId   String
+  usuario     Usuario    @relation(fields: [usuarioId], references: [id])
+  documentoId String
+  documentos  Documentos @relation(fields: [documentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([usuarioId, documentoId])
+  @@map("usuario_acesso_documentos")
+}
+
+model Arquivos {
+  id           String     @id @default(uuid())
+  nome         String
+  url          String     @db.Text
+  cadastradoEm DateTime   @default(now())
+  Revisoes     Revisoes[]
+
+  @@map("arquivos")
+}
+
+model Revisoes {
+  id            String     @id @default(uuid())
+  numeroRevisao Int
+  revisadoEm    DateTime   @default(now())
+  usuarioId     String
+  usuario       Usuario    @relation(fields: [usuarioId], references: [id])
+  documentoId   String
+  documentos    Documentos @relation(fields: [documentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  arquivoId     String
+  arquivos      Arquivos   @relation(fields: [arquivoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }

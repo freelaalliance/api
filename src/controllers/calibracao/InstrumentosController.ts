@@ -1,14 +1,14 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import CalibracaoEntity, {
-  EstatisticaAgendaCalibracaoEmpresaType,
-  EstatisticaCalibracaoInstrumentoEmpresaType,
+  type EstatisticaAgendaCalibracaoEmpresaType,
+  type EstatisticaCalibracaoInstrumentoEmpresaType,
 } from '../../entities/CalibracaoEntity'
 import InstrumentoEntity, {
-  EstatisticaInstrumentoEmpresaType,
+  type EstatisticaInstrumentoEmpresaType,
 } from '../../entities/InstrumentoEntity'
-import { HistoricoCalibracaoInstrumentoType } from '../../repositories/CalibracaoRepository'
+import type { HistoricoCalibracaoInstrumentoType } from '../../repositories/CalibracaoRepository'
 
 class InstrumentosController {
   constructor(fastifyInstance: FastifyInstance) {
@@ -40,7 +40,7 @@ class InstrumentosController {
       this.recuperarEstatisticasInstrumentosCalibracoesEmpresa,
       {
         prefix: '/instrumentos',
-      },
+      }
     )
     fastifyInstance.register(this.recuperarHistoricoInstrumento, {
       prefix: '/instrumentos',
@@ -94,7 +94,7 @@ class InstrumentosController {
     })
 
     app.post('/calibracao', async (req, reply) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const {
         numeroCertificado,
         erroEncontrado,
@@ -117,7 +117,7 @@ class InstrumentosController {
       calibracaoInstrumentoEntity.setNumeroCertificado(numeroCertificado)
       calibracaoInstrumentoEntity.setErroEncontrado(erroEncontrado)
       calibracaoInstrumentoEntity.setIncertezaTendencia(
-        incertezaTendenciaEncontrado,
+        incertezaTendenciaEncontrado
       )
       calibracaoInstrumentoEntity.setTolerancia(toleranciaEstabelecida)
       calibracaoInstrumentoEntity.setCertificado(certificado)
@@ -179,7 +179,7 @@ class InstrumentosController {
     })
 
     app.put('/calibracao/:id', async (req, reply) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { id } = schemaParams.parse(req.params)
       const {
         numeroCertificado,
@@ -196,7 +196,7 @@ class InstrumentosController {
       calibracaoInstrumentoEntity.setNumeroCertificado(numeroCertificado)
       calibracaoInstrumentoEntity.setErroEncontrado(erroEncontrado)
       calibracaoInstrumentoEntity.setIncertezaTendencia(
-        incertezaTendenciaEncontrado,
+        incertezaTendenciaEncontrado
       )
       calibracaoInstrumentoEntity.setTolerancia(toleranciaEstabelicida)
       calibracaoInstrumentoEntity.setObservacao(observacao ?? null)
@@ -322,17 +322,17 @@ class InstrumentosController {
   }
 
   async buscarCalibracoesEmpresa(app: FastifyInstance) {
-    app.get('/calibracao/all', async (req) => {
-      await req.jwtVerify()
+    app.get('/calibracao/all', async req => {
+      await req.jwtVerify({ onlyCookie: true })
 
       const calibracaoInstrumentoEntity = new CalibracaoEntity()
 
       const calibracoes =
         await calibracaoInstrumentoEntity.recuperarListaCalibracaoEmpresa(
-          req.user.cliente,
+          req.user.cliente
         )
 
-      return calibracoes.map((calibracaoInstrumento) => {
+      return calibracoes.map(calibracaoInstrumento => {
         return {
           calibracao: {
             id: calibracaoInstrumento.id,
@@ -365,12 +365,12 @@ class InstrumentosController {
   }
 
   async buscarAgendaCalibracoesEmpresa(app: FastifyInstance) {
-    app.get('/calibracoes/agenda', async (req) => {
-      await req.jwtVerify()
+    app.get('/calibracoes/agenda', async req => {
+      await req.jwtVerify({ onlyCookie: true })
       const calibracaoEntity = new CalibracaoEntity()
 
       return await calibracaoEntity.recuperarAgendamentosCalibracaoInstrumentosEmpresa(
-        req.user.cliente,
+        req.user.cliente
       )
     })
   }
@@ -380,8 +380,8 @@ class InstrumentosController {
       codigo: z.optional(z.string()),
     })
 
-    app.get('/', async (req) => {
-      await req.jwtVerify()
+    app.get('/', async req => {
+      await req.jwtVerify({ onlyCookie: true })
       const { codigo } = schemaParams.parse(req.query)
 
       if (codigo) {
@@ -408,25 +408,25 @@ class InstrumentosController {
   }
 
   async recuperarEstatisticasInstrumentosCalibracoesEmpresa(
-    app: FastifyInstance,
+    app: FastifyInstance
   ) {
-    app.get('/estatisticas', async (req) => {
-      await req.jwtVerify()
+    app.get('/estatisticas', async req => {
+      await req.jwtVerify({ onlyCookie: true })
       const calibracaoEntity = new CalibracaoEntity()
 
       const estatisticasCalibracao: EstatisticaCalibracaoInstrumentoEmpresaType =
         await calibracaoEntity.recuperarEstatisticasCalibracoesEmpresa(
-          req.user.cliente,
+          req.user.cliente
         )
 
       const estatisticasInstrumento: EstatisticaInstrumentoEmpresaType =
         await calibracaoEntity.recuperarEstatisticasInstrumentoEmpresa(
-          req.user.cliente,
+          req.user.cliente
         )
 
       const estatisticasAgenda: EstatisticaAgendaCalibracaoEmpresaType =
         await calibracaoEntity.recuperarEstatisticasAgendaCalibracaoEmpresa(
-          req.user.cliente,
+          req.user.cliente
         )
 
       return {
@@ -454,7 +454,7 @@ class InstrumentosController {
         .uuid({ message: 'O id do instrumento é inválido!' }),
     })
 
-    app.get('/historico/:id', async (req) => {
+    app.get('/historico/:id', async req => {
       const instrumentoEntity = new CalibracaoEntity()
       const { id } = schemaParams.parse(req.params)
 
@@ -472,7 +472,7 @@ class InstrumentosController {
         localizacao: dadosInstrumento.getLocalizacao(),
         frequencia: dadosInstrumento.getFrequencia(),
         repeticao: dadosInstrumento.getRepeticao(),
-        calibracoes: historicoCalibracoesInstrumento.map((calibracao) => {
+        calibracoes: historicoCalibracoesInstrumento.map(calibracao => {
           return {
             id: calibracao.id,
             numeroCertificado: calibracao.numeroCertificado,

@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import UsuarioEntity from '../../entities/UsuarioEntity'
@@ -53,7 +53,7 @@ class UsuarioController {
 
     app.post('/', async (req, reply) => {
       const { nome, email, senha, empresa, perfil } = schemaUsuario.parse(
-        req.body,
+        req.body
       )
 
       const usuarioEntity = new UsuarioEntity(
@@ -66,7 +66,7 @@ class UsuarioController {
         undefined,
         nome,
         perfil,
-        empresa,
+        empresa
       )
 
       const cadastraUsuario = await usuarioEntity.cadastrarUsuario()
@@ -120,7 +120,7 @@ class UsuarioController {
         undefined,
         nome,
         perfil,
-        undefined,
+        undefined
       )
 
       const alteraUsuario = await usuarioEntity.editarUsuario(id)
@@ -155,7 +155,7 @@ class UsuarioController {
         status,
         new Date(),
         new Date(),
-        undefined,
+        undefined
       )
 
       const alteraStatus = status
@@ -207,7 +207,7 @@ class UsuarioController {
         novaSenha,
         true,
         new Date(),
-        new Date(),
+        new Date()
       )
 
       const alteraSenha = await usuarioEntity.alterarSenha(id, senhaAntiga)

@@ -1,11 +1,11 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
 import UsuarioEntity from '../entities/UsuarioEntity'
-import {
+import type {
   PessoaInterface,
   PessoaUsuarioInterface,
 } from '../interfaces/PessoaInterface'
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import { prisma } from '../services/PrismaClientService'
 
 class UsuarioRepository {
@@ -45,7 +45,7 @@ class UsuarioRepository {
   }
 
   async atualizarSenhaUsuario(
-    id: string,
+    id: string
   ): Promise<RespostaRequisicaoInterface> {
     try {
       await prisma.usuario.update({
@@ -162,11 +162,11 @@ class UsuarioRepository {
     const usuario:
       | (PessoaUsuarioInterface & { pessoa: PessoaInterface })
       | null = await prisma.usuario.findUnique({
-      where: { id },
-      include: {
-        pessoa: true,
-      },
-    })
+        where: { id },
+        include: {
+          pessoa: true,
+        },
+      })
 
     if (!usuario) {
       return new UsuarioEntity()
@@ -182,7 +182,7 @@ class UsuarioRepository {
       usuario.pessoaId,
       usuario.pessoa.nome,
       usuario.perfilId,
-      usuario.empresaId,
+      usuario.empresaId
     )
   }
 
@@ -190,9 +190,9 @@ class UsuarioRepository {
     const usuario:
       | (PessoaUsuarioInterface & { pessoa: PessoaInterface })
       | null = await prisma.usuario.findUnique({
-      where: { email },
-      include: { pessoa: true },
-    })
+        where: { email },
+        include: { pessoa: true },
+      })
 
     if (!usuario) {
       return new UsuarioEntity()
@@ -208,7 +208,7 @@ class UsuarioRepository {
       usuario.pessoa.id,
       usuario.pessoa.nome,
       usuario.perfilId,
-      usuario.empresaId,
+      usuario.empresaId
     )
   }
 
@@ -237,9 +237,9 @@ class UsuarioRepository {
           usuario.pessoa.id,
           usuario.pessoa.nome,
           usuario.perfilId,
-          usuario.empresaId,
+          usuario.empresaId
         )
-      },
+      }
     )
   }
 
@@ -266,9 +266,9 @@ class UsuarioRepository {
           usuario.pessoa.id,
           usuario.pessoa.nome,
           usuario.perfilId,
-          usuario.empresaId,
+          usuario.empresaId
         )
-      },
+      }
     )
   }
 }

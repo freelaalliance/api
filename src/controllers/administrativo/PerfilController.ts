@@ -1,9 +1,9 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import FuncaoEntity from '../../entities/FuncaoEntity'
 import PerfilEntity from '../../entities/PerfilEntity'
-import { FuncaoInterface } from '../../interfaces/ModulosSistemaInterface'
+import type { FuncaoInterface } from '../../interfaces/ModulosSistemaInterface'
 
 class PerfilController {
   constructor(fastify: FastifyInstance) {
@@ -155,7 +155,7 @@ class PerfilController {
         }),
     })
 
-    app.get('/:id/permissoes', async (req) => {
+    app.get('/:id/permissoes', async req => {
       const { id } = schemaParams.parse(req.params)
 
       const funcaoEntity = new FuncaoEntity()
@@ -206,7 +206,7 @@ class PerfilController {
           .uuid({
             message: 'Id da função é inválido!',
           }),
-      }),
+      })
     )
 
     const schemaParams = z.object({
@@ -225,14 +225,15 @@ class PerfilController {
         const { id } = schemaParams.parse(req.params)
         const permissoes = schemaFuncao.parse(req.body)
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         const promises: Array<any> = []
 
         const perfilEntity = new PerfilEntity()
 
-        permissoes.forEach((permissao) => {
+        // biome-ignore lint/complexity/noForEach: <explanation>
+        permissoes.forEach(permissao => {
           promises.push(
-            perfilEntity.vincularPermissoesFuncaoPerfil(id, permissao.idFuncao),
+            perfilEntity.vincularPermissoesFuncaoPerfil(id, permissao.idFuncao)
           )
         })
 
@@ -262,7 +263,7 @@ class PerfilController {
           .min(1, {
             message: 'O id do perfil é obrigatório',
           }),
-      }),
+      })
     )
 
     const schemaParams = z.object({
@@ -283,15 +284,16 @@ class PerfilController {
 
         const perfilEntity = new PerfilEntity()
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         const promises: Array<any> = []
 
-        permissoes.forEach((permissao) => {
+        // biome-ignore lint/complexity/noForEach: <explanation>
+        permissoes.forEach(permissao => {
           promises.push(
             perfilEntity.desvincularPermissoesFuncaoPerfil(
               id,
-              permissao.idFuncao,
-            ),
+              permissao.idFuncao
+            )
           )
         })
 

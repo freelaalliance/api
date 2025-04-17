@@ -1,5 +1,5 @@
 import { addDays, differenceInDays } from 'date-fns'
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import {
@@ -66,7 +66,7 @@ class ManutencaoEquipamentoController {
     })
 
     app.get('/equipamento/:idEquipamento', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -91,7 +91,7 @@ class ManutencaoEquipamentoController {
     })
 
     app.post('/equipamento/:equipamentoId', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { id } = req.user
 
@@ -119,10 +119,10 @@ class ManutencaoEquipamentoController {
 
     app.patch('/cancelar/:id', async (req, res) => {
       const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(
-        req.params,
+        req.params
       )
       const { equipamentoId } = await schemaBodyCancelaManutencao.parseAsync(
-        req.body,
+        req.body
       )
 
       const cancelaManutencao = await cancelarManutencaoEquipamento({
@@ -147,7 +147,7 @@ class ManutencaoEquipamentoController {
 
     app.patch('/finalizar/:id', async (req, res) => {
       const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(
-        req.params,
+        req.params
       )
       const { equipamentoId, finalizadoEm } =
         await schemaBodyFinalizaManutencao.parseAsync(req.body)
@@ -173,10 +173,10 @@ class ManutencaoEquipamentoController {
 
     app.patch('/iniciar/:id', async (req, res) => {
       const { id: manutencaoId } = await schemaParamsManutencao.parseAsync(
-        req.params,
+        req.params
       )
       const { equipamentoId } = await schemaBodyIniciarManutencao.parseAsync(
-        req.body,
+        req.body
       )
 
       const iniciaManutencao = await iniciarManutencaoEquipamento({
@@ -195,12 +195,12 @@ class ManutencaoEquipamentoController {
     })
 
     app.get('/equipamento/:idEquipamento/duracao', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
       const { idEquipamento } = await schemaParamsManutencao.parseAsync(
-        req.params,
+        req.params
       )
 
       const duracoesManutencoes = await consultaDuracaoManutencoesEquipamento({
@@ -214,7 +214,7 @@ class ManutencaoEquipamentoController {
 
   async buscaEstatisticasEquipamentoStatus(app: FastifyInstance) {
     app.get('/equipamento/estatatisticas/status', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -242,7 +242,7 @@ class ManutencaoEquipamentoController {
 
   async buscaEstatisticasManutencoes(app: FastifyInstance) {
     app.get('/estatisticas', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -258,20 +258,20 @@ class ManutencaoEquipamentoController {
       })
 
       const equipamentosManutencaoEmDia = manutencoesEmDia.filter(
-        (equipamento) => {
+        equipamento => {
           const proximaManutencaoPreventiva = equipamento.inspecionadoEm
             ? addDays(
-                new Date(equipamento.inspecionadoEm),
-                equipamento.frequencia,
-              )
+              new Date(equipamento.inspecionadoEm),
+              equipamento.frequencia
+            )
             : addDays(
-                new Date(equipamento.cadastradoEm),
-                equipamento.frequencia,
-              )
+              new Date(equipamento.cadastradoEm),
+              equipamento.frequencia
+            )
 
           const diasProximaManutencao = differenceInDays(
             proximaManutencaoPreventiva,
-            new Date(),
+            new Date()
           )
 
           if (diasProximaManutencao >= 0) {
@@ -279,7 +279,7 @@ class ManutencaoEquipamentoController {
           }
 
           return null
-        },
+        }
       )
 
       res.status(200).send({
@@ -299,7 +299,7 @@ class ManutencaoEquipamentoController {
     })
 
     app.get('/indicadores/equipamento', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
       const { equipamentoId } = await schemaQueryParams.parseAsync(req.query)
@@ -319,7 +319,7 @@ class ManutencaoEquipamentoController {
 
   async buscaIndicadoresManutencoesEmpresa(app: FastifyInstance) {
     app.get('/indicadores/equipamentos/empresa', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -330,14 +330,14 @@ class ManutencaoEquipamentoController {
         })
 
       res.status(200).send(
-        dadosIndicadores.map((equipamento) => {
+        dadosIndicadores.map(equipamento => {
           return {
             nome: equipamento.nome,
             total_tempo_parado: Number(equipamento.total_tempo_parado),
             qtd_manutencoes: Number(equipamento.qtd_manutencoes),
             total_tempo_operacao: Number(equipamento.total_tempo_operacao),
           }
-        }),
+        })
       )
     })
   }

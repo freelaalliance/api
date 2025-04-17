@@ -72,7 +72,7 @@ class FornecedorController {
 
   async consultaFornecedoresEmpresa(app: FastifyInstance) {
     app.get('/', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const listaFornecedores = await recuperarFornecedoresEmpresa({
@@ -117,7 +117,7 @@ class FornecedorController {
       ),
     })
     app.post('/', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { id, cliente } = req.user
 
       const {
@@ -191,7 +191,7 @@ class FornecedorController {
     })
 
     app.get('/:id', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const { id } = await schemaParams.parseAsync(req.params)
@@ -215,7 +215,7 @@ class FornecedorController {
     })
 
     app.get('/:id/documentos', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const { id } = await schemaParams.parseAsync(req.params)
@@ -239,7 +239,7 @@ class FornecedorController {
     })
 
     app.get('/:id/avaliacoes', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const { id } = await schemaParams.parseAsync(req.params)
@@ -263,7 +263,7 @@ class FornecedorController {
     })
 
     app.get('/:id/avaliacoes-entrega', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const { id } = await schemaParams.parseAsync(req.params)
@@ -294,7 +294,7 @@ class FornecedorController {
     })
 
     app.post(`/:id/avaliacao`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { id: fornecedorId } = await schemaParams.parseAsync(req.params)
       const { cliente, id } = req.user
 
@@ -343,7 +343,7 @@ class FornecedorController {
     })
 
     app.put(`/:id/endereco/:enderecoId`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -388,7 +388,7 @@ class FornecedorController {
     })
 
     app.delete(`/telefone/:telefoneId`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -427,7 +427,7 @@ class FornecedorController {
     })
 
     app.post(`/:id/telefone`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -465,7 +465,7 @@ class FornecedorController {
     })
 
     app.delete(`/email/:emailId`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -503,7 +503,7 @@ class FornecedorController {
     })
 
     app.post(`/:id/email`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -538,7 +538,7 @@ class FornecedorController {
     })
 
     app.delete(`/anexo/:anexoId`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -577,7 +577,7 @@ class FornecedorController {
     })
 
     app.post(`/:id/anexo`, async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
@@ -615,7 +615,7 @@ class FornecedorController {
     })
 
     app.delete('/:id', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 

@@ -18,6 +18,8 @@ import Servidor from './controllers/ServerController'
 import ModuloController from './controllers/sistema/ModuloController'
 import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
 import { AdministradorComprasController } from './controllers/administrativo/ComprasController'
+import { CategoriasDocumentosController } from './controllers/documentos/categorias'
+import { DocumentosController } from './controllers/documentos/documentos'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -39,6 +41,8 @@ new FornecedorController(server.servico)
 new ComprasController(server.servico)
 new RelatorioComprasController(server.servico)
 new AdministradorComprasController(server.servico)
+new CategoriasDocumentosController(server.servico)
+new DocumentosController(server.servico)
 
 cron.schedule('0 2 1 * *', () => {
   notificarVencimentoCalibracao()

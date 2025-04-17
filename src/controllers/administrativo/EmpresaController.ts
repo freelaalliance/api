@@ -332,11 +332,12 @@ class EmpresaController {
         const modulos = schemaVinculoModulo.parse(req.body)
         const { id } = schemaParamEmpresa.parse(req.params)
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         const promises: Array<any> = []
 
         const empresaEntity = new EmpresaEntity()
 
+        // biome-ignore lint/complexity/noForEach: <explanation>
         modulos.forEach(modulo => {
           promises.push(
             empresaEntity.desvincularModuloEmpresa(id, modulo.idModulo)

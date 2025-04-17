@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import {
@@ -46,7 +46,7 @@ class InspecaoEquipamentoController {
           aprovado: z.boolean(),
           inspecionadoEm: z.coerce.date().optional().nullable(),
           inspecionado: z.boolean(),
-        }),
+        })
       ),
     })
 
@@ -55,17 +55,17 @@ class InspecaoEquipamentoController {
     })
 
     app.post('/equipamento/:id', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { id, cliente } = req.user
 
       const { iniciadoEm, finalizadoEm, inspecaoPeca, observacao } =
         await schemaDadosInspecao.parseAsync(req.body)
       const { id: equipamentoId } = await schemaParamsEquipamento.parseAsync(
-        req.params,
+        req.params
       )
 
-      const pontoReprovado = inspecaoPeca.find((pontos) => !pontos.aprovado)
+      const pontoReprovado = inspecaoPeca.find(pontos => !pontos.aprovado)
 
       if (finalizadoEm) {
         await atualizarAgendaEquipamento({
@@ -106,11 +106,11 @@ class InspecaoEquipamentoController {
     })
 
     app.get('/equipamento/:equipamentoId', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const { equipamentoId } = await schemaParamsEquipamento.parseAsync(
-        req.params,
+        req.params
       )
 
       const inspecaoEquipamento = await listaInspecoesEquipamentoEmpresa({
@@ -128,17 +128,17 @@ class InspecaoEquipamentoController {
     })
 
     app.get('/:id', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { cliente } = req.user
 
       const { id: inspecaoId } = await schemaParamsInspecao.parseAsync(
-        req.params,
+        req.params
       )
 
       const pontosInspecionados = await listaPontosInspecionadoEquipamento(
         inspecaoId,
-        cliente,
+        cliente
       )
 
       res.status(200).send(pontosInspecionados)
@@ -157,7 +157,7 @@ class InspecaoEquipamentoController {
           aprovado: z.boolean(),
           inspecionadoEm: z.coerce.date(),
           inspecionado: z.boolean(),
-        }),
+        })
       ),
     })
 
@@ -166,17 +166,17 @@ class InspecaoEquipamentoController {
     })
 
     app.put('/:id', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const { id, cliente } = req.user
 
       const { equipamentoId, finalizadoEm, inspecaoPeca, observacao } =
         await schemaDadosInspecao.parseAsync(req.body)
       const { id: inspecaoId } = await schemaParamsInspecao.parseAsync(
-        req.params,
+        req.params
       )
 
-      const pontoReprovado = inspecaoPeca.find((pontos) => !pontos.aprovado)
+      const pontoReprovado = inspecaoPeca.find(pontos => !pontos.aprovado)
 
       await atualizarAgendaEquipamento({
         empresaId: cliente,
@@ -210,7 +210,7 @@ class InspecaoEquipamentoController {
 
   async agendaInspecoesEmpresa(app: FastifyInstance) {
     app.get('/agenda', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const inspecaoAgendadas = await consultarAgendaInspecaoEmpresa({

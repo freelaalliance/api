@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import CalibracaoEntity from '../../entities/CalibracaoEntity'
@@ -28,7 +28,7 @@ class RelatorioCalibracaoController {
         localizacaoInstrumento,
       } = schemaFiltroRelatorio.parse(req.query)
 
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
 
       const calibracaoEntity = new CalibracaoEntity()
       calibracaoEntity.setEmpresaId(req.user.cliente)
@@ -43,7 +43,7 @@ class RelatorioCalibracaoController {
         })
 
       reply.code(200).send(
-        calibracoes.map((calibracao) => {
+        calibracoes.map(calibracao => {
           return {
             id: calibracao.id,
             codigo: calibracao.instrumento.codigo,
@@ -63,7 +63,7 @@ class RelatorioCalibracaoController {
             realizadoEm: calibracao.realizadoEm,
             atualizadoEm: calibracao.atualizadoEm,
           }
-        }),
+        })
       )
     })
   }

@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import {
@@ -32,7 +32,7 @@ class RelatorioComprasController {
 
   async resumoEstatisticasFornecedor(app: FastifyInstance) {
     app.get('/fornecedor/resumo', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const estatisticas = await buscaResumoFornecedorEmpresa({
@@ -45,7 +45,7 @@ class RelatorioComprasController {
 
   async resumoEstatisticasComprasFornecedor(app: FastifyInstance) {
     app.get('/compras/resumo', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const estatisticas = await resumoPedidosEmpresa({
@@ -63,7 +63,7 @@ class RelatorioComprasController {
     })
 
     app.get('/recebimentos', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const { dataInicial, dataFinal } = await schemaQuery.parseAsync(req.query)
@@ -94,7 +94,7 @@ class RelatorioComprasController {
     })
 
     app.get('/compras', async (req, res) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const { dataInicial, dataFinal } = await schemaQuery.parseAsync(req.query)
@@ -106,7 +106,7 @@ class RelatorioComprasController {
       })
 
       res.status(200).send(
-        pedidos.map((pedido) => {
+        pedidos.map(pedido => {
           return {
             id: pedido.id,
             numPedido: String(pedido.numPedido),
@@ -126,7 +126,7 @@ class RelatorioComprasController {
               documento: pedido.fornecedor.documento,
             },
           }
-        }),
+        })
       )
     })
   }

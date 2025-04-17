@@ -86,7 +86,7 @@ class ComprasController {
 
     app.post('/fornecedor/:fornecedorId', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
 
         const { fornecedorId } = await schemaParam.parseAsync(req.params)
         const { id } = req.user
@@ -135,7 +135,7 @@ class ComprasController {
 
     app.patch('/:idPedido/cancelar', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
         const { cliente } = req.user
         const { idPedido } = await schemaParam.parseAsync(req.params)
 
@@ -167,7 +167,7 @@ class ComprasController {
 
     app.patch('/:idPedido/excluir', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
         const { cliente } = req.user
         const { idPedido } = await schemaParam.parseAsync(req.params)
 
@@ -200,7 +200,7 @@ class ComprasController {
 
     app.get('/', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
         const { cliente } = req.user
 
         const { codigo, id } = await schemaQueryParam.parseAsync(req.query)
@@ -267,7 +267,7 @@ class ComprasController {
 
     app.get('/:fornecedorId/all', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
         const { cliente } = req.user
 
         const { fornecedorId } = await schemaParams.parseAsync(req.params)
@@ -318,15 +318,15 @@ class ComprasController {
               recebimento: !pedido.RecebimentoCompras
                 ? undefined
                 : pedido.RecebimentoCompras.map(recebimento => {
-                    return {
-                      id: recebimento.id,
-                      usuario: recebimento.usuario.pessoa.nome,
-                      dataRecebimento: recebimento.recebidoEm,
-                      avaliacaoEntrega: recebimento.avaliacaoEntrega,
-                      numeroNota: recebimento.numeroNota,
-                      numeroCertificado: recebimento.numeroCertificado,
-                    }
-                  }),
+                  return {
+                    id: recebimento.id,
+                    usuario: recebimento.usuario.pessoa.nome,
+                    dataRecebimento: recebimento.recebidoEm,
+                    avaliacaoEntrega: recebimento.avaliacaoEntrega,
+                    numeroNota: recebimento.numeroNota,
+                    numeroCertificado: recebimento.numeroCertificado,
+                  }
+                }),
             }
           }),
         })
@@ -344,7 +344,7 @@ class ComprasController {
   async buscaPedidosPendentesEmpresa(app: FastifyInstance) {
     app.get('/pendentes', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
         const { cliente } = req.user
 
         const pedidos = await listarPedidosPendentesEmpresa({
@@ -392,15 +392,15 @@ class ComprasController {
               recebimento: !pedido.RecebimentoCompras
                 ? undefined
                 : pedido.RecebimentoCompras.map(recebimento => {
-                    return {
-                      id: recebimento.id,
-                      usuario: recebimento.usuario.pessoa.nome,
-                      dataRecebimento: recebimento.recebidoEm,
-                      avaliacaoEntrega: recebimento.avaliacaoEntrega,
-                      numeroNota: recebimento.numeroNota,
-                      numeroCertificado: recebimento.numeroCertificado,
-                    }
-                  }),
+                  return {
+                    id: recebimento.id,
+                    usuario: recebimento.usuario.pessoa.nome,
+                    dataRecebimento: recebimento.recebidoEm,
+                    avaliacaoEntrega: recebimento.avaliacaoEntrega,
+                    numeroNota: recebimento.numeroNota,
+                    numeroCertificado: recebimento.numeroCertificado,
+                  }
+                }),
             }
           }),
         })
@@ -418,7 +418,7 @@ class ComprasController {
   async buscaPedidosRecebidosEmpresa(app: FastifyInstance) {
     app.get('/recebidos', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
         const { cliente } = req.user
 
         const pedidos = await listarPedidosRecebidosEmpresa({
@@ -466,15 +466,15 @@ class ComprasController {
               recebimento: !pedido.RecebimentoCompras
                 ? undefined
                 : pedido.RecebimentoCompras.map(recebimento => {
-                    return {
-                      id: recebimento.id,
-                      usuario: recebimento.usuario.pessoa.nome,
-                      dataRecebimento: recebimento.recebidoEm,
-                      avaliacaoEntrega: recebimento.avaliacaoEntrega,
-                      numeroNota: recebimento.numeroNota,
-                      numeroCertificado: recebimento.numeroCertificado,
-                    }
-                  }),
+                  return {
+                    id: recebimento.id,
+                    usuario: recebimento.usuario.pessoa.nome,
+                    dataRecebimento: recebimento.recebidoEm,
+                    avaliacaoEntrega: recebimento.avaliacaoEntrega,
+                    numeroNota: recebimento.numeroNota,
+                    numeroCertificado: recebimento.numeroCertificado,
+                  }
+                }),
             }
           }),
         })
@@ -518,7 +518,7 @@ class ComprasController {
 
     app.post('/:compraId/recebimento', async (req, res) => {
       try {
-        await req.jwtVerify()
+        await req.jwtVerify({ onlyCookie: true })
 
         const {
           numeroCertificado,
@@ -570,7 +570,7 @@ class ComprasController {
 
   async itensAvaliacaoRecebimentoEmpresa(app: FastifyInstance) {
     app.get('/avaliacao/itens', async (req, reply) => {
-      await req.jwtVerify()
+      await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
       const listaItensRecebimento =

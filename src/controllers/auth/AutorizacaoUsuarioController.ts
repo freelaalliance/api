@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import FuncaoEntity from '../../entities/FuncaoEntity'
@@ -57,17 +57,17 @@ class AutorizacaoUsuario {
       const perfilEntity = new PerfilEntity()
 
       const listaPermissoes = await perfilEntity.buscarModulosPerfil(
-        dadosUsuarioAutenticado.getPerfilId(),
+        dadosUsuarioAutenticado.getPerfilId()
       )
 
       reply.send(
-        listaPermissoes.map((modulo) => {
+        listaPermissoes.map(modulo => {
           return {
             idModulo: modulo.modulo.id,
             nomeModulo: modulo.modulo.nome,
             urlModulo: modulo.modulo.url,
           }
-        }),
+        })
       )
     })
   }
@@ -95,7 +95,7 @@ class AutorizacaoUsuario {
       const funcaoEntity = new FuncaoEntity()
       const permissoes = await funcaoEntity.listarFuncoesModuloPerfil(
         dadosUsuarioAutenticado.getPerfilId(),
-        idModulo,
+        idModulo
       )
 
       reply.send(permissoes)
@@ -127,7 +127,7 @@ class AutorizacaoUsuario {
       const verificaPermissaoPerfil =
         await perfilEntity.verificarPermissaoPerfil(
           dadosUsuarioAutenticado.getPerfilId(),
-          id,
+          id
         )
 
       if (verificaPermissaoPerfil) {
