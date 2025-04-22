@@ -27,11 +27,12 @@ type NovaRevisaoDocumentoFormType = {
   usuarioId: string;
 }
 
-export async function getQtdRevisoesDocumento(documentoId: string) {
+export async function getQtdRevisoesDocumento({ documentoId, empresaId }: { documentoId: string, empresaId: string }) {
   return await prisma.revisoes.count({
     where: {
+      documentoId,
       documentos: {
-        id: documentoId,
+        empresaId
       }
     }
   })
@@ -79,7 +80,12 @@ export async function cadastrarDocumento(documento: NovoDocumentoFormType) {
 }
 
 export async function cadastraRevisaoDocumento({ id, arquivo, empresaId, usuarioId }: NovaRevisaoDocumentoFormType) {
-  const qtdRevisoesDocumento = await getQtdRevisoesDocumento(id)
+  const qtdRevisoesDocumento = await getQtdRevisoesDocumento({ 
+    documentoId: id, 
+    empresaId 
+  })
+
+  console.log("🚀 ~ cadastraRevisaoDocumento ~ qtdRevisoesDocumento:", qtdRevisoesDocumento)
 
   const documento = await prisma.documentos.findUniqueOrThrow({
     where: {
