@@ -524,4 +524,6 @@ model Revisoes {
   documentos    Documentos @relation(fields: [documentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   arquivoId     String
   arquivos      Arquivos   @relation(fields: [arquivoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("revisoes")
 }

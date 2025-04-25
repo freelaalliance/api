@@ -177,9 +177,15 @@ export class DocumentosController {
   }
 
   async listarDocumentosEmpresa(app: FastifyInstance) {
+    const schemaFiltroEmpresa = z.object({
+      id: z.string().uuid().optional()
+    })
+
     app.get('/empresa', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
+
+      const {id} = await schemaFiltroEmpresa.parseAsync(req.query)
 
       if (!cliente) {
         res.status(401).send({
@@ -190,7 +196,7 @@ export class DocumentosController {
       }
 
       try {
-        const documentos = await getDocumentosEmpresa(cliente)
+        const documentos = await getDocumentosEmpresa(id ?? cliente)
 
         res.status(200).send(documentos.map((documento) => ({
           id: documento.id,
@@ -203,6 +209,7 @@ export class DocumentosController {
           retencao: documento.retencao,
           uso: documento.uso,
           categoriaDocumentoNome: documento.categoriasDocumento.nome,
+          empresaId: documento.empresaId,
           revisoes: documento.Revisoes.map((revisao) => ({
             id: revisao.id,
             numeroRevisao: revisao.numeroRevisao,
@@ -249,6 +256,7 @@ export class DocumentosController {
           retencao: documento.retencao,
           uso: documento.uso,
           categoriaDocumentoNome: documento.categoriasDocumento.nome,
+          empresaId: documento.empresaId,
           revisoes: documento.Revisoes.map((revisao) => ({
             id: revisao.id,
             numeroRevisao: revisao.numeroRevisao,
@@ -270,10 +278,11 @@ export class DocumentosController {
 
   async excluirDocumento(app: FastifyInstance) {
     const schemaParamDocumento = z.object({
-      id: z.string().uuid()
+      id: z.string().uuid(),
+      idEmpresa: z.string().uuid()
     })
 
-    app.delete('/:id', async (req, res) => {
+    app.delete('/:id/empresa/:idEmpresa', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
       const { cliente } = req.user
 
@@ -285,11 +294,11 @@ export class DocumentosController {
         return
       }
 
-      const { id } = await schemaParamDocumento.parseAsync(req.params)
+      const { id, idEmpresa } = await schemaParamDocumento.parseAsync(req.params)
 
       try {
 
-        await removerDocumentoEmpresa(cliente, id)
+        await removerDocumentoEmpresa(idEmpresa, id)
 
         res.status(200).send({
           status: true,

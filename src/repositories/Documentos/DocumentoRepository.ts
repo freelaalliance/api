@@ -65,7 +65,7 @@ export async function cadastrarDocumento(documento: NovoDocumentoFormType) {
           usuarioId: documento.usuarioId,
           numeroRevisao: 1,
           revisadoEm: new Date(),
-          arquivoId: arquivoDocumento.id
+          arquivoId: arquivoDocumento.id,
         },
       },
       UsuarioAcessoDocumentos: {
