@@ -1,11 +1,11 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
 import EmpresaEntity from '../entities/EmpresaEntity'
-import { PessoaEmpresaInterface } from '../interfaces/PessoaInterface'
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { PessoaEmpresaInterface } from '../interfaces/PessoaInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import { prisma } from '../services/PrismaClientService'
 
-import { PessoaInterface } from './../interfaces/PessoaInterface'
+import type { PessoaInterface } from './../interfaces/PessoaInterface'
 
 class EmpresaRepository {
   private empresaEntity: EmpresaEntity
@@ -18,11 +18,11 @@ class EmpresaRepository {
     const dadosEmpresa:
       | (PessoaEmpresaInterface & { pessoa: PessoaInterface })
       | null = await prisma.empresa.findUnique({
-      where: {
-        cnpj,
-      },
-      include: { pessoa: true },
-    })
+        where: {
+          cnpj,
+        },
+        include: { pessoa: true },
+      })
 
     if (dadosEmpresa)
       return new EmpresaEntity(
@@ -33,7 +33,7 @@ class EmpresaRepository {
         new Date(dadosEmpresa.atualizadoEm),
         dadosEmpresa.excluido,
         dadosEmpresa.pessoa.id,
-        dadosEmpresa.pessoa.nome,
+        dadosEmpresa.pessoa.nome
       )
 
     return new EmpresaEntity()
@@ -43,11 +43,11 @@ class EmpresaRepository {
     const dadosEmpresa:
       | (PessoaEmpresaInterface & { pessoa: PessoaInterface })
       | null = await prisma.empresa.findUnique({
-      where: {
-        id,
-      },
-      include: { pessoa: true },
-    })
+        where: {
+          id,
+        },
+        include: { pessoa: true },
+      })
 
     if (dadosEmpresa)
       return new EmpresaEntity(
@@ -58,7 +58,7 @@ class EmpresaRepository {
         new Date(dadosEmpresa.atualizadoEm),
         dadosEmpresa.excluido,
         dadosEmpresa.pessoa.id,
-        dadosEmpresa.pessoa.nome,
+        dadosEmpresa.pessoa.nome
       )
 
     return new EmpresaEntity()
@@ -128,7 +128,7 @@ class EmpresaRepository {
           id,
         },
         data: {
-          excluido: this.empresaEntity.estaExcluido(),
+          excluido: true,
         },
       })
 
@@ -137,6 +137,7 @@ class EmpresaRepository {
         msg: 'Empresa deletada com sucesso',
       }
     } catch (error) {
+
       if (error instanceof PrismaClientKnownRequestError) {
         return {
           status: false,
@@ -154,20 +155,20 @@ class EmpresaRepository {
     const dadosEmpresa:
       | (PessoaEmpresaInterface & { pessoa: PessoaInterface })[]
       | null = await prisma.empresa.findMany({
-      where: {
-        excluido: false,
-      },
-      include: { pessoa: true },
-      orderBy: {
-        pessoa: {
-          nome: 'asc',
+        where: {
+          excluido: false,
         },
-      },
-    })
+        include: { pessoa: true },
+        orderBy: {
+          pessoa: {
+            nome: 'asc',
+          },
+        },
+      })
 
     if (dadosEmpresa)
       return dadosEmpresa.map(
-        (empresa) =>
+        empresa =>
           new EmpresaEntity(
             empresa.id,
             empresa.cnpj,
@@ -176,8 +177,8 @@ class EmpresaRepository {
             new Date(empresa.atualizadoEm),
             empresa.excluido,
             empresa.pessoa.id,
-            empresa.pessoa.nome,
-          ),
+            empresa.pessoa.nome
+          )
       )
 
     return []
@@ -185,7 +186,7 @@ class EmpresaRepository {
 
   async vincularModulosEmpresa(
     empresaId: string,
-    moduloId: string,
+    moduloId: string
   ): Promise<RespostaRequisicaoInterface> {
     try {
       const verificaExisteVinculoModulo = await prisma.moduloEmpresa.findMany({
@@ -224,7 +225,7 @@ class EmpresaRepository {
 
   async desvincularModulosEmpresa(
     empresaId: string,
-    moduloId: string,
+    moduloId: string
   ): Promise<RespostaRequisicaoInterface> {
     try {
       const verificaExisteVinculoModulo = await prisma.moduloEmpresa.findMany({

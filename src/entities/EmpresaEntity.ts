@@ -1,4 +1,4 @@
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import EmpresaRepository from '../repositories/EmpresaRepository'
 
 import PessoaEntity from './PessoaEntity'
@@ -20,7 +20,7 @@ class EmpresaEntity extends PessoaEntity {
     atualizadoEm?: Date,
     excluido?: boolean,
     pessoaId?: string,
-    nomePessoa?: string,
+    nomePessoa?: string
   ) {
     super(pessoaId, nomePessoa)
 
@@ -88,7 +88,7 @@ class EmpresaEntity extends PessoaEntity {
   }
 
   async excluirEmpresa(): Promise<RespostaRequisicaoInterface> {
-    return await this.empresaRepository.deletarEmpresa(this.id)
+    return await this.empresaRepository.deletarEmpresa(this.getIdEmpresa())
   }
 
   async recuperarDadosEmpresaPorId(id: string): Promise<EmpresaEntity> {
@@ -107,21 +107,21 @@ class EmpresaEntity extends PessoaEntity {
 
   async vincularModuloEmpresa(
     idEmpresa: string,
-    idModulo: string,
+    idModulo: string
   ): Promise<RespostaRequisicaoInterface> {
     return await this.empresaRepository.vincularModulosEmpresa(
       idEmpresa,
-      idModulo,
+      idModulo
     )
   }
 
   async desvincularModuloEmpresa(
     idEmpresa: string,
-    idModulo: string,
+    idModulo: string
   ): Promise<RespostaRequisicaoInterface> {
     return await this.empresaRepository.desvincularModulosEmpresa(
       idEmpresa,
-      idModulo,
+      idModulo
     )
   }
 }

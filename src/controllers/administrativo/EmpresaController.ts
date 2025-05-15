@@ -42,6 +42,10 @@ class EmpresaController {
     fastify.register(this.listarUsuariosEmpresa, {
       prefix: '/admin/empresa',
     })
+
+    fastify.register(this.excluirEmpresa, {
+      prefix: '/admin/empresa',
+    })
   }
 
   async inserirEmpresa(app: FastifyInstance) {
@@ -132,6 +136,31 @@ class EmpresaController {
       return reply
         .code(cadastrarEndereco.status ? 201 : 400)
         .send(cadastraEmpresa)
+    })
+  }
+
+  async excluirEmpresa(app: FastifyInstance) {
+    const schemaParams = z.object({
+      id: z
+        .string({
+          required_error: 'Necessário informar o id da empresa',
+        })
+        .uuid({ message: 'O id da empresa é inválido!' }),
+    })
+
+    app.delete('/:id', async (req, reply) => {
+      const { id } = await schemaParams.parseAsync(req.params)
+
+      const empresaEntity = new EmpresaEntity(id)
+
+      const excluirEmpresa: RespostaRequisicaoInterface =
+        await empresaEntity.excluirEmpresa()
+
+      if (!excluirEmpresa.status) {
+        return reply.code(400).send(excluirEmpresa)
+      }
+
+      return reply.code(202).send(excluirEmpresa)
     })
   }
 
