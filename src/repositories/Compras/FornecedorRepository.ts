@@ -1,5 +1,5 @@
 import { separarDDDTelefone } from '../../controllers/compras/utils/FornecedorUtil'
-import {
+import type {
   AnexoFornecedorProps,
   EnderecoFornecedorProps,
   NovaAvaliacaoFornecedorProps,
@@ -8,7 +8,7 @@ import {
 } from '../../interfaces/Compras/FornecedorInterface'
 import { prisma } from '../../services/PrismaClientService'
 
-import { ConsultaFornecedorProps } from './../../interfaces/Compras/FornecedorInterface'
+import type { ConsultaFornecedorProps } from './../../interfaces/Compras/FornecedorInterface'
 
 interface ConsultaDadosFornecedorProps {
   id?: string
@@ -88,7 +88,7 @@ export async function cadastrarFornecedor({
       },
       TelefonePessoa: {
         createMany: {
-          data: telefoneFornecedor.map((telefone) => {
+          data: telefoneFornecedor.map(telefone => {
             return {
               numero: `${telefone.codigoArea}${telefone.numero}`,
             }
@@ -122,7 +122,7 @@ export async function cadastrarFornecedor({
   const atualizaEmailsFornecedor = prisma.emailPessoa.updateMany({
     where: {
       email: {
-        in: emailFornecedor.map((emails) => emails.email),
+        in: emailFornecedor.map(emails => emails.email),
       },
     },
     data: {
@@ -133,7 +133,7 @@ export async function cadastrarFornecedor({
   const atualizaTelefonesFornecedor = prisma.telefonePessoa.updateMany({
     where: {
       numero: {
-        in: telefoneFornecedor.map((telefone) => {
+        in: telefoneFornecedor.map(telefone => {
           return `${telefone.codigoArea}${telefone.numero}`
         }),
       },
@@ -212,7 +212,7 @@ export async function recuperarFornecedoresEmpresa({
     },
   })
 
-  return listaFornecedores.map((fornecedor) => {
+  return listaFornecedores.map(fornecedor => {
     return {
       id: fornecedor.id,
       nome: fornecedor.pessoa.nome,
@@ -270,7 +270,7 @@ export async function recuperarDadosFornecedor({
       cep: dadosFornecedor.pessoa.Endereco?.cep,
       complemento: dadosFornecedor.pessoa.Endereco?.complemento,
     },
-    telefones: dadosFornecedor.pessoa.TelefonePessoa.map((telefone) => {
+    telefones: dadosFornecedor.pessoa.TelefonePessoa.map(telefone => {
       const { numero, codigoArea } = separarDDDTelefone(telefone.numero)
 
       return {
@@ -279,7 +279,7 @@ export async function recuperarDadosFornecedor({
         codigoArea,
       }
     }),
-    emails: dadosFornecedor.pessoa.EmailPessoa.map((email) => {
+    emails: dadosFornecedor.pessoa.EmailPessoa.map(email => {
       return {
         id: email.id,
         email: email.email,
@@ -301,7 +301,7 @@ export async function recuperarDocumentosFornecedor({
     },
   })
 
-  return documentosFornecedor.map((documento) => {
+  return documentosFornecedor.map(documento => {
     return {
       id: documento.id,
       nome: documento.nome,
@@ -342,7 +342,7 @@ export async function recuperarAvaliacoesFornecedor({
     },
   })
 
-  return avaliacoesFornecedor.map((avaliacao) => {
+  return avaliacoesFornecedor.map(avaliacao => {
     return {
       id: avaliacao.id,
       usuario: avaliacao.usuario.pessoa.nome,
@@ -372,7 +372,7 @@ export async function recuperarAvaliacoesEntregaFornecedor({
       },
     })
 
-  return avaliacoesEntregaFornecedor.map((avaliacao) => {
+  return avaliacoesEntregaFornecedor.map(avaliacao => {
     return {
       id: avaliacao.id,
       nota: avaliacao.nota,
@@ -597,13 +597,13 @@ export async function buscaResumoFornecedorEmpresa({
   return {
     totalFornecedores: dadosFornecedorEmpresa._count._all,
     mediaDesempenho: dadosFornecedorEmpresa._avg.desempenho ?? 0,
-    fornecedoresCriticos: resumoFornecedoresCriticos.map((criticos) => {
+    fornecedoresCriticos: resumoFornecedoresCriticos.map(criticos => {
       return {
         critico: criticos.critico,
         total: criticos._count._all,
       }
     }),
-    fornecedoresAprovados: resumoFornecedoresAprovados.map((aprovado) => {
+    fornecedoresAprovados: resumoFornecedoresAprovados.map(aprovado => {
       return {
         aprovado: aprovado.aprovado,
         total: aprovado._count._all,

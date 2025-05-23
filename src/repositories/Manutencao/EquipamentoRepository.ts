@@ -1,6 +1,6 @@
 import { addDays } from 'date-fns'
 
-import {
+import type {
   AtualizaEquipamentoProps,
   AtualizaPecaEquipamentoProps,
   EquipamentoProps,
@@ -160,7 +160,7 @@ export async function modificarPecaEquipamento({
 }
 
 export async function inserirPecaEquipamento(
-  pecas: Array<NovaPecaEquipamentoProps>,
+  pecas: Array<NovaPecaEquipamentoProps>
 ) {
   return await prisma.pecasEquipamento.createMany({
     data: pecas,
