@@ -151,37 +151,24 @@ class EmpresaRepository {
     }
   }
 
-  async recuperarListaEmpresa(): Promise<EmpresaEntity[]> {
-    const dadosEmpresa:
-      | (PessoaEmpresaInterface & { pessoa: PessoaInterface })[]
-      | null = await prisma.empresa.findMany({
-        where: {
-          excluido: false,
+  async recuperarListaEmpresa() {
+    return await prisma.empresa.findMany({
+      where: {
+        excluido: false,
+      },
+      include: {
+        pessoa: {
+          include: {
+            Endereco: true
+          }
+        }
+      },
+      orderBy: {
+        pessoa: {
+          nome: 'asc',
         },
-        include: { pessoa: true },
-        orderBy: {
-          pessoa: {
-            nome: 'asc',
-          },
-        },
-      })
-
-    if (dadosEmpresa)
-      return dadosEmpresa.map(
-        empresa =>
-          new EmpresaEntity(
-            empresa.id,
-            empresa.cnpj,
-            empresa.imagemLogo,
-            new Date(empresa.criadoEm),
-            new Date(empresa.atualizadoEm),
-            empresa.excluido,
-            empresa.pessoa.id,
-            empresa.pessoa.nome
-          )
-      )
-
-    return []
+      },
+    })
   }
 
   async vincularModulosEmpresa(

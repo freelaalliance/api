@@ -101,7 +101,7 @@ class EmpresaEntity extends PessoaEntity {
     return await this.empresaRepository.buscarEmpresaPorCnpj(this.getCnpj())
   }
 
-  async listarEmpresas(): Promise<EmpresaEntity[]> {
+  async listarEmpresas(){
     return await this.empresaRepository.recuperarListaEmpresa()
   }
 

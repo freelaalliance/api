@@ -168,17 +168,23 @@ class EmpresaController {
     app.get('/all', async () => {
       const empresaEntity = new EmpresaEntity()
 
-      const empresas: EmpresaEntity[] = await empresaEntity.listarEmpresas()
+      const empresas = await empresaEntity.listarEmpresas()
 
       if (empresas.length === 0) return []
 
-      return Promise.all(
-        empresas.map(async empresa => {
-          return {
-            id: empresa.getIdEmpresa(),
-            imagemLogo: empresa.getImagemLogo(),
-            nome: empresa.getNomePessoa(),
-          }
+      return empresas.map((empresa) => ({
+          id: empresa.id,
+          nome: empresa.pessoa.nome,
+          idPessoa: empresa.pessoa.id,
+          cnpj: empresa.cnpj,
+          idEndereco: empresa.pessoa.Endereco?.id,
+          logradouro: empresa.pessoa.Endereco?.logradouro,
+          numero: empresa.pessoa.Endereco?.numero,
+          bairro: empresa.pessoa.Endereco?.bairro,
+          cidade: empresa.pessoa.Endereco?.cidade,
+          estado: empresa.pessoa.Endereco?.estado,
+          cep: empresa.pessoa.Endereco?.cep,
+          complemento: empresa.pessoa.Endereco?.complemento,
         })
       )
     })
