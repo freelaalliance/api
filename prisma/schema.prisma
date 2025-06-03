@@ -20,7 +20,7 @@ model Pessoa {
   TelefonePessoa TelefonePessoa[]
   EmailPessoa    EmailPessoa[]
   Fornecedor     Fornecedor?
-  Cliente        Cliente[]
+  Cliente        Cliente?
 
   @@map("pessoas")
 }
@@ -104,6 +104,7 @@ model Usuario {
   UsuarioAcessoDocumentos UsuarioAcessoDocumentos[]
   Revisoes                Revisoes[]
   Venda                   Venda[]
+  ExpedicaoVenda          ExpedicaoVenda[]
 
   @@map("usuarios")
 }
@@ -537,10 +538,10 @@ model Revisoes {
 model Cliente {
   id           String    @id @default(uuid()) @db.Char(36)
   documento    String    @db.VarChar(14)
-  pessoaId     String    @db.Char(36)
+  pessoaId     String    @unique @db.Char(36)
   empresaId    String    @db.Char(36)
   cadastradoEm DateTime  @default(now())
-  atualizadoEm DateTime?
+  atualizadoEm DateTime? @updatedAt
   excluido     Boolean   @default(false)
 
   pessoa  Pessoa  @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -559,7 +560,7 @@ model Venda {
   codigo                String    @db.VarChar(45)
   cancelado             Boolean?
   cadastradoEm          DateTime  @default(now())
-  atualizadoEm          DateTime?
+  atualizadoEm          DateTime? @updatedAt
 
   clientesId String @db.Char(36)
   empresasId String @db.Char(36)
@@ -608,7 +609,9 @@ model ExpedicaoVenda {
   recebidoEm         DateTime
   avaliacaoExpedicao Decimal  @default(0) @db.Decimal(3, 2)
   vendasId           String   @db.Char(36)
+  usuariosId         String   @unique @db.Char(36)
 
+  usuario    Usuario              @relation(fields: [usuariosId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   venda      Venda                @relation(fields: [vendasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   avaliacoes AvaliacaoExpedicao[]
 

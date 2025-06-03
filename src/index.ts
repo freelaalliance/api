@@ -20,6 +20,11 @@ import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalib
 import { AdministradorComprasController } from './controllers/administrativo/ComprasController'
 import { CategoriasDocumentosController } from './controllers/documentos/categorias'
 import { DocumentosController } from './controllers/documentos/documentos'
+import { vendasRoutes } from './controllers/vendas/VendaServicoController'
+import { produtoServicoRoutes } from './controllers/vendas/ProdutoServicoController'
+import { expedicaoRoutes } from './controllers/vendas/ExpedicaoServicoController'
+import { clienteRoutes } from './controllers/vendas/ClientesServicoController'
+import { itensAvaliacaoExpedicaoRoutes } from './controllers/vendas/AvaliacaoExpedicaoServicoController'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -43,6 +48,12 @@ new RelatorioComprasController(server.servico)
 new AdministradorComprasController(server.servico)
 new CategoriasDocumentosController(server.servico)
 new DocumentosController(server.servico)
+
+server.servico.register(vendasRoutes)
+server.servico.register(produtoServicoRoutes)
+server.servico.register(expedicaoRoutes)
+server.servico.register(clienteRoutes)
+server.servico.register(itensAvaliacaoExpedicaoRoutes)
 
 cron.schedule('0 2 1 * *', () => {
   notificarVencimentoCalibracao()

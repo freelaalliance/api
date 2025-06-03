@@ -24,6 +24,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.16.14",
     "@types/node-cron": "^3.0.11",
+    "@types/qrcode": "^1.5.5",
     "date-fns": "^3.6.0",
     "prisma": "^6.6.0",
     "tsup": "^8.3.0",
@@ -39,6 +40,8 @@
     "bcrypt": "^5.1.1",
     "fastify": "^4.28.1",
     "node-cron": "^3.0.3",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4",
     "zod": "^3.23.8"
   },
   "packageManager": "pnpm@9.1.1+sha512.14e915759c11f77eac07faba4d019c193ec8637229e62ec99eefb7cf3c3b75c64447882b7c485142451ee3a6b408059cdfb7b7fa0341b975f12d0f7629c71195"
