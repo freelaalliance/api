@@ -167,6 +167,7 @@ class FornecedorController {
             validade,
             aprovado,
             usuarioId: id,
+            critico
           })
         }
 
