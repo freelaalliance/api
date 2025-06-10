@@ -9,36 +9,34 @@ export async function clienteRoutes(app: FastifyInstance) {
   app.post('/', async (req, res) => {
     const schemaBody = z.object({
       documento: z.string().min(11, 'Documento inválido'),
-      pessoa: z.object({
-        nome: z.string().min(2, 'Nome obrigatório'),
-        endereco: z
-          .object({
-            logradouro: z.string(),
-            bairro: z.string(),
-            cidade: z.string(),
-            estado: z.string(),
-            numero: z.string(),
-            complemento: z.string().optional(),
-            cep: z.string(),
+      nome: z.string().min(2, 'Nome obrigatório'),
+      endereco: z
+        .object({
+          logradouro: z.string(),
+          bairro: z.string(),
+          cidade: z.string(),
+          estado: z.string(),
+          numero: z.string(),
+          complemento: z.string().optional(),
+          cep: z.string(),
+        })
+        .optional(),
+
+      telefones: z
+        .array(
+          z.object({
+            numero: z.string().min(10, 'Número inválido'),
           })
-          .optional(),
+        )
+        .optional(),
 
-        telefones: z
-          .array(
-            z.object({
-              numero: z.string().min(10, 'Número inválido'),
-            })
-          )
-          .optional(),
-
-        emails: z
-          .array(
-            z.object({
-              email: z.string().email('E-mail inválido'),
-            })
-          )
-          .optional(),
-      }),
+      emails: z
+        .array(
+          z.object({
+            email: z.string().email('E-mail inválido'),
+          })
+        )
+        .optional(),
     })
 
     try {
@@ -46,54 +44,61 @@ export async function clienteRoutes(app: FastifyInstance) {
       const { cliente: empresa } = req.user
 
       const {
-        documento,
-        pessoa: { nome, endereco, telefones, emails },
+        documento, nome, endereco, telefones, emails
       } = await schemaBody.parseAsync(req.body)
 
-      const pessoaCriada = await prisma.pessoa.create({
+      const pessoaClienteCriada = await prisma.pessoa.create({
         data: {
           nome,
-          Endereco: endereco
-            ? {
-              create: {
-                ...endereco,
-              },
+          Endereco: endereco ? {
+            create: {
+              logradouro: endereco.logradouro,
+              bairro: endereco.bairro,
+              cidade: endereco.cidade,
+              estado: endereco.estado,
+              numero: endereco.numero,
+              complemento: endereco.complemento,
+              cep: endereco.cep,
+            },
+          } : undefined,
+          TelefonePessoa: {
+            connectOrCreate: telefones?.map(telefone => ({
+              where: { numero: telefone.numero },
+              create: { numero: telefone.numero },
+            }))
+          },
+          EmailPessoa: {
+            connectOrCreate: emails?.map(email => ({
+              where: { email: email.email },
+              create: { email: email.email },
+            }))
+          },
+          Cliente: {
+            create: {
+              documento,
+              empresaId: empresa,
             }
-            : undefined,
-          TelefonePessoa: telefones
-            ? {
-              create: telefones.map(t => ({ numero: t.numero })),
-            }
-            : undefined,
-          EmailPessoa: emails
-            ? {
-              create: emails.map(e => ({ email: e.email })),
-            }
-            : undefined,
-        },
-      })
-
-      const clienteCriado = await prisma.cliente.create({
-        data: {
-          documento,
-          pessoaId: pessoaCriada.id,
-          empresaId: empresa,
+          }
         },
         include: {
-          pessoa: {
-            include: {
-              Endereco: true,
-              TelefonePessoa: true,
-              EmailPessoa: true,
-            },
-          },
+          Cliente: true,
+          Endereco: true,
+          TelefonePessoa: true,
+          EmailPessoa: true,
         },
       })
 
       return res.status(201).send({
         status: true,
         msg: 'Cliente cadastrado com sucesso',
-        dados: clienteCriado,
+        dados: {
+          id: pessoaClienteCriada.Cliente?.id,
+          documento: pessoaClienteCriada.Cliente?.documento,
+          nome: pessoaClienteCriada.nome,
+          endereco: pessoaClienteCriada.Endereco,
+          telefones: pessoaClienteCriada.TelefonePessoa.map(t => t.numero),
+          emails: pessoaClienteCriada.EmailPessoa.map(e => e.email),
+        },
       })
     } catch (error) {
       return res.status(500).send({
@@ -113,16 +118,23 @@ export async function clienteRoutes(app: FastifyInstance) {
       const clientes = await prisma.cliente.findMany({
         where: { excluido: false, empresaId: empresa },
         include: {
-          pessoa: true,
-          empresa: true,
+          pessoa: true
         },
-        orderBy: { cadastradoEm: 'desc' },
+        orderBy: {
+          pessoa: {
+            nome: 'asc',
+          }
+        },
       })
 
       return res.send({
         status: true,
         msg: 'Clientes encontrados',
-        dados: clientes,
+        dados: clientes.map((cli) => ({
+          id: cli.id,
+          documento: cli.documento,
+          nome: cli.pessoa.nome
+        })),
       })
     } catch (error) {
       return res.status(500).send({
@@ -148,11 +160,16 @@ export async function clienteRoutes(app: FastifyInstance) {
       const cliente = await prisma.cliente.findUnique({
         where: { id, empresaId: empresa },
         include: {
-          pessoa: true,
-          empresa: true,
+          pessoa: {
+            include: {
+              Endereco: true,
+              TelefonePessoa: true,
+              EmailPessoa: true,
+            },
+          },
         },
       })
-
+      
       if (!cliente || cliente.excluido) {
         return res.status(404).send({
           status: false,
@@ -164,7 +181,16 @@ export async function clienteRoutes(app: FastifyInstance) {
       return res.send({
         status: true,
         msg: 'Cliente encontrado',
-        dados: cliente,
+        dados: {
+          documento: cliente.documento,
+          pessoa: {
+            id: cliente.pessoa.id,
+            nome: cliente.pessoa.nome,
+            endereco: cliente.pessoa.Endereco,
+            emails: cliente.pessoa.EmailPessoa,
+            telefones: cliente.pessoa.TelefonePessoa
+          }
+        },
       })
     } catch (error) {
       return res.status(500).send({

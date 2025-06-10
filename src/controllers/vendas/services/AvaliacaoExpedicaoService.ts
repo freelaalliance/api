@@ -1,11 +1,14 @@
 import { prisma } from "../../../services/PrismaClientService"
 
 export async function criarItemAvaliacao(dados: {
-  pergunta: string
+  itens: Array<{ pergunta: string }>,
   empresasId: string
 }) {
-  return await prisma.itensAvaliacaoExpedicao.create({
-    data: dados,
+  return await prisma.itensAvaliacaoExpedicao.createMany({
+    data: dados.itens.map(item => ({
+      pergunta: item.pergunta,
+      empresasId: dados.empresasId,
+    })),
   })
 }
 
@@ -15,14 +18,14 @@ export async function listarItensPorEmpresa(empresaId: string) {
   })
 }
 
-export async function atualizarItemAvaliacao(id: number, pergunta: string, empresaId: string) {
+export async function atualizarItemAvaliacao(id: number, pergunta: string) {
   return await prisma.itensAvaliacaoExpedicao.update({
-    where: { id, empresasId: empresaId },
+    where: { id },
     data: { pergunta },
   })
 }
 
-export async function removerItemAvaliacao(id: number,empresaId: string) {
+export async function removerItemAvaliacao(id: number, empresaId: string) {
   return await prisma.itensAvaliacaoExpedicao.delete({
     where: { id, empresasId: empresaId },
   })

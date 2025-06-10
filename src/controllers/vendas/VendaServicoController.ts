@@ -1,10 +1,65 @@
 import type { FastifyInstance } from 'fastify'
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
-import QRCode from 'qrcode'
 import { z } from 'zod'
 import { prisma } from '../../services/PrismaClientService'
 import { getNumeroPedido } from '../compras/utils/CompraUtil'
-import { buscarVendaPorClienteId, buscarVendaPorId, cancelarVenda, criarVenda } from './services/VendasService'
+import { buscarVendaPorClienteId, buscarVendaPorId, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
+
+export const emailPessoaSchema = z.object({
+  email: z.string().email(),
+})
+
+export const telefonePessoaSchema = z.object({
+  numero: z.string().min(8).max(12),
+})
+
+export const enderecoSchema = z.object({
+  logradouro: z.string(),
+  numero: z.string(),
+  complemento: z.string().nullable().optional(),
+  bairro: z.string(),
+  cidade: z.string(),
+  estado: z.string(),
+  cep: z.string(),
+})
+
+export const PessoaSchema = z.object({
+  nome: z.string(),
+  Endereco: enderecoSchema,
+  TelefonePessoa: z.array(telefonePessoaSchema),
+  EmailPessoa: z.array(emailPessoaSchema),
+})
+
+const ProdutoServicoSchema = z.object({
+  id: z.string().uuid(),
+  nome: z.string(),
+  descricao: z.string(),
+  tipo: z.enum(['PRODUTO', 'SERVICO']),
+  preco: z.coerce.number(),
+})
+
+const ItemVendaSchema = z.object({
+  quantidade: z.number(),
+  produtoServico: ProdutoServicoSchema,
+})
+
+const ClienteSchema = z.object({
+  id: z.string(),
+  documento: z.string(),
+  pessoa: PessoaSchema,
+})
+
+const VendaDetalhadaSchema = z.object({
+  id: z.string(),
+  numPedido: z.coerce.number(),
+  codigo: z.string(),
+  condicoes: z.string().nullable(),
+  permiteEntregaParcial: z.boolean(),
+  prazoEntrega: z.coerce.date(),
+  cliente: ClienteSchema,
+  itensVenda: z.array(ItemVendaSchema),
+  cadastradoEm: z.coerce.date()
+})
+
 
 export async function vendasRoutes(app: FastifyInstance) {
   app.post('/vendas/cliente/:id', async (req, res) => {
@@ -22,7 +77,7 @@ export async function vendasRoutes(app: FastifyInstance) {
           })
         )
         .min(1, { message: 'É necessário pelo menos um item' }),
-      observacao: z.string().optional().nullable(),
+      condicoes: z.string().optional().nullable(),
       permiteEntregaParcial: z.boolean().default(false),
       prazoEntrega: z.coerce.date({
         required_error: 'Obrigatório informar o prazo de entrega',
@@ -32,7 +87,7 @@ export async function vendasRoutes(app: FastifyInstance) {
 
     try {
       const { id: clienteId } = await schemaParam.parseAsync(req.params)
-      const { itens, observacao, codigo, permiteEntregaParcial, prazoEntrega } = await schemaBody.parseAsync(
+      const { itens, condicoes, codigo, permiteEntregaParcial, prazoEntrega } = await schemaBody.parseAsync(
         req.body
       )
       const { id: usuarioId, cliente: empresaId } = req.user
@@ -49,7 +104,7 @@ export async function vendasRoutes(app: FastifyInstance) {
         itens,
         codigo: codigoVenda.toUpperCase(),
         numPedido,
-        condicoes: observacao
+        condicoes
       })
 
       return res.status(201).send({
@@ -92,17 +147,13 @@ export async function vendasRoutes(app: FastifyInstance) {
           id: venda.id,
           codigo: venda.codigo,
           numeroPedido: venda.numPedido,
+          dataCadastro: venda.cadastradoEm,
           usuario: venda.usuario.pessoa.nome,
           prazoEntrega: venda.prazoEntrega,
           permiteEntregaParcial: venda.permiteEntregaParcial,
           condicoes: venda.condicoes,
-          itens: venda.itensVenda.map((item) => ({
-            produtoServicoId: item.produtoServico.id,
-            quantidade: item.quantidade,
-            precoUnitario: item.produtoServico.preco,
-            totalItem: (Number(item.produtoServico.preco) * Number(item.quantidade)),
-          })),
-          observacao: venda.condicoes
+          expedido: !venda.expedicoes,
+          qtdExpedicoes: venda.expedicoes.length
         })),
       })
     } catch (error) {
@@ -113,6 +164,57 @@ export async function vendasRoutes(app: FastifyInstance) {
       })
     }
   })
+
+  app.get('/vendas/:id/cliente', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+    const schemaParams = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { id } = await schemaParams.parseAsync(req.params)
+    const { cliente: empresa } = req.user;
+
+    if (empresa) {
+      const venda = await prisma.venda.findUnique({
+        where: {
+          id,
+          empresasId: empresa,
+          cancelado: false
+        },
+        include: {
+          cliente: {
+            include: {
+              pessoa: {
+                include: {
+                  EmailPessoa: true,
+                  Endereco: true,
+                  TelefonePessoa: true
+                }
+              }
+            }
+          },
+          itensVenda: {
+            include: {
+              produtoServico: true
+            }
+          },
+        },
+      });
+
+      if (!venda) {
+        return res.status(404).send({ status: false, msg: 'Venda não encontrada' });
+      }
+
+      return res.send({ status: true, dados: VendaDetalhadaSchema.parse(venda) });
+    }
+
+    return res.status(401).send({
+      status: false,
+      msg: 'Usuario não autenticado'
+    })
+
+  });
+
 
   app.delete('/vendas/:id', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
@@ -153,68 +255,14 @@ export async function vendasRoutes(app: FastifyInstance) {
 
     const venda = await buscarVendaPorId(vendaId, empresaId)
 
-    // Cria PDF
-    const pdfDoc = await PDFDocument.create()
-    const page = pdfDoc.addPage([600, 800])
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const pdfVenda = await gerarPdfVendaHTML(venda)
 
-    const drawText = (text: string, x: number, y: number, size = 12) => {
-      page.drawText(text, {
-        x,
-        y,
-        size,
-        font,
-        color: rgb(0, 0, 0),
-      })
-    }
-
-    let cursorY = 760
-
-    drawText(`Venda: ${venda.codigoVenda}`, 50, cursorY)
-    cursorY -= 20
-
-    drawText(`Cliente: ${venda.cliente.nome}`, 50, cursorY)
-    cursorY -= 20
-    drawText(`Documento: ${venda.cliente.documento}`, 50, cursorY)
-    cursorY -= 20
-    drawText(`E-mail: ${venda.cliente.email}`, 50, cursorY)
-    cursorY -= 40
-
-    drawText('Itens:', 50, cursorY)
-    cursorY -= 20
-
-    for (const item of venda.itens) {
-      drawText(
-        `- ${item.descricao} (${item.quantidade} x R$ ${item.precoUnitario.toFixed(2)})`,
-        60,
-        cursorY
-      )
-      cursorY -= 20
-    }
-
-    cursorY -= 10
-    drawText(`Total: R$ ${venda.total.toFixed(2)}`, 50, cursorY)
-    cursorY -= 60
-
-    // Gera QR Code
-    const qrCodeBase64 = await QRCode.toDataURL(venda.codigoVenda)
-    const qrImageBytes = Buffer.from(qrCodeBase64.split(',')[1], 'base64')
-    const qrImage = await pdfDoc.embedPng(qrImageBytes)
-    const qrDims = qrImage.scale(0.5)
-
-    page.drawImage(qrImage, {
-      x: 400,
-      y: cursorY,
-      width: qrDims.width,
-      height: qrDims.height,
-    })
-
-    const pdfBytes = await pdfDoc.save()
-
-    res
-      .header('Content-Type', 'application/pdf')
-      .header('Content-Disposition', `inline; filename="venda-${vendaId}.pdf"`)
-      .send(Buffer.from(pdfBytes))
+    res.header('Content-Type', 'application/pdf');
+    res.header(
+      'Content-Disposition',
+      `attachment; filename="venda-${vendaId}.pdf"`
+    );
+    res.send(pdfVenda);
   })
 
   app.get('/estatisticas/vendas/cliente-top', async (req, res) => {
@@ -259,7 +307,7 @@ export async function vendasRoutes(app: FastifyInstance) {
       msg: 'Cliente com mais vendas',
       dados: {
         totalVendas: topCliente[0]._count._all,
-        cliente: clienteDetalhes,
+        cliente: clienteDetalhes?.pessoa.nome,
       },
     })
   })
@@ -305,8 +353,22 @@ export async function vendasRoutes(app: FastifyInstance) {
       msg: 'Produto ou serviço mais vendido',
       dados: {
         totalVendido: topProduto[0]._sum.quantidade,
-        produto,
+        nome: produto?.nome,
       },
     })
+  })
+
+  app.get('/estatisticas/empresa/clientes', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+    const { cliente: empresaId } = req.user
+    const totalClientes = await prisma.cliente.count({ where: { empresaId, excluido: false } })
+    return res.send({ status: true, dados: { totalClientes } })
+  })
+
+  app.get('/estatisticas/empresa/produtos', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+    const { cliente: empresaId } = req.user
+    const totalProdutos = await prisma.produtoServico.count({ where: { empresaId } })
+    return res.send({ status: true, dados: { totalProdutos } })
   })
 }

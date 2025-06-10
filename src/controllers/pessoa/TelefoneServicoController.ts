@@ -29,4 +29,49 @@ export async function telefoneRoutes(app: FastifyInstance) {
       })
     }
   })
+
+  app.post(`/:id/telefone`, async (req, res) => {
+    
+    const schemaBody = z.object({
+      numero: z.string(),
+    })
+
+    const schemaParams = z.object({
+      id: z.string().uuid(),
+    })
+
+    await req.jwtVerify({ onlyCookie: true })
+
+    const { cliente } = req.user
+
+    const { numero } = await schemaBody.parseAsync(req.body)
+    const { id: pessoaId } = await schemaParams.parseAsync(req.params)
+
+    try {
+      if (!cliente) {
+        return res.status(401).send({
+          status: false,
+          msg: 'Usuario não autenticado',
+        })
+      }
+
+      await prisma.telefonePessoa.create({
+        data: {
+          pessoaId,
+          numero
+        }
+      })
+
+      res.status(201).send({
+        status: true,
+        msg: 'Telefone adicionado com sucesso!',
+      })
+    } catch (error) {
+      return res.status(500).send({
+        status: false,
+        msg: 'Erro ao adicionar telefone',
+        error,
+      })
+    }
+  })
 }

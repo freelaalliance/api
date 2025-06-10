@@ -29,4 +29,48 @@ export async function emailRoutes(app: FastifyInstance) {
       })
     }
   })
+
+  app.post(`/:id/email`, async (req, res) => {
+    const schemaBody = z.object({
+      email: z.string().email(),
+    })
+
+    const schemaParams = z.object({
+      id: z.string().uuid(),
+    })
+
+    await req.jwtVerify({ onlyCookie: true })
+
+    const { cliente } = req.user
+
+    const { email } = await schemaBody.parseAsync(req.body)
+    const { id: pessoaId } = await schemaParams.parseAsync(req.params)
+
+    try {
+      if (!cliente) {
+        return res.status(401).send({
+          status: false,
+          msg: 'Usuario não autenticado',
+        })
+      }
+      
+      await prisma.emailPessoa.create({
+        data: {
+          email,
+          pessoaId
+        }
+      })
+
+      res.status(201).send({
+        status: true,
+        msg: 'Email adicionado com sucesso!'
+      })
+    } catch (error) {
+      return res.status(500).send({
+        status: false,
+        msg: 'Erro ao adicionar o email',
+        error,
+      })
+    }
+  })
 }

@@ -18,7 +18,7 @@ export async function enderecoRoutes(app: FastifyInstance) {
     id: z.string().uuid(),
   })
 
-  app.put('endereco/:id', async (req, res) => {
+  app.put('/endereco/:id', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
     const { id } = await schemaParams.parseAsync(req.params)

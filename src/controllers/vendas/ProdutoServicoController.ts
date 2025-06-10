@@ -49,9 +49,9 @@ export async function produtoServicoRoutes(app: FastifyInstance) {
       const { cliente } = req.user
 
       const produtos = await prisma.produtoServico.findMany({
-        include: { empresa: true },
         where: {
           empresaId: cliente,
+          ativo: true,
         }
       })
 
@@ -162,8 +162,9 @@ export async function produtoServicoRoutes(app: FastifyInstance) {
 
       const { id } = await schemaParam.parseAsync(req.params)
 
-      await prisma.produtoServico.delete({
+      await prisma.produtoServico.update({
         where: { id, empresaId: cliente },
+        data: { ativo: false }, 
       })
 
       return res.send({

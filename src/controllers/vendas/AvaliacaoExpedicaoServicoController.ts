@@ -4,7 +4,9 @@ import { atualizarItemAvaliacao, criarItemAvaliacao, listarItensPorEmpresa, remo
 
 export async function itensAvaliacaoExpedicaoRoutes(app: FastifyInstance) {
   const bodySchema = z.object({
-    pergunta: z.string().min(3),
+    itens: z.array(z.object({
+      pergunta: z.string().min(1, 'Pergunta é obrigatória'),
+    })),
   })
 
   const paramIdSchema = z.object({
@@ -18,10 +20,10 @@ export async function itensAvaliacaoExpedicaoRoutes(app: FastifyInstance) {
       id: z.string().uuid(),
     })
     const { id } = await paramEmpresaSchema.parseAsync(req.params)
-    const { pergunta } = await bodySchema.parseAsync(req.body)
+    const { itens } = await bodySchema.parseAsync(req.body)
 
     const novo = await criarItemAvaliacao({
-      pergunta,
+      itens,
       empresasId: id,
     })
 
@@ -44,22 +46,24 @@ export async function itensAvaliacaoExpedicaoRoutes(app: FastifyInstance) {
 
     return res.send({
       status: true,
-      dados: lista,
+      dados: lista.map((item) => ({
+        id: item.id,
+        pergunta: item.pergunta,
+      })),
     })
   })
 
-  app.put('/itens-avaliacao/:id/empresa/:empresaId', async (req, res) => {
+  app.put('/itens-avaliacao/:id', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const paramEmpresaSchema = z.object({
-      empresaId: z.string().uuid(),
+    const bodySchemaAtualizacao = z.object({
+      pergunta: z.string().min(1, 'Pergunta é obrigatória'),
     })
-    const { empresaId } = await paramEmpresaSchema.parseAsync(req.params)
 
     const { id } = await paramIdSchema.parseAsync(req.params)
-    const { pergunta } = await bodySchema.parseAsync(req.body)
+    const { pergunta } = await bodySchemaAtualizacao.parseAsync(req.body)
 
-    const atualizado = await atualizarItemAvaliacao(id, pergunta, empresaId)
+    const atualizado = await atualizarItemAvaliacao(id, pergunta)
 
     return res.send({
       status: true,
