@@ -1,5 +1,7 @@
 FROM node:lts
 
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
 RUN apt-get update && apt-get install -y \
     chromium \
     ca-certificates \
@@ -21,7 +23,7 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+RUN npx puppeteer browsers install chrome
 
 COPY . /app
 WORKDIR /app
