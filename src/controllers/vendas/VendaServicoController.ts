@@ -45,7 +45,7 @@ const ItemVendaSchema = z.object({
 const ClienteSchema = z.object({
   id: z.string(),
   documento: z.string(),
-  observacoes: z.string(),
+  observacoes: z.string().nullable(),
   pessoa: PessoaSchema,
 })
 
