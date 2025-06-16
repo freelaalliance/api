@@ -299,7 +299,11 @@ export async function gerarPdfVendaHTML(dados: {
   </html>
 `;
 
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: 'shell',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    executablePath: '/usr/bin/chromium-browser',
+  });
   const page = await browser.newPage();
   await page.setContent(html);
   const pdf = await page.pdf({ format: 'A4' });
