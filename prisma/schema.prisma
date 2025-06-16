@@ -543,6 +543,7 @@ model Cliente {
   cadastradoEm DateTime  @default(now())
   atualizadoEm DateTime? @updatedAt
   excluido     Boolean   @default(false)
+  observacoes  String?   @db.Text
 
   pessoa  Pessoa  @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -558,6 +559,7 @@ model Venda {
   prazoEntrega          DateTime
   numPedido             Int
   codigo                String    @db.VarChar(45)
+  expedido              Boolean   @default(false)
   cancelado             Boolean?  @default(false)
   cadastradoEm          DateTime  @default(now())
   atualizadoEm          DateTime? @updatedAt
@@ -608,9 +610,9 @@ model ExpedicaoVenda {
   id                 String   @id @default(uuid()) @db.Char(36)
   cadastradoEm       DateTime @default(now())
   recebidoEm         DateTime
-  avaliacaoExpedicao Decimal  @default(0) @db.Decimal(3, 2)
+  avaliacaoExpedicao Decimal  @default(0)
   vendasId           String   @db.Char(36)
-  usuariosId         String   @unique @db.Char(36)
+  usuariosId         String   @db.Char(36)
 
   usuario    Usuario              @relation(fields: [usuariosId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   venda      Venda                @relation(fields: [vendasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -624,6 +626,7 @@ model ItensAvaliacaoExpedicao {
   id         Int    @id @default(autoincrement())
   pergunta   String
   empresasId String @db.Char(36)
+  excluido   Boolean @default(false)
 
   empresa    Empresa              @relation(fields: [empresasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   avaliacoes AvaliacaoExpedicao[]
@@ -640,8 +643,7 @@ model AvaliacaoExpedicao {
   item      ItensAvaliacaoExpedicao @relation(fields: [itensAvaliacaoExpedicaoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   expedicao ExpedicaoVenda          @relation(fields: [expedicaoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([itensAvaliacaoExpedicaoId])
-  @@index([expedicaoId])
+  @@index([itensAvaliacaoExpedicaoId, expedicaoId])
   @@map("avaliacao_expedicao")
 }
 

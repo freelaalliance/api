@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../services/PrismaClientService'
 import { getNumeroPedido } from '../compras/utils/CompraUtil'
-import { buscarVendaPorClienteId, buscarVendaPorId, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
+import { buscarVendaPorClienteId, buscarVendaPorId, buscarVendasPendente, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
 
 export const emailPessoaSchema = z.object({
   email: z.string().email(),
@@ -45,6 +45,7 @@ const ItemVendaSchema = z.object({
 const ClienteSchema = z.object({
   id: z.string(),
   documento: z.string(),
+  observacoes: z.string(),
   pessoa: PessoaSchema,
 })
 
@@ -152,7 +153,7 @@ export async function vendasRoutes(app: FastifyInstance) {
           prazoEntrega: venda.prazoEntrega,
           permiteEntregaParcial: venda.permiteEntregaParcial,
           condicoes: venda.condicoes,
-          expedido: !venda.expedicoes,
+          expedido: venda.expedido,
           qtdExpedicoes: venda.expedicoes.length
         })),
       })
@@ -370,5 +371,44 @@ export async function vendasRoutes(app: FastifyInstance) {
     const { cliente: empresaId } = req.user
     const totalProdutos = await prisma.produtoServico.count({ where: { empresaId } })
     return res.send({ status: true, dados: { totalProdutos } })
+  })
+
+  app.get('/vendas/pendentes/expedicao', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    try {
+      const { cliente: empresaId } = req.user
+
+      const vendas = await buscarVendasPendente(empresaId)
+
+      if (!vendas) {
+        return res.status(404).send({
+          status: false,
+          msg: 'Venda não encontrada',
+        })
+      }
+
+      return res.status(200).send({
+        status: true,
+        dados: vendas.map((venda) => ({
+          id: venda.id,
+          codigo: venda.codigo,
+          numeroPedido: venda.numPedido,
+          dataCadastro: venda.cadastradoEm,
+          usuario: venda.usuario.pessoa.nome,
+          prazoEntrega: venda.prazoEntrega,
+          permiteEntregaParcial: venda.permiteEntregaParcial,
+          condicoes: venda.condicoes,
+          expedido: venda.expedido,
+          qtdExpedicoes: venda.expedicoes.length
+        })),
+      })
+    } catch (error) {
+      return res.status(500).send({
+        status: false,
+        msg: 'Erro ao consultar venda',
+        error,
+      })
+    }
   })
 }
