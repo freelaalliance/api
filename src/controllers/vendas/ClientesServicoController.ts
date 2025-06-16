@@ -135,7 +135,7 @@ export async function clienteRoutes(app: FastifyInstance) {
         dados: clientes.map((cli) => ({
           id: cli.id,
           documento: cli.documento,
-          nome: cli.pessoa.nome,
+          nome: cli.pessoa.nome
         })),
       })
     } catch (error) {
@@ -188,6 +188,7 @@ export async function clienteRoutes(app: FastifyInstance) {
           pessoa: {
             id: cliente.pessoa.id,
             nome: cliente.pessoa.nome,
+            observacoes: cliente.observacoes,
             endereco: cliente.pessoa.Endereco,
             emails: cliente.pessoa.EmailPessoa,
             telefones: cliente.pessoa.TelefonePessoa
