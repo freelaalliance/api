@@ -54,7 +54,9 @@ new DocumentosController(server.servico)
 
 server.servico.register(vendasRoutes)
 server.servico.register(produtoServicoRoutes)
-server.servico.register(expedicaoRoutes)
+server.servico.register(expedicaoRoutes, {
+  prefix: '/vendas/expedicao'
+})
 server.servico.register(clienteRoutes, {
   prefix: '/pessoa/clientes',
 })

@@ -14,7 +14,7 @@ export async function criarItemAvaliacao(dados: {
 
 export async function listarItensPorEmpresa(empresaId: string) {
   return await prisma.itensAvaliacaoExpedicao.findMany({
-    where: { empresasId: empresaId },
+    where: { empresasId: empresaId, excluido: false },
   })
 }
 
@@ -26,7 +26,8 @@ export async function atualizarItemAvaliacao(id: number, pergunta: string) {
 }
 
 export async function removerItemAvaliacao(id: number, empresaId: string) {
-  return await prisma.itensAvaliacaoExpedicao.delete({
+  return await prisma.itensAvaliacaoExpedicao.update({
     where: { id, empresasId: empresaId },
+    data: { excluido: true },
   })
 }

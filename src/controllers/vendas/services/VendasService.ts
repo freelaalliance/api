@@ -159,6 +159,7 @@ export async function buscarVendaPorId(vendaId: string, empresaId: string) {
     cliente: {
       nome: venda.cliente.pessoa.nome,
       documento: venda.cliente.documento,
+      observacoes: venda.cliente.observacoes,
       endereco: venda.cliente.pessoa.Endereco,
     },
     itens,
@@ -176,6 +177,7 @@ export async function gerarPdfVendaHTML(dados: {
   cliente: {
     nome: string;
     documento: string;
+    observacoes: string | null;
     endereco: {
       numero: string;
       logradouro: string;
@@ -251,6 +253,7 @@ export async function gerarPdfVendaHTML(dados: {
         <h3>Cliente</h3>
         <div><strong>Nome:</strong> ${dados.cliente.nome}</div>
         <div><strong>Documento:</strong> ${dados.cliente.documento}</div>
+        <div><strong>Observações:</strong> ${dados.cliente.observacoes ?? 'Nenhuma informação disponível'}</div>
       </div>
 
       <div class="section">
@@ -303,4 +306,38 @@ export async function gerarPdfVendaHTML(dados: {
   await browser.close();
 
   return pdf;
+}
+
+export async function buscarVendasPendente(empresaId: string) {
+  const venda = await prisma.venda.findMany({
+    where: {
+      expedicoes: {
+        none: {}
+      },
+      empresasId: empresaId,
+    },
+    include: {
+      expedicoes: true,
+      usuario: {
+        include: {
+          pessoa: true,
+        },
+      },
+      cliente: {
+        include: {
+          pessoa: true,
+        },
+      },
+      itensVenda: {
+        include: {
+          produtoServico: true,
+        },
+      },
+    },
+    orderBy: {
+      cadastradoEm: 'desc',
+    }
+  })
+
+  return venda
 }

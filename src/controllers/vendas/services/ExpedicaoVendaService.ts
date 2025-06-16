@@ -1,18 +1,5 @@
 import { prisma } from "../../../services/PrismaClientService"
 
-export async function criarExpedicaoVenda(dados: {
-  recebidoEm: Date
-  vendasId: string
-  usuarioId: string // Optional, assuming vendasId is the user ID
-}) {
-  return prisma.expedicaoVenda.create({
-    data: {
-      recebidoEm: dados.recebidoEm,
-      vendasId: dados.vendasId,
-      usuariosId: dados.usuarioId, // Assuming vendasId is the user ID
-    },
-  })
-}
 
 export async function listarExpedicoesPorEmpresa(empresaId: string) {
   return await prisma.expedicaoVenda.findMany({
@@ -22,9 +9,26 @@ export async function listarExpedicoesPorEmpresa(empresaId: string) {
           empresaId
         },
       },
+      cadastradoEm: {
+        gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        lte: new Date(),
+      }
     },
     include: {
-      venda: true,
+      venda: {
+        include: {
+          cliente: {
+            include: {
+              pessoa: true,
+            },
+          }
+        }
+      },
+      usuario: {
+        include: {
+          pessoa: true,
+        },
+      },
       avaliacoes: {
         include: { item: true },
       },
@@ -39,9 +43,7 @@ export async function buscarVendasNaoExpedidas(empresaId: string) {
       cliente: {
         empresaId,
       },
-      expedicoes: {
-        none: {},
-      },
+      expedido: false
     },
     include: {
       usuario: {
@@ -83,6 +85,10 @@ export async function obterMediaAvaliacaoExpedicoes(empresaId: string) {
           empresaId,
         },
       },
+      cadastradoEm: {
+        gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        lte: new Date(),
+      }
     },
   })
 
@@ -90,7 +96,7 @@ export async function obterMediaAvaliacaoExpedicoes(empresaId: string) {
 }
 
 export async function obterResumoExpedicoes(empresaId: string) {
-  const [realizadas, pendentes] = await Promise.all([
+  const [realizadas, pendentes, total] = await Promise.all([
     prisma.expedicaoVenda.count({
       where: {
         venda: {
@@ -98,6 +104,10 @@ export async function obterResumoExpedicoes(empresaId: string) {
             empresaId,
           },
         },
+        cadastradoEm: {
+          gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+          lte: new Date(),
+        }
       },
     }),
 
@@ -106,12 +116,27 @@ export async function obterResumoExpedicoes(empresaId: string) {
         cliente: {
           empresaId,
         },
-        expedicoes: {
-          none: {},
+        expedido: false,
+        cadastradoEm: {
+          gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+          lte: new Date(),
+        }
+      },
+    }),
+
+    prisma.venda.count({
+      where: {
+        cliente: {
+          empresaId,
         },
+        expedido: false,
+        cadastradoEm: {
+          gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+          lte: new Date(),
+        }
       },
     }),
   ])
 
-  return { realizadas, pendentes }
+  return { realizadas, pendentes, total }
 }

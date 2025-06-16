@@ -10,6 +10,7 @@ export async function clienteRoutes(app: FastifyInstance) {
     const schemaBody = z.object({
       documento: z.string().min(11, 'Documento inválido'),
       nome: z.string().min(2, 'Nome obrigatório'),
+      observacoes: z.string(),
       endereco: z
         .object({
           logradouro: z.string(),
@@ -44,7 +45,7 @@ export async function clienteRoutes(app: FastifyInstance) {
       const { cliente: empresa } = req.user
 
       const {
-        documento, nome, endereco, telefones, emails
+        documento, nome, endereco, telefones, emails, observacoes
       } = await schemaBody.parseAsync(req.body)
 
       const pessoaClienteCriada = await prisma.pessoa.create({
@@ -76,6 +77,7 @@ export async function clienteRoutes(app: FastifyInstance) {
           Cliente: {
             create: {
               documento,
+              observacoes,
               empresaId: empresa,
             }
           }
@@ -133,7 +135,7 @@ export async function clienteRoutes(app: FastifyInstance) {
         dados: clientes.map((cli) => ({
           id: cli.id,
           documento: cli.documento,
-          nome: cli.pessoa.nome
+          nome: cli.pessoa.nome,
         })),
       })
     } catch (error) {
