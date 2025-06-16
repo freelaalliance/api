@@ -176,7 +176,7 @@ export async function vendasRoutes(app: FastifyInstance) {
     const { cliente: empresa } = req.user;
 
     if (empresa) {
-      const venda = await prisma.venda.findUnique({
+      const dadosVenda = await prisma.venda.findUnique({
         where: {
           id,
           empresasId: empresa,
@@ -202,11 +202,14 @@ export async function vendasRoutes(app: FastifyInstance) {
         },
       });
 
-      if (!venda) {
-        return res.status(404).send({ status: false, msg: 'Venda não encontrada' });
+      if (!dadosVenda) {
+        return res.status(404).send({ 
+          status: false, 
+          msg: 'Venda não encontrada' 
+        });
       }
 
-      return res.send({ status: true, dados: VendaDetalhadaSchema.parse(venda) });
+      return res.send({ status: true, dados: VendaDetalhadaSchema.parse(dadosVenda) });
     }
 
     return res.status(401).send({
