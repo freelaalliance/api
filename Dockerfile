@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     libx11-xcb1 \
     libxcomposite1 \
     libxdamage1 \
-    libnss3.so \
     libxrandr2 \
     xdg-utils \
     --no-install-recommends && \
