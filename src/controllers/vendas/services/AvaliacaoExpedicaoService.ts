@@ -25,9 +25,9 @@ export async function atualizarItemAvaliacao(id: number, pergunta: string) {
   })
 }
 
-export async function removerItemAvaliacao(id: number, empresaId: string) {
+export async function removerItemAvaliacao(id: number) {
   return await prisma.itensAvaliacaoExpedicao.update({
-    where: { id, empresasId: empresaId },
+    where: { id },
     data: { excluido: true },
   })
 }
