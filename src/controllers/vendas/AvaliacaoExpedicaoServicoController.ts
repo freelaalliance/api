@@ -72,18 +72,12 @@ export async function itensAvaliacaoExpedicaoRoutes(app: FastifyInstance) {
     })
   })
 
-  // Remover
-  app.delete('/itens-avaliacao/:id/empresa/:empresaId', async (req, res) => {
+  app.delete('/itens-avaliacao/:id', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-
-    const paramEmpresaSchema = z.object({
-      empresaId: z.string().uuid(),
-    })
-    const { empresaId } = await paramEmpresaSchema.parseAsync(req.params)
 
     const { id } = await paramIdSchema.parseAsync(req.params)
 
-    const removido = await removerItemAvaliacao(id, empresaId)
+    const removido = await removerItemAvaliacao(id)
 
     return res.send({
       status: true,
