@@ -21,6 +21,7 @@ model Pessoa {
   EmailPessoa    EmailPessoa[]
   Fornecedor     Fornecedor?
   Colaborador    Colaborador[]
+  Cliente        Cliente?
 
   @@map("pessoas")
 }
@@ -64,6 +65,10 @@ model Empresa {
   Cargo                              Cargo[]
   Treinamento                        Treinamento[]
   ContratacaoColaborador             ContratacaoColaborador[]
+  Cliente                            Cliente[]
+  Venda                              Venda[]
+  ProdutoServico                     ProdutoServico[]
+  ItensAvaliacaoExpedicao            ItensAvaliacaoExpedicao[]
 
   @@map("empresas")
 }
@@ -102,6 +107,8 @@ model Usuario {
   Documentos              Documentos[]
   UsuarioAcessoDocumentos UsuarioAcessoDocumentos[]
   Revisoes                Revisoes[]
+  Venda                   Venda[]
+  ExpedicaoVenda          ExpedicaoVenda[]
 
   @@map("usuarios")
 }
