@@ -20,6 +20,7 @@ model Pessoa {
   TelefonePessoa TelefonePessoa[]
   EmailPessoa    EmailPessoa[]
   Fornecedor     Fornecedor?
+  Colaborador    Colaborador[]
 
   @@map("pessoas")
 }
@@ -60,6 +61,9 @@ model Empresa {
   ItensAvaliativosRecebimentoEmpresa ItensAvaliativosRecebimentoEmpresa[]
   CategoriasDocumento                CategoriasDocumento[]
   Documentos                         Documentos[]
+  Cargo                              Cargo[]
+  Treinamento                        Treinamento[]
+  ContratacaoColaborador             ContratacaoColaborador[]
 
   @@map("empresas")
 }
@@ -526,4 +530,113 @@ model Revisoes {
   arquivos      Arquivos   @relation(fields: [arquivoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("revisoes")
+}
+
+model Cargo {
+  id                           String                         @id @default(uuid()) @db.Char(36)
+  nome                         String                         @db.VarChar(255)
+  atribuicoes                  String                         @db.Text
+  superior                     Boolean                        @default(false)
+  experienciaMinima            String                         @db.Text
+  escolaridadeMinima           String                         @db.Text
+  empresasId                   String                         @db.Char(36)
+  empresa                      Empresa                        @relation(fields: [empresasId], references: [id])
+  contratacoes                 ContratacaoColaborador[]
+  treinamentosIntegracaoCargos TreinamentosIntegracaoCargos[]
+
+  @@map("cargos")
+}
+
+model Treinamento {
+  id                           String                         @id @default(uuid()) @db.Char(36)
+  nome                         String                         @db.VarChar(255)
+  tipo                         TipoTreinamento                @default(integracao)
+  excluido                     Boolean                        @default(false)
+  empresasId                   String                         @db.Char(36)
+  empresa                      Empresa                        @relation(fields: [empresasId], references: [id])
+  planos                       PlanoTreinamento[]
+  realizados                   TreinamentoRealizado[]
+  treinamentosIntegracaoCargos TreinamentosIntegracaoCargos[]
+
+  @@map("treinamentos")
+}
+
+enum TipoTreinamento {
+  integracao
+  capacitacao
+}
+
+model PlanoTreinamento {
+  id             Int         @id @default(autoincrement())
+  nome           String      @db.VarChar(255)
+  excluido       Boolean     @default(false)
+  treinamentosId String      @db.Char(36)
+  treinamento    Treinamento @relation(fields: [treinamentosId], references: [id])
+
+  @@map("planos_treinamento")
+}
+
+model Colaborador {
+  id           String                   @default(uuid()) @db.Char(36)
+  documento    String                   @db.VarChar(11)
+  pessoasId    String                   @db.Char(36)
+  pessoa       Pessoa                   @relation(fields: [pessoasId], references: [id])
+  contratacoes ContratacaoColaborador[]
+
+  @@id([id, pessoasId])
+  @@unique([id])
+  @@unique([documento])
+  @@map("colaboradores")
+}
+
+model ContratacaoColaborador {
+  id                     String                 @default(uuid())
+  admitidoEm             DateTime               @db.Date
+  demitidoEm             DateTime?              @db.Date
+  empresaId              String                 @db.Char(36)
+  cargoId                String                 @db.Char(36)
+  colaboradoresId        String                 @db.Char(36)
+  empresa                Empresa                @relation(fields: [empresaId], references: [id])
+  cargo                  Cargo                  @relation(fields: [cargoId], references: [id])
+  colaborador            Colaborador            @relation(fields: [colaboradoresId], references: [id])
+  treinamentosRealizados TreinamentoRealizado[]
+  documentosContrato     DocumentosContrato[]
+
+  @@id([id, cargoId, colaboradoresId])
+  @@unique([id])
+  @@map("contratacao_colaborador")
+}
+
+model TreinamentoRealizado {
+  id                       String                 @default(uuid())
+  iniciadoEm               DateTime               @default(now())
+  finalizadoEm             DateTime?
+  certificado              String?                @db.VarChar(255)
+  treinamentosId           String                 @db.Char(36)
+  contratacaoColaboradorId String                 @db.Char(36)
+  treinamento              Treinamento            @relation(fields: [treinamentosId], references: [id])
+  contratacaoColaborador   ContratacaoColaborador @relation(fields: [contratacaoColaboradorId], references: [id])
+
+  @@id([id, contratacaoColaboradorId])
+  @@unique([id])
+  @@map("treinamentos_realizados")
+}
+
+model TreinamentosIntegracaoCargos {
+  treinamentosId String      @db.Char(36)
+  cargosId       String      @db.Char(36)
+  treinamento    Treinamento @relation(fields: [treinamentosId], references: [id])
+  cargo          Cargo       @relation(fields: [cargosId], references: [id])
+
+  @@id([treinamentosId, cargosId])
+  @@map("treinamentos_integracao_cargos")
+}
+
+model DocumentosContrato {
+  id                       Int                    @id @default(autoincrement())
+  documento                String                 @db.VarChar(255)
+  contratacaoColaboradorId String                 @db.Char(36)
+  contratacaoColaborador   ContratacaoColaborador @relation(fields: [contratacaoColaboradorId], references: [id])
+
+  @@map("documentos_contrato")
 }
