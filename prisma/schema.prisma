@@ -20,8 +20,8 @@ model Pessoa {
   TelefonePessoa TelefonePessoa[]
   EmailPessoa    EmailPessoa[]
   Fornecedor     Fornecedor?
-  Colaborador    Colaborador[]
   Cliente        Cliente?
+  Colaborador    Colaborador[]
 
   @@map("pessoas")
 }
@@ -62,13 +62,13 @@ model Empresa {
   ItensAvaliativosRecebimentoEmpresa ItensAvaliativosRecebimentoEmpresa[]
   CategoriasDocumento                CategoriasDocumento[]
   Documentos                         Documentos[]
-  Cargo                              Cargo[]
-  Treinamento                        Treinamento[]
-  ContratacaoColaborador             ContratacaoColaborador[]
   Cliente                            Cliente[]
   Venda                              Venda[]
   ProdutoServico                     ProdutoServico[]
   ItensAvaliacaoExpedicao            ItensAvaliacaoExpedicao[]
+  Cargo                              Cargo[]
+  Treinamento                        Treinamento[]
+  ContratacaoColaborador             ContratacaoColaborador[]
 
   @@map("empresas")
 }
@@ -109,6 +109,7 @@ model Usuario {
   Revisoes                Revisoes[]
   Venda                   Venda[]
   ExpedicaoVenda          ExpedicaoVenda[]
+  ContratacaoColaborador  ContratacaoColaborador[]
 
   @@map("usuarios")
 }
@@ -539,6 +540,123 @@ model Revisoes {
   @@map("revisoes")
 }
 
+model Cliente {
+  id           String    @id @default(uuid()) @db.Char(36)
+  documento    String    @db.VarChar(14)
+  pessoaId     String    @unique @db.Char(36)
+  empresaId    String    @db.Char(36)
+  cadastradoEm DateTime  @default(now())
+  atualizadoEm DateTime? @updatedAt
+  excluido     Boolean   @default(false)
+  observacoes  String?   @db.Text
+
+  pessoa  Pessoa  @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  vendas  Venda[]
+
+  @@map("clientes")
+}
+
+model Venda {
+  id                    String    @id @default(uuid()) @db.Char(36)
+  condicoes             String?   @db.Text
+  permiteEntregaParcial Boolean   @default(false)
+  prazoEntrega          DateTime
+  numPedido             Int
+  codigo                String    @db.VarChar(45)
+  expedido              Boolean   @default(false)
+  cancelado             Boolean?  @default(false)
+  cadastradoEm          DateTime  @default(now())
+  atualizadoEm          DateTime? @updatedAt
+
+  clientesId String @db.Char(36)
+  empresasId String @db.Char(36)
+  usuariosId String @db.Char(36)
+
+  cliente    Cliente          @relation(fields: [clientesId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  empresa    Empresa          @relation(fields: [empresasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuario    Usuario          @relation(fields: [usuariosId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  itensVenda ItensVenda[]
+  expedicoes ExpedicaoVenda[]
+
+  @@map("vendas")
+}
+
+model ProdutoServico {
+  id        String             @id @default(uuid()) @db.Char(36)
+  nome      String
+  descricao String             @db.Text
+  tipo      TipoProdutoServico @default(PRODUTO)
+  preco     Decimal            @db.Decimal(22, 2)
+  ativo     Boolean            @default(true)
+  empresaId String
+  empresa   Empresa            @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  itensVenda ItensVenda[]
+
+  @@map("produtos_servicos")
+}
+
+model ItensVenda {
+  vendasId           String @db.Char(36)
+  produtosServicosId String @db.Char(36)
+  quantidade         Int    @default(1)
+
+  venda          Venda          @relation(fields: [vendasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  produtoServico ProdutoServico @relation(fields: [produtosServicosId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([vendasId, produtosServicosId])
+  @@index([vendasId])
+  @@index([produtosServicosId])
+  @@map("itens_venda")
+}
+
+model ExpedicaoVenda {
+  id                 String   @id @default(uuid()) @db.Char(36)
+  cadastradoEm       DateTime @default(now())
+  recebidoEm         DateTime
+  avaliacaoExpedicao Decimal  @default(0)
+  vendasId           String   @db.Char(36)
+  usuariosId         String   @db.Char(36)
+
+  usuario    Usuario              @relation(fields: [usuariosId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  venda      Venda                @relation(fields: [vendasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  avaliacoes AvaliacaoExpedicao[]
+
+  @@index([vendasId])
+  @@map("expedicoes_venda")
+}
+
+model ItensAvaliacaoExpedicao {
+  id         Int     @id @default(autoincrement())
+  pergunta   String
+  empresasId String  @db.Char(36)
+  excluido   Boolean @default(false)
+
+  empresa    Empresa              @relation(fields: [empresasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  avaliacoes AvaliacaoExpedicao[]
+
+  @@map("itens_avaliacao_expedicao")
+}
+
+model AvaliacaoExpedicao {
+  id                        Int    @id @default(autoincrement())
+  nota                      Int
+  itensAvaliacaoExpedicaoId Int
+  expedicaoId               String @db.Char(36)
+
+  item      ItensAvaliacaoExpedicao @relation(fields: [itensAvaliacaoExpedicaoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  expedicao ExpedicaoVenda          @relation(fields: [expedicaoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([itensAvaliacaoExpedicaoId, expedicaoId])
+  @@map("avaliacao_expedicao")
+}
+
+enum TipoProdutoServico {
+  SERVICO
+  PRODUTO
+}
+
 model Cargo {
   id                           String                         @id @default(uuid()) @db.Char(36)
   nome                         String                         @db.VarChar(255)
@@ -546,6 +664,7 @@ model Cargo {
   superior                     Boolean                        @default(false)
   experienciaMinima            String                         @db.Text
   escolaridadeMinima           String                         @db.Text
+  excluido                     Boolean                        @default(false)
   empresasId                   String                         @db.Char(36)
   empresa                      Empresa                        @relation(fields: [empresasId], references: [id])
   contratacoes                 ContratacaoColaborador[]
@@ -603,6 +722,8 @@ model ContratacaoColaborador {
   empresaId              String                 @db.Char(36)
   cargoId                String                 @db.Char(36)
   colaboradoresId        String                 @db.Char(36)
+  usuariosId             String                 @db.Char(36)
+  usuario                Usuario                @relation(fields: [usuariosId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   empresa                Empresa                @relation(fields: [empresaId], references: [id])
   cargo                  Cargo                  @relation(fields: [cargoId], references: [id])
   colaborador            Colaborador            @relation(fields: [colaboradoresId], references: [id])
@@ -641,6 +762,7 @@ model TreinamentosIntegracaoCargos {
 
 model DocumentosContrato {
   id                       Int                    @id @default(autoincrement())
+  chaveArquivo             String                 @unique @db.VarChar(255)
   documento                String                 @db.VarChar(255)
   contratacaoColaboradorId String                 @db.Char(36)
   contratacaoColaborador   ContratacaoColaborador @relation(fields: [contratacaoColaboradorId], references: [id])

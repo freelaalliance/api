@@ -1,6 +1,8 @@
 /* eslint-disable no-new */
 import cron from 'node-cron'
 
+import Servidor from './controllers/ServerController'
+import { AdministradorComprasController } from './controllers/administrativo/ComprasController'
 import EmpresaController from './controllers/administrativo/EmpresaController'
 import PerfilController from './controllers/administrativo/PerfilController'
 import UsuarioController from './controllers/administrativo/UsuarioController'
@@ -11,23 +13,26 @@ import RelatorioCalibracaoController from './controllers/calibracao/RelatoriosCa
 import ComprasController from './controllers/compras/Compras'
 import FornecedorController from './controllers/compras/Fornecedor'
 import RelatorioComprasController from './controllers/compras/Relatorio'
+import { CategoriasDocumentosController } from './controllers/documentos/categorias'
+import { DocumentosController } from './controllers/documentos/documentos'
 import EquipamentoController from './controllers/manutencao/EquipamentoController'
 import InspecaoEquipamentoController from './controllers/manutencao/InspecaoEquipamentoController'
 import ManutencaoEquipamentoController from './controllers/manutencao/ManutencaoEquipamentoController'
-import Servidor from './controllers/ServerController'
-import ModuloController from './controllers/sistema/ModuloController'
-import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
-import { AdministradorComprasController } from './controllers/administrativo/ComprasController'
-import { CategoriasDocumentosController } from './controllers/documentos/categorias'
-import { DocumentosController } from './controllers/documentos/documentos'
-import { vendasRoutes } from './controllers/vendas/VendaServicoController'
-import { produtoServicoRoutes } from './controllers/vendas/ProdutoServicoController'
-import { expedicaoRoutes } from './controllers/vendas/ExpedicaoServicoController'
-import { clienteRoutes } from './controllers/vendas/ClientesServicoController'
-import { itensAvaliacaoExpedicaoRoutes } from './controllers/vendas/AvaliacaoExpedicaoServicoController'
-import { enderecoRoutes } from './controllers/pessoa/EnderecoServicoController'
 import { emailRoutes } from './controllers/pessoa/EmailServicoController'
+import { enderecoRoutes } from './controllers/pessoa/EnderecoServicoController'
 import { telefoneRoutes } from './controllers/pessoa/TelefoneServicoController'
+import { AnalyticsRhRoutes } from './controllers/rh/AnalyticsRhController'
+import { CargosRoutes } from './controllers/rh/CargosController'
+import { ContratacaoRoutes } from './controllers/rh/ContratacaoController'
+import { TreinamentosColaboradorRoutes } from './controllers/rh/TreinamentoContratacoesController'
+import { TreinamentosRoutes } from './controllers/rh/TreinamentosController'
+import ModuloController from './controllers/sistema/ModuloController'
+import { itensAvaliacaoExpedicaoRoutes } from './controllers/vendas/AvaliacaoExpedicaoServicoController'
+import { clienteRoutes } from './controllers/vendas/ClientesServicoController'
+import { expedicaoRoutes } from './controllers/vendas/ExpedicaoServicoController'
+import { produtoServicoRoutes } from './controllers/vendas/ProdutoServicoController'
+import { vendasRoutes } from './controllers/vendas/VendaServicoController'
+import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -54,27 +59,40 @@ new DocumentosController(server.servico)
 
 server.servico.register(vendasRoutes)
 server.servico.register(produtoServicoRoutes)
-server.servico.register(expedicaoRoutes, {
-  prefix: '/vendas/expedicao'
-})
-server.servico.register(clienteRoutes, {
-  prefix: '/pessoa/clientes',
-})
-server.servico.register(itensAvaliacaoExpedicaoRoutes, {
-  prefix: '/admin/vendas/expedicao',
-})
-server.servico.register(enderecoRoutes, {
-  prefix: '/pessoa'
-})
-server.servico.register(emailRoutes, {
-  prefix: '/pessoa'
-})
-server.servico.register(telefoneRoutes, {
-  prefix: '/pessoa'
-})
+server.servico.register(expedicaoRoutes,
+  { prefix: '/vendas/expedicao' })
+server.servico.register(clienteRoutes,
+  { prefix: '/pessoa/clientes', })
+server.servico.register(itensAvaliacaoExpedicaoRoutes,
+  { prefix: '/admin/vendas/expedicao', })
+server.servico.register(enderecoRoutes,
+  { prefix: '/pessoa' })
+server.servico.register(emailRoutes,
+  { prefix: '/pessoa' })
+server.servico.register(telefoneRoutes,
+  { prefix: '/pessoa' })
 
-cron.schedule('0 2 1 * *', () => {
-  notificarVencimentoCalibracao()
-})
+server.servico.register(TreinamentosRoutes,
+  { prefix: '/rh/treinamentos' },
+)
+
+server.servico.register(CargosRoutes,
+  { prefix: '/rh/cargos' },
+)
+
+server.servico.register(TreinamentosColaboradorRoutes,
+  { prefix: '/rh/contrato/treinamentos' },
+)
+
+server.servico.register(ContratacaoRoutes,
+  { prefix: '/rh/contratacoes' },
+)
+
+server.servico.register(AnalyticsRhRoutes,
+  { prefix: '/rh' },
+)
+
+cron.schedule('0 2 1 * *', () =>
+  notificarVencimentoCalibracao())
 
 server.inicializar()
