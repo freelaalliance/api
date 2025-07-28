@@ -352,6 +352,89 @@ export async function listarTreinamentosFinalizados(empresaId: string) {
   })
 }
 
+export async function listarTreinamentosNaoRealizados(contratacaoColaboradorId: string, tipo?: 'integracao' | 'capacitacao') {
+  // Buscar todos os treinamentos já realizados ou em andamento
+  const treinamentosRealizados = await prisma.treinamentoRealizado.findMany({
+    where: {
+      contratacaoColaboradorId: contratacaoColaboradorId
+    },
+    select: {
+      treinamentosId: true
+    }
+  })
+
+  const idsRealizados = treinamentosRealizados.map(t => t.treinamentosId)
+
+  // Buscar a contratação para verificar o cargo
+  const contratacao = await prisma.contratacaoColaborador.findUnique({
+    where: { id: contratacaoColaboradorId },
+    select: {
+      cargoId: true,
+      empresaId: true
+    }
+  })
+
+  if (!contratacao) {
+    throw new Error("Contratação não encontrada")
+  }
+
+  // Construir filtros baseados no tipo
+  interface WhereClause {
+    excluido: boolean
+    id: {
+      notIn: string[]
+    }
+    tipo?: 'integracao' | 'capacitacao'
+    empresasId: string
+  }
+
+  const whereClause: WhereClause = {
+    excluido: false,
+    id: {
+      notIn: idsRealizados
+    },
+    empresasId: contratacao.empresaId
+  }
+
+  if (tipo) {
+    whereClause.tipo = tipo
+  }
+
+  // Buscar treinamentos disponíveis
+  let treinamentosDisponiveis = await prisma.treinamento.findMany({
+    where: whereClause,
+    select: {
+      id: true,
+      nome: true,
+      tipo: true
+    },
+    orderBy: {
+      nome: 'asc'
+    }
+  })
+
+  // Se for tipo integração, filtrar apenas os obrigatórios do cargo
+  if (tipo === 'integracao') {
+    const treinamentosObrigatoriosCargo = await prisma.treinamentosIntegracaoCargos.findMany({
+      where: {
+        cargosId: contratacao.cargoId,
+        treinamento: {
+          tipo: 'integracao',
+          excluido: false
+        }
+      },
+      select: {
+        treinamentosId: true
+      }
+    })
+
+    const idsObrigatorios = treinamentosObrigatoriosCargo.map(t => t.treinamentosId)
+    treinamentosDisponiveis = treinamentosDisponiveis.filter((t: { id: string }) => idsObrigatorios.includes(t.id))
+  }
+
+  return treinamentosDisponiveis
+}
+
 export async function iniciarTreinamentosObrigatoriosCargo(contratacaoColaboradorId: string) {
   // Buscar os treinamentos obrigatórios do cargo
   const contratacao = await prisma.contratacaoColaborador.findUnique({
@@ -362,7 +445,8 @@ export async function iniciarTreinamentosObrigatoriosCargo(contratacaoColaborado
           treinamentosIntegracaoCargos: {
             where: {
               treinamento: {
-                tipo: 'integracao'
+                tipo: 'integracao',
+                excluido: false
               }
             },
             include: {
@@ -385,7 +469,7 @@ export async function iniciarTreinamentosObrigatoriosCargo(contratacaoColaborado
     where: {
       contratacaoColaboradorId: contratacaoColaboradorId,
       treinamentosId: {
-        in: treinamentosObrigatorios.map(t => t.treinamento.id)
+        in: treinamentosObrigatorios.map(t => t.treinamento.id),
       }
     },
     select: {

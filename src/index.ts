@@ -21,6 +21,10 @@ import ManutencaoEquipamentoController from './controllers/manutencao/Manutencao
 import { emailRoutes } from './controllers/pessoa/EmailServicoController'
 import { enderecoRoutes } from './controllers/pessoa/EnderecoServicoController'
 import { telefoneRoutes } from './controllers/pessoa/TelefoneServicoController'
+import { AnalyticsRhRoutes } from './controllers/rh/AnalyticsRhController'
+import { CargosRoutes } from './controllers/rh/CargosController'
+import { ContratacaoRoutes } from './controllers/rh/ContratacaoController'
+import { TreinamentosColaboradorRoutes } from './controllers/rh/TreinamentoContratacoesController'
 import { TreinamentosRoutes } from './controllers/rh/TreinamentosController'
 import ModuloController from './controllers/sistema/ModuloController'
 import { itensAvaliacaoExpedicaoRoutes } from './controllers/vendas/AvaliacaoExpedicaoServicoController'
@@ -29,9 +33,6 @@ import { expedicaoRoutes } from './controllers/vendas/ExpedicaoServicoController
 import { produtoServicoRoutes } from './controllers/vendas/ProdutoServicoController'
 import { vendasRoutes } from './controllers/vendas/VendaServicoController'
 import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
-import { CargosRoutes } from './controllers/rh/CargosController'
-import { TreinamentosColaboradorRoutes } from './controllers/rh/TreinamentoContratacoesController'
-import { ContratacaoRoutes } from './controllers/rh/ContratacaoController'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -80,11 +81,15 @@ server.servico.register(CargosRoutes,
 )
 
 server.servico.register(TreinamentosColaboradorRoutes,
-  { prefix: '/rh/colaborador/treinamentos' },
+  { prefix: '/rh/contrato/treinamentos' },
 )
 
 server.servico.register(ContratacaoRoutes,
   { prefix: '/rh/contratacoes' },
+)
+
+server.servico.register(AnalyticsRhRoutes,
+  { prefix: '/rh' },
 )
 
 cron.schedule('0 2 1 * *', () =>

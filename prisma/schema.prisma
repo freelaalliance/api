@@ -762,6 +762,7 @@ model TreinamentosIntegracaoCargos {
 
 model DocumentosContrato {
   id                       Int                    @id @default(autoincrement())
+  chaveArquivo             String                 @unique @db.VarChar(255)
   documento                String                 @db.VarChar(255)
   contratacaoColaboradorId String                 @db.Char(36)
   contratacaoColaborador   ContratacaoColaborador @relation(fields: [contratacaoColaboradorId], references: [id])

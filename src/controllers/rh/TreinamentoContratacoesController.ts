@@ -2,16 +2,17 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import {
-  iniciarTreinamento,
+  atualizarTreinamentoRealizado,
+  buscarTreinamentoRealizadoPorId,
+  cancelarTreinamento,
   finalizarTreinamento,
+  iniciarTreinamento,
+  iniciarTreinamentosObrigatoriosCargo,
   listarTreinamentosColaborador,
   listarTreinamentosEmpresa,
-  buscarTreinamentoRealizadoPorId,
-  atualizarTreinamentoRealizado,
-  cancelarTreinamento,
-  listarTreinamentosPendentes,
   listarTreinamentosFinalizados,
-  iniciarTreinamentosObrigatoriosCargo
+  listarTreinamentosNaoRealizados,
+  listarTreinamentosPendentes
 } from './services/TreinamentosColaborador'
 
 export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
@@ -325,5 +326,40 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
         cargo: tr.contratacaoColaborador.cargo.nome
       }))
     })
+  })
+
+  // Nova rota para listar treinamentos não realizados
+  app.get('/colaborador/:contratacaoId/nao-realizados', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    const contratacaoIdSchema = z.object({
+      contratacaoId: z.string().uuid('ID da contratação deve ser um UUID válido')
+    })
+
+    const tipoQuerySchema = z.object({
+      tipo: z.enum(['integracao', 'capacitacao']).optional()
+    })
+
+    const { contratacaoId } = await contratacaoIdSchema.parseAsync(req.params)
+    const { tipo } = await tipoQuerySchema.parseAsync(req.query)
+
+    try {
+      const treinamentos = await listarTreinamentosNaoRealizados(contratacaoId, tipo)
+
+      return res.send({
+        status: true,
+        dados: treinamentos.map(tr => ({
+          id: tr.id,
+          nome: tr.nome,
+          tipo: tr.tipo
+        }))
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      return res.status(400).send({
+        status: false,
+        msg: errorMessage
+      })
+    }
   })
 }

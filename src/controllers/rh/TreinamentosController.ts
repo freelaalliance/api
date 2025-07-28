@@ -9,6 +9,8 @@ import {
   deletarTreinamento,
   listarPlanosTreinamento,
   listarTreinamentos,
+  listarTreinamentosCapacitacaoCargo,
+  listarTreinamentosIntegracaoCargo,
 } from './services/TreinamentosService'
 
 export async function TreinamentosRoutes(app: FastifyInstance) {
@@ -33,7 +35,7 @@ export async function TreinamentosRoutes(app: FastifyInstance) {
     const { nome, tipo, planos } =
       await bodySchema.parseAsync(req.body)
 
-    const { cliente } = req.user
+    const { cliente } = req.user as { cliente: string }
 
     await criarTreinamento({
       nome,
@@ -150,6 +152,47 @@ export async function TreinamentosRoutes(app: FastifyInstance) {
       dados: planos.map(plano => ({
         id: plano.id,
         nome: plano.nome,
+      })),
+    })
+  })
+
+  // Rota para listar treinamentos de integração por cargo
+  app.get('/integracao/cargo/:cargoId', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    const paramCargoSchema = z.object({
+      cargoId: z.string().uuid(),
+    })
+
+    const { cargoId } = await paramCargoSchema.parseAsync(req.params)
+    const { cliente } = req.user as { cliente: string }
+
+    const treinamentos = await listarTreinamentosIntegracaoCargo(cargoId, cliente)
+
+    return res.send({
+      status: true,
+      dados: treinamentos.map(item => ({
+        id: item.treinamento.id,
+        nome: item.treinamento.nome,
+        tipo: item.treinamento.tipo,
+      })),
+    })
+  })
+
+  // Rota para listar treinamentos de capacitação
+  app.get('/capacitacao', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    const { cliente } = req.user as { cliente: string }
+
+    const treinamentos = await listarTreinamentosCapacitacaoCargo(cliente)
+
+    return res.send({
+      status: true,
+      dados: treinamentos.map(treinamento => ({
+        id: treinamento.id,
+        nome: treinamento.nome,
+        tipo: treinamento.tipo,
       })),
     })
   })

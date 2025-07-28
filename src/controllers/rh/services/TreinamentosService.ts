@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client'
 import { prisma } from '../../../services/PrismaClientService'
 
 interface PlanosTreinamento {
@@ -32,7 +31,11 @@ export async function criarTreinamento({ nome, tipo, planos, empresa }: Treiname
 export async function listarTreinamentos() {
   const treinamentos = await prisma.treinamento.findMany({
     include: {
-      planos: true,
+      planos: {
+        where: {
+          excluido: false,
+        }
+      },
     },
     orderBy: {
       nome: 'asc'
@@ -96,4 +99,30 @@ export async function criarPlanoTreinamento(treinamentoId: string, nome: string)
   })
 
   return novoPlano
+}
+
+export async function listarTreinamentosIntegracaoCargo(cargoId: string, empresaId: string) {
+  return await prisma.treinamentosIntegracaoCargos.findMany({
+    where: {
+      treinamento: {
+        tipo: 'integracao',
+        empresasId: empresaId,
+        excluido: false,
+      },
+      cargosId: cargoId
+    },
+    select: {
+      treinamento: true
+    }
+  })
+}
+
+export async function listarTreinamentosCapacitacaoCargo(empresaId: string) {
+  return await prisma.treinamento.findMany({
+    where: {
+      tipo: 'capacitacao',
+      empresasId: empresaId,
+      excluido: false,
+    },
+  })
 }
