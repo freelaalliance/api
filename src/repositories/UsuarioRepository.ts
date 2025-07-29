@@ -218,6 +218,7 @@ class UsuarioRepository {
         include: { pessoa: true },
         where: {
           empresaId,
+          ativo: true,
         },
       })
 

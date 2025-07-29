@@ -69,6 +69,7 @@ export class DocumentosController {
         )
         .default([]),
       arquivo: z.string(),
+      empresaId: z.string().uuid().optional()
     })
 
     app.post('/', async (req, res) => {
@@ -94,7 +95,8 @@ export class DocumentosController {
         uso,
         categoriaDocumento,
         usuariosAcessos,
-        arquivo
+        arquivo,
+        empresaId
       } = await schemaNovoDocumentoForm.parseAsync(req.body)
 
       try {
@@ -108,7 +110,7 @@ export class DocumentosController {
           retencao,
           uso,
           categoriaDocumento,
-          empresaId: cliente,
+          empresaId: empresaId ?? cliente,
           usuarioId: id,
           usuariosAcessos,
           arquivo,
