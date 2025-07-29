@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import UsuarioRepository from '../repositories/UsuarioRepository'
 
 import EmpresaEntity from './EmpresaEntity'
@@ -28,7 +28,7 @@ class UsuarioEntity extends PessoaEntity {
     pessoaId?: string,
     nomePessoa?: string,
     perfilId?: string,
-    empresaId?: string,
+    empresaId?: string
   ) {
     super(pessoaId, nomePessoa)
 
@@ -82,7 +82,7 @@ class UsuarioEntity extends PessoaEntity {
 
   public async compararSenhaCriptografada(
     senhaInformada: string,
-    senhaAntiga: string,
+    senhaAntiga: string
   ): Promise<boolean> {
     return await bcrypt.compare(senhaInformada, senhaAntiga)
   }
@@ -100,7 +100,7 @@ class UsuarioEntity extends PessoaEntity {
 
     const perfilEntity: PerfilEntity = new PerfilEntity()
     const verficaExistePerfil = await perfilEntity.buscarPerfilPorId(
-      this.getPerfilId(),
+      this.getPerfilId()
     )
 
     if (verficaExistePerfil.getId() === '')
@@ -119,7 +119,7 @@ class UsuarioEntity extends PessoaEntity {
         msg: 'A empresa informada não existe',
       }
     const senhaCriptografada: string = await this.getSenhaCriptografada(
-      this.senha,
+      this.senha
     )
 
     this.senha = senhaCriptografada
@@ -214,7 +214,7 @@ class UsuarioEntity extends PessoaEntity {
   }
 
   async recuperarTodosUsuariosEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<UsuarioEntity[]> {
     return await this.usuarioRepository.listarUsuariosEmpresa(empresaId)
   }
@@ -225,7 +225,7 @@ class UsuarioEntity extends PessoaEntity {
 
   async alterarSenha(
     id: string,
-    senhaAntiga: string,
+    senhaAntiga: string
   ): Promise<RespostaRequisicaoInterface> {
     const verificaExisteUsuario = await this.recuperarDadosUsuarioPorId(id)
 
@@ -239,7 +239,7 @@ class UsuarioEntity extends PessoaEntity {
     if (
       !(await this.compararSenhaCriptografada(
         senhaAntiga,
-        verificaExisteUsuario.getSenha(),
+        verificaExisteUsuario.getSenha()
       ))
     ) {
       return {
@@ -249,7 +249,7 @@ class UsuarioEntity extends PessoaEntity {
     }
 
     const senhaCriptografada: string = await this.getSenhaCriptografada(
-      this.senha,
+      this.senha
     )
 
     this.senha = senhaCriptografada
