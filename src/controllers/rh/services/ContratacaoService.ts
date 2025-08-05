@@ -48,6 +48,8 @@ export async function criarContratacao(data: ContratacaoData) {
       select: { id: true, pessoasId: true }
     })
 
+    let contratacaoId: string
+
     if (colaboradorExistente) {
       const contratacao = await tx.contratacaoColaborador.create({
         data: {
@@ -59,72 +61,83 @@ export async function criarContratacao(data: ContratacaoData) {
         },
       })
 
-      return contratacao.id
+      contratacaoId = contratacao.id
 
-    }
-    const contratacao = await tx.pessoa.create({
-      data: {
-        nome: data.colaborador.pessoa.nome,
-        Endereco: data.colaborador.pessoa.Endereco ? {
-          create: {
-            logradouro: data.colaborador.pessoa.Endereco.logradouro,
-            bairro: data.colaborador.pessoa.Endereco.bairro,
-            cidade: data.colaborador.pessoa.Endereco.cidade,
-            estado: data.colaborador.pessoa.Endereco.estado,
-            numero: data.colaborador.pessoa.Endereco.numero,
-            complemento: data.colaborador.pessoa.Endereco.complemento,
-            cep: data.colaborador.pessoa.Endereco.cep,
-          }
-        } : undefined,
-        TelefonePessoa: {
-          connectOrCreate: data.colaborador.pessoa.TelefonePessoa?.map(telefone => ({
-            where: {
-              numero: `${telefone.codigoArea}${telefone.numero}`
-            },
+    } else {
+      const contratacao = await tx.pessoa.create({
+        data: {
+          nome: data.colaborador.pessoa.nome,
+          Endereco: data.colaborador.pessoa.Endereco ? {
             create: {
-              numero: `${telefone.codigoArea}${telefone.numero}`
-            },
-          }))
-        },
-        EmailPessoa: {
-          connectOrCreate: data.colaborador.pessoa.EmailPessoa?.map(email => ({
-            where: {
-              email: email.email
-            },
-            create: {
-              email: email.email
-            },
-          })),
-        },
-        Colaborador: {
-          create: {
-            documento: data.colaborador.documento,
-            contratacoes: {
+              logradouro: data.colaborador.pessoa.Endereco.logradouro,
+              bairro: data.colaborador.pessoa.Endereco.bairro,
+              cidade: data.colaborador.pessoa.Endereco.cidade,
+              estado: data.colaborador.pessoa.Endereco.estado,
+              numero: data.colaborador.pessoa.Endereco.numero,
+              complemento: data.colaborador.pessoa.Endereco.complemento,
+              cep: data.colaborador.pessoa.Endereco.cep,
+            }
+          } : undefined,
+          TelefonePessoa: {
+            connectOrCreate: data.colaborador.pessoa.TelefonePessoa?.map(telefone => ({
+              where: {
+                numero: `${telefone.codigoArea}${telefone.numero}`
+              },
               create: {
-                admitidoEm: data.admitidoEm,
-                empresaId: data.empresaId,
-                cargoId: data.cargoId,
-                usuariosId: data.usuariosId,
-                documentosContrato: data.documentosContrato?.length ? {
-                  createMany: {
-                    data: data.documentosContrato
-                  }
-                } : undefined
+                numero: `${telefone.codigoArea}${telefone.numero}`
+              },
+            }))
+          },
+          EmailPessoa: {
+            connectOrCreate: data.colaborador.pessoa.EmailPessoa?.map(email => ({
+              where: {
+                email: email.email
+              },
+              create: {
+                email: email.email
+              },
+            })),
+          },
+          Colaborador: {
+            create: {
+              documento: data.colaborador.documento,
+              contratacoes: {
+                create: {
+                  admitidoEm: data.admitidoEm,
+                  empresaId: data.empresaId,
+                  cargoId: data.cargoId,
+                  usuariosId: data.usuariosId,
+                  documentosContrato: data.documentosContrato?.length ? {
+                    createMany: {
+                      data: data.documentosContrato
+                    }
+                  } : undefined
+                }
               }
             }
           }
-        }
-      },
-      include: {
-        Colaborador: {
-          include: {
-            contratacoes: true
+        },
+        include: {
+          Colaborador: {
+            include: {
+              contratacoes: true
+            }
           }
         }
+      })
+
+      contratacaoId = contratacao.Colaborador[0].contratacoes[0].id
+    }
+
+    // Salvar histórico de criação
+    await tx.historicoContratacaoColaborador.create({
+      data: {
+        descricao: `Colaborador contratado em ${data.admitidoEm.toLocaleDateString('pt-BR')}`,
+        contratacaoColaboradorId: contratacaoId
       }
     })
 
-    return contratacao.Colaborador[0].contratacoes[0].id
+    return contratacaoId
   })
 }
 
@@ -301,57 +314,103 @@ export async function atualizarContratacao(contratacaoId: string, data: Atualiza
 }
 
 export async function demitirColaborador(contratacaoId: string, dataDemissao: Date) {
-  return await prisma.contratacaoColaborador.update({
-    where: {
-      id: contratacaoId
-    },
-    data: {
-      demitidoEm: dataDemissao
-    },
-    include: {
-      colaborador: {
-        include: {
-          pessoa: {
-            select: {
-              nome: true
+  return await prisma.$transaction(async (tx) => {
+    const contratacao = await tx.contratacaoColaborador.update({
+      where: {
+        id: contratacaoId
+      },
+      data: {
+        demitidoEm: dataDemissao
+      },
+      include: {
+        colaborador: {
+          include: {
+            pessoa: {
+              select: {
+                nome: true
+              }
             }
           }
-        }
-      },
-      cargo: {
-        select: {
-          nome: true
+        },
+        cargo: {
+          select: {
+            nome: true
+          }
         }
       }
-    }
+    })
+
+    // Salvar histórico de demissão
+    await tx.historicoContratacaoColaborador.create({
+      data: {
+        descricao: `Colaborador demitido em ${dataDemissao.toLocaleDateString('pt-BR')}`,
+        contratacaoColaboradorId: contratacaoId
+      }
+    })
+
+    return contratacao
   })
 }
 
 export async function transferirColaborador(contratacaoId: string, novoCargoId: string) {
-  return await prisma.contratacaoColaborador.update({
-    where: {
-      id: contratacaoId
-    },
-    data: {
-      cargoId: novoCargoId
-    },
-    include: {
-      colaborador: {
-        include: {
-          pessoa: {
-            select: {
-              nome: true
+  return await prisma.$transaction(async (tx) => {
+    // Buscar cargo anterior para o histórico
+    const contratacaoAtual = await tx.contratacaoColaborador.findUnique({
+      where: { id: contratacaoId },
+      include: {
+        cargo: { select: { nome: true } }
+      }
+    })
+
+    if (!contratacaoAtual) {
+      throw new Error('Contratação não encontrada')
+    }
+
+    // Buscar novo cargo para o histórico
+    const novoCargo = await tx.cargo.findUnique({
+      where: { id: novoCargoId },
+      select: { nome: true }
+    })
+
+    if (!novoCargo) {
+      throw new Error('Novo cargo não encontrado')
+    }
+
+    const contratacao = await tx.contratacaoColaborador.update({
+      where: {
+        id: contratacaoId
+      },
+      data: {
+        cargoId: novoCargoId
+      },
+      include: {
+        colaborador: {
+          include: {
+            pessoa: {
+              select: {
+                nome: true
+              }
             }
           }
-        }
-      },
-      cargo: {
-        select: {
-          id: true,
-          nome: true
+        },
+        cargo: {
+          select: {
+            id: true,
+            nome: true
+          }
         }
       }
-    }
+    })
+
+    // Salvar histórico de transferência
+    await tx.historicoContratacaoColaborador.create({
+      data: {
+        descricao: `Colaborador transferido do cargo "${contratacaoAtual.cargo.nome}" para "${novoCargo.nome}"`,
+        contratacaoColaboradorId: contratacaoId
+      }
+    })
+
+    return contratacao
   })
 }
 
@@ -585,4 +644,26 @@ export async function atualizarDadosColaborador(contratacaoId: string, dados: Da
   }
 
   return true
+}
+
+// Função para salvar histórico de contratação
+export async function salvarHistoricoContratacao(contratacaoId: string, descricao: string) {
+  return await prisma.historicoContratacaoColaborador.create({
+    data: {
+      descricao,
+      contratacaoColaboradorId: contratacaoId
+    }
+  })
+}
+
+// Função para listar histórico de uma contratação
+export async function listarHistoricoContratacao(contratacaoId: string) {
+  return await prisma.historicoContratacaoColaborador.findMany({
+    where: {
+      contratacaoColaboradorId: contratacaoId
+    },
+    orderBy: {
+      data: 'desc'
+    }
+  })
 }

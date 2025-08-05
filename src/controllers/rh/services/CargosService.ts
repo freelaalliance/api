@@ -231,24 +231,6 @@ export async function buscarCargoPorId(cargoId: string) {
           }
         }
       },
-      contratacoes: {
-        include: {
-          colaborador: {
-            include: {
-              pessoa: {
-                include: {
-                  TelefonePessoa: true,
-                  Endereco: true,
-                  EmailPessoa: true
-                },
-                select: {
-                  nome: true,
-                }
-              }
-            }
-          },
-        }
-      }
     }
   })
 }

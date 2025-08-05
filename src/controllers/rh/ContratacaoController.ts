@@ -12,10 +12,16 @@ import {
   listarContratacaoAtivas,
   listarContratacoes,
   listarDocumentosContrato,
+  listarHistoricoContratacao,
   removerDocumentoContrato,
   transferirColaborador,
 } from './services/ContratacaoService'
 import { iniciarTreinamentosObrigatoriosCargo } from './services/TreinamentosColaborador'
+
+interface AuthenticatedUser {
+  cliente: string
+  id: string
+}
 
 export async function ContratacaoRoutes(app: FastifyInstance) {
 
@@ -94,7 +100,7 @@ export async function ContratacaoRoutes(app: FastifyInstance) {
     await req.jwtVerify({ onlyCookie: true })
 
     const dados = await bodySchema.parseAsync(req.body)
-    const { cliente, id: usuarioId } = req.user
+    const { cliente, id: usuarioId } = req.user as AuthenticatedUser
 
     try {
       const contratacaoId = await criarContratacao({
@@ -109,10 +115,10 @@ export async function ContratacaoRoutes(app: FastifyInstance) {
         status: true,
         msg: 'Contratação realizada com sucesso!',
       })
-    } catch (error) {
+    } catch (error: unknown) {
       return res.status(400).send({
         status: false,
-        msg: error.message,
+        msg: error instanceof Error ? error.message : 'Erro desconhecido',
       })
     }
   })
@@ -122,7 +128,7 @@ export async function ContratacaoRoutes(app: FastifyInstance) {
     await req.jwtVerify({ onlyCookie: true })
 
     const { ativas } = await querySchema.parseAsync(req.query)
-    const { cliente } = req.user
+    const { cliente } = req.user as AuthenticatedUser
 
     const contratacoes = ativas
       ? await listarContratacaoAtivas(cliente)
@@ -215,10 +221,10 @@ export async function ContratacaoRoutes(app: FastifyInstance) {
         status: true,
         msg: 'Contratação atualizada com sucesso!',
       })
-    } catch (error) {
+    } catch (error: unknown) {
       return res.status(400).send({
         status: false,
-        msg: error.message,
+        msg: error instanceof Error ? error.message : 'Erro desconhecido',
       })
     }
   })
@@ -377,4 +383,30 @@ export async function ContratacaoRoutes(app: FastifyInstance) {
       })
     }
   })
+
+  // Listar histórico de uma contratação
+  app.get('/:id/historico', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    const { id } = await paramIdSchema.parseAsync(req.params)
+
+    try {
+      const historico = await listarHistoricoContratacao(id)
+
+      return res.send({
+        status: true,
+        dados: historico.map(item => ({
+          id: item.id,
+          data: item.data,
+          descricao: item.descricao,
+        }))
+      })
+    } catch (error: unknown) {
+      return res.status(400).send({
+        status: false,
+        msg: error instanceof Error ? error.message : 'Erro ao buscar histórico',
+      })
+    }
+  })
+
 }

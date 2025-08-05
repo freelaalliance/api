@@ -122,12 +122,6 @@ export async function CargosRoutes(app: FastifyInstance) {
           id: t.treinamento.id,
           nome: t.treinamento.nome,
           tipo: t.treinamento.tipo
-        })),
-        colaboradores: cargo.contratacoes.map(c => ({
-          id: c.id,
-          nome: c.colaborador.pessoa.nome,
-          admitidoEm: c.admitidoEm,
-          demitidoEm: c.demitidoEm
         }))
       }
     })
