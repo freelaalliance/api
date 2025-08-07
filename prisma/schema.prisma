@@ -92,7 +92,7 @@ model Usuario {
   ativo                   Boolean                   @default(true)
   criadoEm                DateTime                  @default(now())
   atualizadoEm            DateTime                  @updatedAt
-  pessoa                  Pessoa                    @relation(fields: [pessoaId], references: [id])
+  pessoa                  Pessoa                    @relation(fields: [pessoaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   pessoaId                String                    @unique
   perfil                  Perfil                    @relation(fields: [perfilId], references: [id])
   perfilId                String
