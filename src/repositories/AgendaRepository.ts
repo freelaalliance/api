@@ -1,4 +1,4 @@
-import {
+import type {
   AgendaInstrumentoInterface,
   InstrumentoInterface,
 } from '../interfaces/ModuloCalibracaoInterface'
@@ -48,7 +48,7 @@ class AgendaRepository {
   }
 
   async removerTodosAgendamentosInstrumento(
-    instrumentoId: string,
+    instrumentoId: string
   ): Promise<void> {
     await prisma.agenda.deleteMany({
       where: {
@@ -58,7 +58,7 @@ class AgendaRepository {
   }
 
   async consultarAgendaCalibracaoInstrumentosEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<AgendaCalibracaoInstrumentoEmpresaType[]> {
     return await prisma.agenda.findMany({
       include: {
@@ -77,7 +77,7 @@ class AgendaRepository {
   }
 
   async buscarAgendamentoCalibracoesInstrumento(
-    instrumentoId: string,
+    instrumentoId: string
   ): Promise<AgendaInstrumentoInterface[]> {
     return await prisma.agenda.findMany({
       where: {
@@ -89,7 +89,7 @@ class AgendaRepository {
   async consultarAgendaCalibracaoMesEmpresa(
     empresaId: string,
     mes: number,
-    ano: number,
+    ano: number
   ): Promise<AgendaCalibracaoInstrumentoEmpresaType[]> {
     return await prisma.agenda.findMany({
       include: {

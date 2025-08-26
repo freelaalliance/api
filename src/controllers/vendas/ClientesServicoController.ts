@@ -26,7 +26,7 @@ export async function clienteRoutes(app: FastifyInstance) {
       telefones: z
         .array(
           z.object({
-            numero: z.string().min(10, 'Número inválido'),
+            numero: z.string().max(12, 'Número inválido'),
           })
         )
         .optional(),
