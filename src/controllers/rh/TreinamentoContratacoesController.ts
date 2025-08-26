@@ -24,7 +24,8 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
 
   const finalizarTreinamentoSchema = z.object({
     finalizadoEm: z.string().transform((str) => new Date(str)),
-    certificado: z.string().optional()
+    certificado: z.string().optional(),
+    iniciadoEmConfirmado: z.string().transform((str) => new Date(str)),
   })
 
   const atualizarTreinamentoSchema = z.object({
@@ -186,7 +187,11 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
     const dados = await finalizarTreinamentoSchema.parseAsync(req.body)
 
     try {
-      const treinamento = await finalizarTreinamento(id, dados)
+      // Passa o novo campo para o serviço
+      const treinamento = await finalizarTreinamento(id, {
+        ...dados,
+        iniciadoEmConfirmado: dados.iniciadoEmConfirmado
+      })
 
       return res.send({
         status: true,
@@ -195,6 +200,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
           id: treinamento.id,
           finalizadoEm: treinamento.finalizadoEm,
           certificado: treinamento.certificado,
+          iniciadoEmConfirmado: treinamento.iniciadoEmConfirmado,
           treinamento: treinamento.treinamento.nome,
           colaborador: treinamento.contratacaoColaborador.colaborador.pessoa.nome
         }
