@@ -117,8 +117,6 @@ class AutenticacaoController {
               maxAge: 60 * 60 * 8, // 8 horas
               domain: process.env.ENV_DOMAIN,
               httpOnly: false,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'strict',
             })
             .send({
               status: true,
