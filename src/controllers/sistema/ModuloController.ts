@@ -15,7 +15,7 @@ class ModuloController {
     })
 
     fastify.register(this.listarModulos, {
-      prefix: '/modulo',
+      prefix: '/api/modulo',
     })
 
     fastify.register(this.buscarModulo, {
@@ -27,7 +27,7 @@ class ModuloController {
     })
 
     fastify.register(this.listarFuncoesModulo, {
-      prefix: '/modulo',
+      prefix: '/api/modulo',
     })
 
     fastify.register(this.adicionarFuncaoModulo, {

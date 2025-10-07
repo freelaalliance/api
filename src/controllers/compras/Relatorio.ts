@@ -11,6 +11,11 @@ import {
   resumoRecebimentoPedidosEmpresa,
 } from '../../repositories/Compras/RecebimentoRepository'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class RelatorioComprasController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.resumoEstatisticasFornecedor, {
@@ -33,7 +38,7 @@ class RelatorioComprasController {
   async resumoEstatisticasFornecedor(app: FastifyInstance) {
     app.get('/fornecedor/resumo', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const estatisticas = await buscaResumoFornecedorEmpresa({
         empresaId: cliente,
@@ -46,7 +51,7 @@ class RelatorioComprasController {
   async resumoEstatisticasComprasFornecedor(app: FastifyInstance) {
     app.get('/compras/resumo', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const estatisticas = await resumoPedidosEmpresa({
         empresaId: cliente,
@@ -64,7 +69,7 @@ class RelatorioComprasController {
 
     app.get('/recebimentos', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { dataInicial, dataFinal } = await schemaQuery.parseAsync(req.query)
 
@@ -95,7 +100,7 @@ class RelatorioComprasController {
 
     app.get('/compras', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { dataInicial, dataFinal } = await schemaQuery.parseAsync(req.query)
 

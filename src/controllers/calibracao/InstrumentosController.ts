@@ -10,6 +10,11 @@ import InstrumentoEntity, {
 } from '../../entities/InstrumentoEntity'
 import type { HistoricoCalibracaoInstrumentoType } from '../../repositories/CalibracaoRepository'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class InstrumentosController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.criarNovaCalibracao, {
@@ -133,8 +138,9 @@ class InstrumentosController {
       calibracaoInstrumentoEntity.setRepeticao(repeticao)
       calibracaoInstrumentoEntity.setLocalizacao(localizacao)
 
-      calibracaoInstrumentoEntity.setUsuarioId(req.user.id)
-      calibracaoInstrumentoEntity.setEmpresaId(req.user.cliente)
+      const { id: usuarioId, cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
+      calibracaoInstrumentoEntity.setUsuarioId(usuarioId)
+      calibracaoInstrumentoEntity.setEmpresaId(empresaId)
 
       const salvaCalibracaoInstrumento =
         await calibracaoInstrumentoEntity.salvarCalibracao()
@@ -202,7 +208,8 @@ class InstrumentosController {
       calibracaoInstrumentoEntity.setObservacao(observacao ?? null)
       calibracaoInstrumentoEntity.setCertificado(certificado)
       calibracaoInstrumentoEntity.setRealizadoEm(realizadoEm)
-      calibracaoInstrumentoEntity.setUsuarioId(req.user.id)
+      const { id: usuarioId } = await reqUserSchema.parseAsync(req.user)
+      calibracaoInstrumentoEntity.setUsuarioId(usuarioId)
 
       const salvaCalibracaoInstrumento =
         await calibracaoInstrumentoEntity.atualizarDadosCalibracao(id)
@@ -327,9 +334,10 @@ class InstrumentosController {
 
       const calibracaoInstrumentoEntity = new CalibracaoEntity()
 
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
       const calibracoes =
         await calibracaoInstrumentoEntity.recuperarListaCalibracaoEmpresa(
-          req.user.cliente
+          empresaId
         )
 
       return calibracoes.map(calibracaoInstrumento => {
@@ -369,8 +377,9 @@ class InstrumentosController {
       await req.jwtVerify({ onlyCookie: true })
       const calibracaoEntity = new CalibracaoEntity()
 
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
       return await calibracaoEntity.recuperarAgendamentosCalibracaoInstrumentosEmpresa(
-        req.user.cliente
+        empresaId
       )
     })
   }
@@ -387,7 +396,8 @@ class InstrumentosController {
       if (codigo) {
         const instrumentoEntity = new InstrumentoEntity()
 
-        instrumentoEntity.setEmpresaId(req.user.cliente)
+        const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
+        instrumentoEntity.setEmpresaId(empresaId)
 
         const dadosInstrumento =
           await instrumentoEntity.buscarDadosInstrumentoEmpresaPorCodigo(codigo)
@@ -414,19 +424,20 @@ class InstrumentosController {
       await req.jwtVerify({ onlyCookie: true })
       const calibracaoEntity = new CalibracaoEntity()
 
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
       const estatisticasCalibracao: EstatisticaCalibracaoInstrumentoEmpresaType =
         await calibracaoEntity.recuperarEstatisticasCalibracoesEmpresa(
-          req.user.cliente
+          empresaId
         )
 
       const estatisticasInstrumento: EstatisticaInstrumentoEmpresaType =
         await calibracaoEntity.recuperarEstatisticasInstrumentoEmpresa(
-          req.user.cliente
+          empresaId
         )
 
       const estatisticasAgenda: EstatisticaAgendaCalibracaoEmpresaType =
         await calibracaoEntity.recuperarEstatisticasAgendaCalibracaoEmpresa(
-          req.user.cliente
+          empresaId
         )
 
       return {

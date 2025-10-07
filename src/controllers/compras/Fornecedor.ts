@@ -19,6 +19,11 @@ import {
   salvarEndereco,
 } from '../../repositories/Compras/FornecedorRepository'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class FornecedorController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.consultaFornecedoresEmpresa, {
@@ -73,7 +78,7 @@ class FornecedorController {
   async consultaFornecedoresEmpresa(app: FastifyInstance) {
     app.get('/', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const listaFornecedores = await recuperarFornecedoresEmpresa({
         empresaId: cliente,
@@ -118,7 +123,7 @@ class FornecedorController {
     })
     app.post('/', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { id, cliente } = req.user
+      const { id, cliente } = await reqUserSchema.parseAsync(req.user)
 
       const {
         nome,
@@ -193,7 +198,7 @@ class FornecedorController {
 
     app.get('/:id', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParams.parseAsync(req.params)
 
@@ -217,7 +222,7 @@ class FornecedorController {
 
     app.get('/:id/documentos', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParams.parseAsync(req.params)
 
@@ -241,7 +246,7 @@ class FornecedorController {
 
     app.get('/:id/avaliacoes', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParams.parseAsync(req.params)
 
@@ -265,7 +270,7 @@ class FornecedorController {
 
     app.get('/:id/avaliacoes-entrega', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParams.parseAsync(req.params)
 
@@ -294,10 +299,10 @@ class FornecedorController {
       id: z.string().uuid(),
     })
 
-    app.post(`/:id/avaliacao`, async (req, res) => {
+    app.post('/:id/avaliacao', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
       const { id: fornecedorId } = await schemaParams.parseAsync(req.params)
-      const { cliente, id } = req.user
+      const { cliente, id } = await reqUserSchema.parseAsync(req.user)
 
       const { nota, validade, aprovado, critico } = await schemaBody.parseAsync(
         req.body
@@ -343,10 +348,10 @@ class FornecedorController {
       enderecoId: z.string().uuid(),
     })
 
-    app.put(`/:id/endereco/:enderecoId`, async (req, res) => {
+    app.put('/:id/endereco/:enderecoId', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id, enderecoId } = await schemaParams.parseAsync(req.params)
       const { logradouro, numero, bairro, cidade, estado, cep, complemento } =
@@ -388,10 +393,10 @@ class FornecedorController {
       telefoneId: z.string().uuid(),
     })
 
-    app.delete(`/telefone/:telefoneId`, async (req, res) => {
+    app.delete('/telefone/:telefoneId', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { telefoneId } = await schemaParams.parseAsync(req.params)
 
@@ -427,10 +432,10 @@ class FornecedorController {
       id: z.string().uuid(),
     })
 
-    app.post(`/:id/telefone`, async (req, res) => {
+    app.post('/:id/telefone', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { numero, codigoArea } = await schemaBody.parseAsync(req.body)
       const { id: fornecedorId } = await schemaParams.parseAsync(req.params)
@@ -465,10 +470,10 @@ class FornecedorController {
       emailId: z.string().uuid(),
     })
 
-    app.delete(`/email/:emailId`, async (req, res) => {
+    app.delete('/email/:emailId', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { emailId } = await schemaParams.parseAsync(req.params)
 
@@ -503,10 +508,10 @@ class FornecedorController {
       id: z.string().uuid(),
     })
 
-    app.post(`/:id/email`, async (req, res) => {
+    app.post('/:id/email', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { email } = await schemaBody.parseAsync(req.body)
       const { id: fornecedorId } = await schemaParams.parseAsync(req.params)
@@ -538,10 +543,10 @@ class FornecedorController {
       anexoId: z.string().uuid(),
     })
 
-    app.delete(`/anexo/:anexoId`, async (req, res) => {
+    app.delete('/anexo/:anexoId', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { anexoId } = await schemaParams.parseAsync(req.params)
 
@@ -577,10 +582,10 @@ class FornecedorController {
       id: z.string().uuid(),
     })
 
-    app.post(`/:id/anexo`, async (req, res) => {
+    app.post('/:id/anexo', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { nome, arquivo } = await schemaBody.parseAsync(req.body)
       const { id: fornecedorId } = await schemaParams.parseAsync(req.params)
@@ -618,7 +623,7 @@ class FornecedorController {
     app.delete('/:id', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParams.parseAsync(req.params)
 

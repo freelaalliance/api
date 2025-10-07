@@ -12,6 +12,11 @@ import {
   listarColaboradoresEmTreinamento
 } from './services/AnalyticsRhService'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 export async function AnalyticsRhRoutes(app: FastifyInstance) {
   const periodoQuerySchema = z.object({
     periodo: z.enum(['mes', 'trimestre', 'semestre', 'anual']).optional().default('mes')
@@ -21,7 +26,7 @@ export async function AnalyticsRhRoutes(app: FastifyInstance) {
   app.get('/analytics/colaboradores', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     try {
       const analytics = await getAnalyticsColaboradores(cliente)
@@ -43,7 +48,7 @@ export async function AnalyticsRhRoutes(app: FastifyInstance) {
   app.get('/analytics/rotatividade', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
     const { periodo } = await periodoQuerySchema.parseAsync(req.query)
 
     try {
@@ -72,7 +77,7 @@ export async function AnalyticsRhRoutes(app: FastifyInstance) {
   app.get('/analytics/treinamentos', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     try {
       const analytics = await getAnalyticsTreinamentos(cliente)
@@ -94,7 +99,7 @@ export async function AnalyticsRhRoutes(app: FastifyInstance) {
   app.get('/analytics/colaboradores-por-cargo', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     try {
       const analytics = await getAnalyticsColaboradoresPorCargo(cliente)
@@ -116,7 +121,7 @@ export async function AnalyticsRhRoutes(app: FastifyInstance) {
   app.get('/colaboradores/ativos', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     try {
       const colaboradores = await listarColaboradoresAtivos(cliente)
@@ -152,7 +157,7 @@ export async function AnalyticsRhRoutes(app: FastifyInstance) {
   app.get('/colaboradores/demitidos', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     try {
       const colaboradores = await listarColaboradoresDemitidos(cliente)
@@ -188,7 +193,7 @@ export async function AnalyticsRhRoutes(app: FastifyInstance) {
   app.get('/colaboradores/em-treinamento', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     try {
       const colaboradores = await listarColaboradoresEmTreinamento(cliente)

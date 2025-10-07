@@ -4,6 +4,11 @@ import { prisma } from '../../services/PrismaClientService'
 import { getNumeroPedido } from '../compras/utils/CompraUtil'
 import { buscarVendaPorClienteId, buscarVendaPorId, buscarVendasPendente, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid()
+})
+
 export const emailPessoaSchema = z.object({
   email: z.string().email(),
 })
@@ -91,7 +96,7 @@ export async function vendasRoutes(app: FastifyInstance) {
       const { itens, condicoes, codigo, permiteEntregaParcial, prazoEntrega } = await schemaBody.parseAsync(
         req.body
       )
-      const { id: usuarioId, cliente: empresaId } = req.user
+      const { id: usuarioId, cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
       const numPedido = getNumeroPedido()
       const codigoVenda = `${codigo}-${numPedido}`
@@ -131,7 +136,7 @@ export async function vendasRoutes(app: FastifyInstance) {
 
     try {
       const { id } = await schemaParams.parseAsync(req.params)
-      const { cliente: empresaId } = req.user
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
       const vendas = await buscarVendaPorClienteId(id, empresaId)
 
@@ -173,7 +178,7 @@ export async function vendasRoutes(app: FastifyInstance) {
     })
 
     const { id } = await schemaParams.parseAsync(req.params)
-    const { cliente: empresa } = req.user;
+    const { cliente: empresa } = await reqUserSchema.parseAsync(req.user);
 
     if (empresa) {
       const dadosVenda = await prisma.venda.findUnique({
@@ -203,9 +208,9 @@ export async function vendasRoutes(app: FastifyInstance) {
       });
 
       if (!dadosVenda) {
-        return res.status(404).send({ 
-          status: false, 
-          msg: 'Venda não encontrada' 
+        return res.status(404).send({
+          status: false,
+          msg: 'Venda não encontrada'
         });
       }
 
@@ -229,7 +234,7 @@ export async function vendasRoutes(app: FastifyInstance) {
 
     try {
       const { id } = await schemaParams.parseAsync(req.params)
-      const { cliente: empresaId } = req.user
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
       const cancelada = await cancelarVenda(id, empresaId)
 
@@ -253,7 +258,7 @@ export async function vendasRoutes(app: FastifyInstance) {
     })
 
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente: empresaId } = req.user
+    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
     const { id: vendaId } = await schemaParams.parseAsync(req.params)
 
@@ -272,7 +277,7 @@ export async function vendasRoutes(app: FastifyInstance) {
   app.get('/estatisticas/vendas/cliente-top', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente: empresaId } = req.user
+    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
     const topCliente = await prisma.venda.groupBy({
       by: ['clientesId'],
@@ -319,7 +324,7 @@ export async function vendasRoutes(app: FastifyInstance) {
   app.get('/estatisticas/vendas/produto-top', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente: empresaId } = req.user
+    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
     const topProduto = await prisma.itensVenda.groupBy({
       by: ['produtosServicosId'],
@@ -364,14 +369,14 @@ export async function vendasRoutes(app: FastifyInstance) {
 
   app.get('/estatisticas/empresa/clientes', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente: empresaId } = req.user
+    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
     const totalClientes = await prisma.cliente.count({ where: { empresaId, excluido: false } })
     return res.send({ status: true, dados: { totalClientes } })
   })
 
   app.get('/estatisticas/empresa/produtos', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente: empresaId } = req.user
+    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
     const totalProdutos = await prisma.produtoServico.count({ where: { empresaId } })
     return res.send({ status: true, dados: { totalProdutos } })
   })
@@ -380,7 +385,7 @@ export async function vendasRoutes(app: FastifyInstance) {
     await req.jwtVerify({ onlyCookie: true })
 
     try {
-      const { cliente: empresaId } = req.user
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
       const vendas = await buscarVendasPendente(empresaId)
 

@@ -9,6 +9,7 @@ interface IniciarTreinamentoData {
 interface FinalizarTreinamentoData {
   finalizadoEm: Date
   certificado?: string
+  iniciadoEmConfirmado?: Date
 }
 
 interface AtualizarTreinamentoData {
@@ -88,14 +89,15 @@ export async function finalizarTreinamento(treinamentoRealizadoId: string, data:
     },
     data: {
       finalizadoEm: data.finalizadoEm,
-      certificado: data.certificado
+      certificado: data.certificado,
+      iniciadoEm: data.iniciadoEmConfirmado
     },
     include: {
       treinamento: {
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
         }
       },
       contratacaoColaborador: {

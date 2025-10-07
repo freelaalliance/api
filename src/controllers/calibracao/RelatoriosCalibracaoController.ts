@@ -3,6 +3,11 @@ import { z } from 'zod'
 
 import CalibracaoEntity from '../../entities/CalibracaoEntity'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class RelatorioCalibracaoController {
   constructor(fastify: FastifyInstance) {
     fastify.register(this.gerarRelatorioCalibracao, {
@@ -12,7 +17,7 @@ class RelatorioCalibracaoController {
 
   async gerarRelatorioCalibracao(app: FastifyInstance) {
     const schemaFiltroRelatorio = z.object({
-      status: z.string().optional(),
+      status: z.enum(["aprovado", "reprovado"]).optional(),
       calibradoDe: z.optional(z.coerce.date()),
       calibradoAte: z.optional(z.coerce.date()),
       codigoInstrumento: z.string().optional(),
@@ -31,7 +36,8 @@ class RelatorioCalibracaoController {
       await req.jwtVerify({ onlyCookie: true })
 
       const calibracaoEntity = new CalibracaoEntity()
-      calibracaoEntity.setEmpresaId(req.user.cliente)
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
+      calibracaoEntity.setEmpresaId(empresaId)
 
       const calibracoes =
         await calibracaoEntity.buscarCalibracoesEmpresaPorFiltro({

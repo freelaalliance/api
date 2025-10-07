@@ -8,43 +8,48 @@ import PerfilEntity from '../../entities/PerfilEntity'
 import UsuarioEntity from '../../entities/UsuarioEntity'
 import type { PerfilInterface } from '../../interfaces/PerfilInterface'
 import type { RespostaRequisicaoInterface } from '../../interfaces/ResponseInterface'
+import EstatisticasAdministrativasRepository from '../../repositories/EstatisticasAdministrativasRepository'
 
 class EmpresaController {
   constructor(fastify: FastifyInstance) {
     fastify.register(this.inserirEmpresa, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.alterarDadosEmpresa, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.listarEmpresas, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.vincularModulo, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.desvincularModulo, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.listarModulosEmpresa, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.listarPerfisEmpresa, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.listarUsuariosEmpresa, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
     })
 
     fastify.register(this.excluirEmpresa, {
-      prefix: '/admin/empresa',
+      prefix: '/api/admin/empresa',
+    })
+
+    fastify.register(this.estatisticasGerais, {
+      prefix: '/api/admin/empresa',
     })
   }
 
@@ -173,19 +178,19 @@ class EmpresaController {
       if (empresas.length === 0) return []
 
       return empresas.map((empresa) => ({
-          id: empresa.id,
-          nome: empresa.pessoa.nome,
-          idPessoa: empresa.pessoa.id,
-          cnpj: empresa.cnpj,
-          idEndereco: empresa.pessoa.Endereco?.id,
-          logradouro: empresa.pessoa.Endereco?.logradouro,
-          numero: empresa.pessoa.Endereco?.numero,
-          bairro: empresa.pessoa.Endereco?.bairro,
-          cidade: empresa.pessoa.Endereco?.cidade,
-          estado: empresa.pessoa.Endereco?.estado,
-          cep: empresa.pessoa.Endereco?.cep,
-          complemento: empresa.pessoa.Endereco?.complemento,
-        })
+        id: empresa.id,
+        nome: empresa.pessoa.nome,
+        idPessoa: empresa.pessoa.id,
+        cnpj: empresa.cnpj,
+        idEndereco: empresa.pessoa.Endereco?.id,
+        logradouro: empresa.pessoa.Endereco?.logradouro,
+        numero: empresa.pessoa.Endereco?.numero,
+        bairro: empresa.pessoa.Endereco?.bairro,
+        cidade: empresa.pessoa.Endereco?.cidade,
+        estado: empresa.pessoa.Endereco?.estado,
+        cep: empresa.pessoa.Endereco?.cep,
+        complemento: empresa.pessoa.Endereco?.complemento,
+      })
       )
     })
   }
@@ -460,6 +465,23 @@ class EmpresaController {
           perfil: usuario.getPerfilId(),
         }
       })
+    })
+  }
+
+  async estatisticasGerais(app: FastifyInstance) {
+    app.get('/estatisticas', async (_req, reply) => {
+      try {
+        const estatisticasRepository = new EstatisticasAdministrativasRepository()
+        const estatisticas = await estatisticasRepository.buscarEstatisticasGerais()
+
+        return reply.status(200).send(estatisticas)
+      } catch (error) {
+        return reply.status(500).send({
+          status: false,
+          msg: 'Erro ao buscar estatísticas',
+          error: error instanceof Error ? error.message : 'Erro desconhecido',
+        })
+      }
     })
   }
 }

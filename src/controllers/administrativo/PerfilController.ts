@@ -8,18 +8,18 @@ import type { FuncaoInterface } from '../../interfaces/ModulosSistemaInterface'
 class PerfilController {
   constructor(fastify: FastifyInstance) {
     fastify.register(this.criarPerfil, {
-      prefix: '/admin/perfil',
+      prefix: '/api/admin/perfil',
     })
-    fastify.register(this.editarPerfil, { prefix: '/admin/perfil' })
-    fastify.register(this.buscarPerfil, { prefix: '/admin/perfil' })
-    fastify.register(this.excluirPerfil, { prefix: '/admin/perfil' })
+    fastify.register(this.editarPerfil, { prefix: '/api/admin/perfil' })
+    fastify.register(this.buscarPerfil, { prefix: '/api/admin/perfil' })
+    fastify.register(this.excluirPerfil, { prefix: '/api/admin/perfil' })
     fastify.register(this.vincularFuncao, {
-      prefix: '/admin/perfil',
+      prefix: '/api/admin/perfil',
     })
     fastify.register(this.desvincularFuncao, {
-      prefix: '/admin/perfil',
+      prefix: '/api/admin/perfil',
     })
-    fastify.register(this.listarPermissoesPerfil, { prefix: '/admin/perfil' })
+    fastify.register(this.listarPermissoesPerfil, { prefix: '/api/admin/perfil' })
   }
 
   async criarPerfil(app: FastifyInstance) {

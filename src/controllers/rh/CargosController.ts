@@ -13,6 +13,11 @@ import {
   removerTreinamentoCargo
 } from './services/CargosService'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 export async function CargosRoutes(app: FastifyInstance) {
   const bodySchema = z.object({
     nome: z.string().min(1, 'Nome do cargo é obrigatório'),
@@ -51,7 +56,7 @@ export async function CargosRoutes(app: FastifyInstance) {
     const { nome, atribuicoes, superior, experienciaMinima, escolaridadeMinima, treinamentos } =
       await bodySchema.parseAsync(req.body)
 
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     await criarCargo({
       nome,
@@ -73,7 +78,7 @@ export async function CargosRoutes(app: FastifyInstance) {
   app.get('/', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const cargos = await listarCargosEmpresa(cliente)
 
@@ -155,10 +160,10 @@ export async function CargosRoutes(app: FastifyInstance) {
         status: true,
         msg: 'Cargo excluído com sucesso!'
       })
-    } catch (error) {
+    } catch (error: unknown) {
       return res.status(400).send({
         status: false,
-        msg: error.message
+        msg: (error as Error).message
       })
     }
   })
@@ -209,7 +214,7 @@ export async function CargosRoutes(app: FastifyInstance) {
     } catch (error) {
       return res.status(400).send({
         status: false,
-        msg: error.message
+        msg: (error as Error).message
       })
     }
   })

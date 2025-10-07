@@ -15,6 +15,11 @@ import { registrarRecebimentoPedido } from '../../repositories/Compras/Recebimen
 import { buscarItensAvaliacaoRecebimentoAtivoEmpresa } from '../../repositories/Compras/ItensAvaliacaoRecebimentoRepository'
 import { getNumeroPedido } from './utils/CompraUtil'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class ComprasController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.cadastrarNovaCompra, {
@@ -89,7 +94,7 @@ class ComprasController {
         await req.jwtVerify({ onlyCookie: true })
 
         const { fornecedorId } = await schemaParam.parseAsync(req.params)
-        const { id } = req.user
+        const { id } = await reqUserSchema.parseAsync(req.user)
 
         const {
           permiteEntregaParcial,
@@ -168,7 +173,7 @@ class ComprasController {
     app.patch('/:idPedido/excluir', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
-        const { cliente } = req.user
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
         const { idPedido } = await schemaParam.parseAsync(req.params)
 
         const deletaPedido = await excluirPedido({
@@ -201,7 +206,7 @@ class ComprasController {
     app.get('/', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
-        const { cliente } = req.user
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
 
         const { codigo, id } = await schemaQueryParam.parseAsync(req.query)
 
@@ -268,7 +273,7 @@ class ComprasController {
     app.get('/:fornecedorId/all', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
-        const { cliente } = req.user
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
 
         const { fornecedorId } = await schemaParams.parseAsync(req.params)
 
@@ -345,7 +350,7 @@ class ComprasController {
     app.get('/pendentes', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
-        const { cliente } = req.user
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
 
         const pedidos = await listarPedidosPendentesEmpresa({
           empresaId: cliente,
@@ -419,7 +424,7 @@ class ComprasController {
     app.get('/recebidos', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
-        const { cliente } = req.user
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
 
         const pedidos = await listarPedidosRecebidosEmpresa({
           empresaId: cliente,
@@ -531,7 +536,7 @@ class ComprasController {
 
         const { compraId } = await schemaParams.parseAsync(req.params)
 
-        const { id, cliente } = req.user
+        const { id, cliente } = await reqUserSchema.parseAsync(req.user)
 
         const salvaRecebimento = await registrarRecebimentoPedido({
           compraId,
@@ -571,7 +576,7 @@ class ComprasController {
   async itensAvaliacaoRecebimentoEmpresa(app: FastifyInstance) {
     app.get('/avaliacao/itens', async (req, reply) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const listaItensRecebimento =
         await buscarItensAvaliacaoRecebimentoAtivoEmpresa({

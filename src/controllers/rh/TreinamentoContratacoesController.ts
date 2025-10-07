@@ -15,6 +15,11 @@ import {
   listarTreinamentosPendentes
 } from './services/TreinamentosColaborador'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
   const iniciarTreinamentoSchema = z.object({
     iniciadoEm: z.string().transform((str) => new Date(str)),
@@ -69,7 +74,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
     } catch (error) {
       return res.status(400).send({
         status: false,
-        msg: error.message
+        msg: (error as Error).message
       })
     }
   })
@@ -79,9 +84,10 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
     await req.jwtVerify({ onlyCookie: true })
 
     const { status } = await querySchema.parseAsync(req.query)
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
-    let treinamentos
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    let treinamentos: Array<any> = []
 
     switch (status) {
       case 'pendentes':
@@ -200,7 +206,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
           id: treinamento.id,
           finalizadoEm: treinamento.finalizadoEm,
           certificado: treinamento.certificado,
-          iniciadoEmConfirmado: treinamento.iniciadoEmConfirmado,
+          iniciadoEmConfirmado: treinamento.iniciadoEm,
           treinamento: treinamento.treinamento.nome,
           colaborador: treinamento.contratacaoColaborador.colaborador.pessoa.nome
         }
@@ -208,7 +214,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
     } catch (error) {
       return res.status(400).send({
         status: false,
-        msg: error.message
+        msg: (error as Error).message
       })
     }
   })
@@ -279,7 +285,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
     } catch (error) {
       return res.status(400).send({
         status: false,
-        msg: error.message
+        msg: (error as Error).message
       })
     }
   })
@@ -287,7 +293,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
   app.get('/pendentes', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const treinamentos = await listarTreinamentosPendentes(cliente)
 
@@ -311,7 +317,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
   app.get('/finalizados', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const treinamentos = await listarTreinamentosFinalizados(cliente)
 
@@ -361,7 +367,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
         }))
       })
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      const errorMessage = error instanceof Error ? (error as Error).message : 'Erro desconhecido'
       return res.status(400).send({
         status: false,
         msg: errorMessage

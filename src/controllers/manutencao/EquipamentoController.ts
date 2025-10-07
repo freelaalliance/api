@@ -15,6 +15,11 @@ import {
   removerPecaEquipamento,
 } from '../../repositories/Manutencao/EquipamentoRepository'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class EquipamentoController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.consultaCodigoEquipamentoEmpresa, {
@@ -69,7 +74,7 @@ class EquipamentoController {
 
     app.get('/consulta', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { codigo } = await schemaQuery.parseAsync(req.query)
 
@@ -106,7 +111,7 @@ class EquipamentoController {
       const { codigo, nome, especificacao, frequencia, tempoOperacao, pecas } =
         await schemaBody.parseAsync(req.body)
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
       const salvaEquipamento = await inserirNovoEquipamento({
         codigo,
         nome,
@@ -128,7 +133,7 @@ class EquipamentoController {
   async equipamentosEmpresa(app: FastifyInstance) {
     app.get('/todos', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const equipamentos = await listarEquipamentosEmpresa({
         empresaId: cliente,
@@ -152,7 +157,7 @@ class EquipamentoController {
     app.get('/:id/pecas', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
       const { id } = await schemaParams.parseAsync(req.params)
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const pecas = await listarPecasEquipamento({
         id,
@@ -185,7 +190,7 @@ class EquipamentoController {
     app.put('/:id', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
       const { id } = await schemaParams.parseAsync(req.params)
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
       const { nome, codigo, especificacao, frequencia, tempoOperacao } =
         await schemaBody.parseAsync(req.body)
 
@@ -278,7 +283,7 @@ class EquipamentoController {
       await req.jwtVerify({ onlyCookie: true })
       const { id } = await schemaParams.parseAsync(req.params)
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       await removerPecaEquipamento({
         id,
@@ -304,7 +309,7 @@ class EquipamentoController {
       await req.jwtVerify({ onlyCookie: true })
       const { id } = await schemaParams.parseAsync(req.params)
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       await removerEquipamento({
         id,
@@ -329,7 +334,7 @@ class EquipamentoController {
     app.get('/:id/agenda', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
       const { id } = await schemaParams.parseAsync(req.params)
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const agendaEquipamento = await consultarAgendaEquipamento({
         id,
@@ -355,7 +360,7 @@ class EquipamentoController {
       await req.jwtVerify({ onlyCookie: true })
 
       const { id } = await schemaParams.parseAsync(req.params)
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const dadosEquipamento = await consultarDadosEquipamento({
         id,

@@ -2,6 +2,11 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { cadastraRevisaoDocumento, cadastrarDocumento, getDocumentosEmpresa, getDocumentosUsuario, getUsuariosAcessoModuloDocumentos, removerDocumentoEmpresa } from '../../repositories/Documentos/DocumentoRepository'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 export class DocumentosController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.novoDocumento, {
@@ -74,7 +79,7 @@ export class DocumentosController {
 
     app.post('/', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { id, cliente } = req.user
+      const { id, cliente } = await reqUserSchema.parseAsync(req.user)
 
       if (!cliente) {
         res.status(401).send({
@@ -143,7 +148,7 @@ export class DocumentosController {
 
     app.post('/revisao/:id', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { id: usuarioId, cliente } = req.user
+      const { id: usuarioId, cliente } = await reqUserSchema.parseAsync(req.user)
 
       if (!cliente) {
         res.status(401).send({
@@ -185,9 +190,9 @@ export class DocumentosController {
 
     app.get('/empresa', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
-      const {id} = await schemaFiltroEmpresa.parseAsync(req.query)
+      const { id } = await schemaFiltroEmpresa.parseAsync(req.query)
 
       if (!cliente) {
         res.status(401).send({
@@ -234,7 +239,7 @@ export class DocumentosController {
   async listarDocumentosUsuarioEmpresa(app: FastifyInstance) {
     app.get('/usuario', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { id, cliente } = req.user
+      const { id, cliente } = await reqUserSchema.parseAsync(req.user)
 
       if (!cliente) {
         res.status(401).send({
@@ -286,7 +291,7 @@ export class DocumentosController {
 
     app.delete('/:id/empresa/:idEmpresa', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       if (!cliente) {
         res.status(401).send({
@@ -319,7 +324,7 @@ export class DocumentosController {
   async getUsuariosAcessosModuloDocumentos(app: FastifyInstance) {
     app.get('/permissoes/usuarios', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       if (!cliente) {
         res.status(401).send({

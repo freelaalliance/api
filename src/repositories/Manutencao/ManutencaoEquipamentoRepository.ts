@@ -133,74 +133,87 @@ export async function salvarNovaManutencao({
   usuarioId,
   observacao: observacoes,
 }: NovaManutencaoProps) {
-  let tempoMaquinaOperacao = 0
-
-  const verificaManutencoesEquipamento = await prisma.manutencao.findFirst({
-    where: {
-      equipamentoId,
-      finalizadoEm: {
-        not: null,
+  return await prisma.$transaction(async (tx) => {
+    // Busca última manutenção finalizada OU dados do equipamento em uma única query otimizada
+    const ultimaManutencao = await tx.manutencao.findFirst({
+      select: {
+        finalizadoEm: true,
       },
-    },
-  })
-
-  if (
-    verificaManutencoesEquipamento &&
-    verificaManutencoesEquipamento.finalizadoEm
-  ) {
-    tempoMaquinaOperacao = differenceInMinutes(
-      new Date(),
-      new Date(verificaManutencoesEquipamento.finalizadoEm),
-    )
-  } else {
-    const dadosEquipamento = await prisma.equipamento.findUniqueOrThrow({
       where: {
-        id: equipamentoId,
+        equipamentoId,
+        finalizadoEm: {
+          not: null,
+        },
       },
+      orderBy: {
+        finalizadoEm: 'desc',
+      },
+      take: 1,
     })
 
-    if (dadosEquipamento) {
+    let tempoMaquinaOperacao = 0
+
+    if (ultimaManutencao?.finalizadoEm) {
       tempoMaquinaOperacao = differenceInMinutes(
         new Date(),
-        new Date(dadosEquipamento.cadastradoEm),
+        new Date(ultimaManutencao.finalizadoEm),
+      )
+    } else {
+      // Só busca o equipamento se não houver manutenção anterior
+      const equipamento = await tx.equipamento.findUniqueOrThrow({
+        select: {
+          cadastradoEm: true,
+        },
+        where: {
+          id: equipamentoId,
+        },
+      })
+
+      tempoMaquinaOperacao = differenceInMinutes(
+        new Date(),
+        new Date(equipamento.cadastradoEm),
       )
     }
-  }
 
-  await prisma.equipamento.update({
-    where: { id: equipamentoId },
-    data: {
-      status: 'parado',
-    },
-  })
-
-  return await prisma.manutencao.create({
-    select: {
-      id: true,
-      criadoEm: true,
-      canceladoEm: true,
-      finalizadoEm: true,
-      iniciadoEm: true,
-      observacoes: true,
-      equipamentoId: true,
-      duracao: true,
-      equipamentoParado: true,
-      usuario: {
+    // Atualiza status do equipamento e cria manutenção atomicamente
+    const [, novaManutencao] = await Promise.all([
+      tx.equipamento.update({
+        where: { id: equipamentoId },
+        data: {
+          status: 'parado',
+        },
+      }),
+      tx.manutencao.create({
         select: {
-          pessoa: {
+          id: true,
+          criadoEm: true,
+          canceladoEm: true,
+          finalizadoEm: true,
+          iniciadoEm: true,
+          observacoes: true,
+          equipamentoId: true,
+          duracao: true,
+          equipamentoParado: true,
+          usuario: {
             select: {
-              nome: true,
+              pessoa: {
+                select: {
+                  nome: true,
+                },
+              },
             },
           },
         },
-      },
-    },
-    data: {
-      equipamentoId,
-      usuarioId,
-      observacoes,
-      tempoMaquinaOperacao,
-    },
+        data: {
+          equipamentoId,
+          usuarioId,
+          observacoes,
+          tempoMaquinaOperacao,
+        },
+      }),
+    ])
+
+    return novaManutencao
   })
 }
 
@@ -246,14 +259,22 @@ export async function finalizarManutencaoEquipamento({
   manutencaoId,
   finalizadoEm,
 }: FinalizarManutencaoEquipamentoProps) {
-  const dadosManutencao = await prisma.manutencao.findFirstOrThrow({
-    where: {
-      id: manutencaoId,
-      equipamentoId,
-    },
-  })
+  return await prisma.$transaction(async (tx) => {
+    const dadosManutencao = await tx.manutencao.findFirstOrThrow({
+      select: {
+        iniciadoEm: true,
+        criadoEm: true,
+      },
+      where: {
+        id: manutencaoId,
+        equipamentoId,
+      },
+    })
 
-  if (dadosManutencao && dadosManutencao.iniciadoEm) {
+    if (!dadosManutencao.iniciadoEm) {
+      throw new Error('Manutenção não foi iniciada')
+    }
+
     const duracaoManutencaoEmMinutos = differenceInMinutes(
       new Date(finalizadoEm),
       new Date(dadosManutencao.iniciadoEm),
@@ -263,7 +284,7 @@ export async function finalizarManutencaoEquipamento({
       new Date(dadosManutencao.criadoEm),
     )
 
-    return await prisma.manutencao.update({
+    return await tx.manutencao.update({
       data: {
         finalizadoEm,
         duracao: duracaoManutencaoEmMinutos,
@@ -280,98 +301,126 @@ export async function finalizarManutencaoEquipamento({
         equipamentoId,
       },
     })
-  }
+  })
 }
 
 export async function consultaQuantidadeEquipamentosParado({
   empresaId,
 }: ConsultaManutencoesEquipamentoProps) {
-  return await prisma.$queryRaw`SELECT COUNT(equipamentos.id) AS 'qtd_equipamentos_parados' 
-    FROM equipamentos 
-    WHERE equipamentos.empresaId = ${empresaId}
-    AND equipamentos.status = "parado"
-  `
+  const count = await prisma.equipamento.count({
+    where: {
+      empresaId,
+      status: 'parado',
+    },
+  })
+
+  return { qtd_equipamentos_parados: count }
 }
 
 export async function consultaQuantidadeEquipamentosFuncionando({
   empresaId,
 }: ConsultaManutencoesEquipamentoProps) {
-  return await prisma.$queryRaw`
-    SELECT COUNT(equipamentos.id) AS 'qtd_equipamentos_funcionando'
-    FROM equipamentos
-    WHERE equipamentos.empresaId = ${empresaId}
-    AND equipamentos.status = "operando"
-  `
+  const count = await prisma.equipamento.count({
+    where: {
+      empresaId,
+      status: 'operando',
+    },
+  })
+
+  return { qtd_equipamentos_funcionando: count }
 }
 
 export async function consultaQuantidadeManutencoesEmAndamento({
   empresaId,
 }: ConsultaManutencoesEquipamentoProps) {
-  const estatisticasManutencoesEmpresa: {
-    media_duracao: number
-    total_duracao_manutencoes: number
-    qtd_manutencoes_realizadas: number
-  }[] = await prisma.$queryRaw`SELECT 
-        COUNT(
-          manutencoes.id
-        ) AS 'qtd_manutencoes_realizadas',
-        AVG(manutencoes.duracao) AS 'media_duracao',
-        SUM(manutencoes.duracao) AS 'total_duracao_manutencoes'
-        FROM manutencoes
-        JOIN equipamentos ON manutencoes.equipamentoId = equipamentos.id
-        WHERE equipamentos.empresaId = ${empresaId}
-        AND manutencoes.finalizadoEm IS NOT NULL
-  `
+  const estatisticas = await prisma.manutencao.aggregate({
+    _count: {
+      id: true,
+    },
+    _avg: {
+      duracao: true,
+    },
+    _sum: {
+      duracao: true,
+    },
+    where: {
+      equipamento: {
+        empresaId,
+      },
+      finalizadoEm: {
+        not: null,
+      },
+    },
+  })
 
   return {
-    media_duracao: Number(estatisticasManutencoesEmpresa[0].media_duracao),
-    qtd_manutencoes_realizadas: Number(
-      estatisticasManutencoesEmpresa[0].qtd_manutencoes_realizadas,
-    ),
-    total_duracao_manutencoes: Number(
-      estatisticasManutencoesEmpresa[0].total_duracao_manutencoes,
-    ),
+    media_duracao: estatisticas._avg.duracao ?? 0,
+    qtd_manutencoes_realizadas: estatisticas._count.id,
+    total_duracao_manutencoes: estatisticas._sum.duracao ?? 0,
   }
 }
 
 export async function consultaQuantidadeManutencoesEmDia({
   empresaId,
 }: ConsultaManutencoesEquipamentoProps) {
-  return await prisma.$queryRaw<
-    Array<{
-      id: string
-      cadastradoEm: Date
-      inspecionadoEm: Date | null
-      frequencia: number
-    }>
-  >`SELECT
-      equipamentos.id,
-      equipamentos.cadastradoEm,
-      equipamentos.inspecionadoEm,
-      equipamentos.frequencia
-    FROM equipamentos
-    WHERE
-      equipamentos.empresaId = ${empresaId}
-    GROUP BY equipamentos.id
-  `
+  return await prisma.equipamento.findMany({
+    select: {
+      id: true,
+      cadastradoEm: true,
+      inspecionadoEm: true,
+      frequencia: true,
+    },
+    where: {
+      empresaId,
+    },
+  })
 }
 
 export async function buscaEstatisticasManutencoes({
   equipamentoId,
   empresaId,
 }: ConsultaManutencoesEquipamentoProps) {
-  if (equipamentoId) {
-    return await prisma.$queryRaw`
-      SELECT 
-        SUM(manutencoes.equipamentoParado) AS total_tempo_parado, 
-        COUNT(manutencoes.id) AS qtd_manutencoes,
-        equipamentos.tempoOperacao AS total_tempo_operacao
-      FROM manutencoes 
-      LEFT JOIN equipamentos ON equipamentos.id = manutencoes.equipamentoId
-      WHERE equipamentos.empresaId = ${empresaId}
-      AND equipamentos.id = ${equipamentoId}
-      AND manutencoes.equipamentoParado IS NOT NULL
-    `
+  if (!equipamentoId) {
+    return null
+  }
+
+  const [estatisticas, equipamento] = await Promise.all([
+    prisma.manutencao.aggregate({
+      _sum: {
+        equipamentoParado: true,
+      },
+      _count: {
+        id: true,
+      },
+      where: {
+        equipamentoId,
+        equipamento: {
+          empresaId,
+        },
+        equipamentoParado: {
+          not: null,
+        },
+      },
+    }),
+    prisma.equipamento.findUnique({
+      select: {
+        tempoOperacao: true,
+      },
+      where: {
+        id: equipamentoId,
+        empresaId,
+      },
+    }),
+  ])
+
+  if (!equipamento) {
+    return null
+  }
+
+  return {
+    total_tempo_parado: estatisticas._sum.equipamentoParado ?? 0,
+    qtd_manutencoes: estatisticas._count.id,
+    total_tempo_operacao: equipamento.tempoOperacao,
   }
 }
 

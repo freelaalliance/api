@@ -1,7 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../services/PrismaClientService'
-import { buscarVendasNaoExpedidas, listarExpedicoesPorEmpresa, obterMediaAvaliacaoExpedicoes, obterResumoExpedicoes } from './services/ExpedicaoVendaService'
+import { listarExpedicoesPorEmpresa, obterMediaAvaliacaoExpedicoes, obterResumoExpedicoes } from './services/ExpedicaoVendaService'
+
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid()
+})
 
 export async function expedicaoRoutes(app: FastifyInstance) {
   const bodySchema = z.object({
@@ -18,9 +23,9 @@ export async function expedicaoRoutes(app: FastifyInstance) {
   app.post('/', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { id: usuarioId, cliente } = req.user
+    const { id: usuarioId, cliente } = await reqUserSchema.parseAsync(req.user)
 
-    if(!cliente){
+    if (!cliente) {
       res.status(401).send({
         status: false,
         msg: 'Usuário não autenticado!'
@@ -28,7 +33,7 @@ export async function expedicaoRoutes(app: FastifyInstance) {
 
       return
     }
-    
+
     const { recebidoEm, vendasId, itensAvaliacao } = await bodySchema.parseAsync(req.body)
 
     const buscaVenda = await prisma.venda.findUnique({
@@ -38,7 +43,7 @@ export async function expedicaoRoutes(app: FastifyInstance) {
       }
     })
 
-    if(!buscaVenda) {
+    if (!buscaVenda) {
       res.status(404).send({
         status: false,
         msg: 'Venda não encontrada!'
@@ -47,7 +52,7 @@ export async function expedicaoRoutes(app: FastifyInstance) {
       return
     }
 
-    const somaTotalAvaliacao = itensAvaliacao.reduce((total, itemAvaliacao) => {return total + Number(itemAvaliacao.nota)}, 0)
+    const somaTotalAvaliacao = itensAvaliacao.reduce((total, itemAvaliacao) => { return total + Number(itemAvaliacao.nota) }, 0)
 
     const nova = await prisma.expedicaoVenda.create({
       data: {
@@ -81,7 +86,7 @@ export async function expedicaoRoutes(app: FastifyInstance) {
 
   app.get('/', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const lista = await listarExpedicoesPorEmpresa(cliente)
 
@@ -105,7 +110,7 @@ export async function expedicaoRoutes(app: FastifyInstance) {
 
   app.get('/resumo', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente: empresaId } = req.user
+    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
     const resumo = await obterResumoExpedicoes(empresaId)
 
@@ -117,7 +122,7 @@ export async function expedicaoRoutes(app: FastifyInstance) {
 
   app.get('/media-avaliacao', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente: empresaId } = req.user
+    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
     const media = await obterMediaAvaliacaoExpedicoes(empresaId)
 

@@ -6,19 +6,19 @@ import UsuarioEntity from '../../entities/UsuarioEntity'
 class UsuarioController {
   constructor(fastify: FastifyInstance) {
     fastify.register(this.criarUsuario, {
-      prefix: '/admin/usuarios',
+      prefix: '/api/admin/usuarios',
     })
     fastify.register(this.editarUsuario, {
-      prefix: '/admin/usuarios',
+      prefix: '/api/admin/usuarios',
     })
     fastify.register(this.alterarStatus, {
-      prefix: '/admin/usuarios',
+      prefix: '/api/admin/usuarios',
     })
     fastify.register(this.modificarSenha, {
-      prefix: '/admin/usuarios',
+      prefix: '/api/admin/usuarios',
     })
     fastify.register(this.buscarDadosUsuario, {
-      prefix: '/admin/usuarios',
+      prefix: '/api/admin/usuarios',
     })
   }
 

@@ -2,10 +2,18 @@
 import cron from 'node-cron'
 
 import Servidor from './controllers/ServerController'
+import { AdministradorCalibracaoController } from './controllers/administrativo/CalibracaoController'
+import { AdministradorComprasAdminController } from './controllers/administrativo/ComprasAdminController'
 import { AdministradorComprasController } from './controllers/administrativo/ComprasController'
+import { AdministradorDocumentosController } from './controllers/administrativo/DocumentosController'
 import EmpresaController from './controllers/administrativo/EmpresaController'
+import { AdministradorExpedicaoController } from './controllers/administrativo/ExpedicaoController'
+import { AdministradorManutencaoController } from './controllers/administrativo/ManutencaoController'
 import PerfilController from './controllers/administrativo/PerfilController'
+import { AdministradorRecebimentosController } from './controllers/administrativo/RecebimentosController'
+import { AdministradorRhController } from './controllers/administrativo/RhController'
 import UsuarioController from './controllers/administrativo/UsuarioController'
+import { AdministradorVendasController } from './controllers/administrativo/VendasController'
 import AutenticacaoController from './controllers/auth/AutenticacaoUsuarioController'
 import AutorizacaoUsuario from './controllers/auth/AutorizacaoUsuarioController'
 import InstrumentosController from './controllers/calibracao/InstrumentosController'
@@ -56,6 +64,14 @@ new RelatorioComprasController(server.servico)
 new AdministradorComprasController(server.servico)
 new CategoriasDocumentosController(server.servico)
 new DocumentosController(server.servico)
+new AdministradorCalibracaoController(server.servico)
+new AdministradorComprasAdminController(server.servico)
+new AdministradorRecebimentosController(server.servico)
+new AdministradorExpedicaoController(server.servico)
+new AdministradorManutencaoController(server.servico)
+new AdministradorRhController(server.servico)
+new AdministradorVendasController(server.servico)
+new AdministradorDocumentosController(server.servico)
 
 server.servico.register(vendasRoutes)
 server.servico.register(produtoServicoRoutes)

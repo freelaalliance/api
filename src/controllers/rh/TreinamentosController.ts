@@ -13,6 +13,11 @@ import {
   listarTreinamentosIntegracaoCargo,
 } from './services/TreinamentosService'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 export async function TreinamentosRoutes(app: FastifyInstance) {
   const bodySchema = z.object({
     nome: z.string().min(1, 'Título é obrigatório'),
@@ -35,7 +40,7 @@ export async function TreinamentosRoutes(app: FastifyInstance) {
     const { nome, tipo, planos } =
       await bodySchema.parseAsync(req.body)
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     await criarTreinamento({
       nome,
@@ -165,7 +170,7 @@ export async function TreinamentosRoutes(app: FastifyInstance) {
     })
 
     const { cargoId } = await paramCargoSchema.parseAsync(req.params)
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const treinamentos = await listarTreinamentosIntegracaoCargo(cargoId, cliente)
 
@@ -183,7 +188,7 @@ export async function TreinamentosRoutes(app: FastifyInstance) {
   app.get('/capacitacao', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { cliente } = req.user as { cliente: string }
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const treinamentos = await listarTreinamentosCapacitacaoCargo(cliente)
 

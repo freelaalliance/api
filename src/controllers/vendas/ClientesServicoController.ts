@@ -4,6 +4,11 @@ import { z } from 'zod'
 
 const prisma = new PrismaClient()
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid()
+})
+
 export async function clienteRoutes(app: FastifyInstance) {
 
   app.post('/', async (req, res) => {
@@ -42,7 +47,7 @@ export async function clienteRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente: empresa } = req.user
+      const { cliente: empresa } = await reqUserSchema.parseAsync(req.user)
 
       const {
         documento, nome, endereco, telefones, emails, observacoes
@@ -115,7 +120,7 @@ export async function clienteRoutes(app: FastifyInstance) {
   app.get('/', async (req, res) => {
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente: empresa } = req.user
+      const { cliente: empresa } = await reqUserSchema.parseAsync(req.user)
 
       const clientes = await prisma.cliente.findMany({
         where: { excluido: false, empresaId: empresa },
@@ -155,7 +160,7 @@ export async function clienteRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente: empresa } = req.user
+      const { cliente: empresa } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParam.parseAsync(req.params)
 
@@ -171,7 +176,7 @@ export async function clienteRoutes(app: FastifyInstance) {
           },
         },
       })
-      
+
       if (!cliente || cliente.excluido) {
         return res.status(404).send({
           status: false,
@@ -217,7 +222,7 @@ export async function clienteRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente: empresa } = req.user
+      const { cliente: empresa } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParam.parseAsync(req.params)
       const data = await schemaBody.parseAsync(req.body)
@@ -256,7 +261,7 @@ export async function clienteRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente: empresa } = req.user
+      const { cliente: empresa } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParam.parseAsync(req.params)
 
@@ -284,7 +289,7 @@ export async function clienteRoutes(app: FastifyInstance) {
 
   app.post('/:id/telefone', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const schemaBody = z.object({
       numero: z.string(),
@@ -330,7 +335,7 @@ export async function clienteRoutes(app: FastifyInstance) {
 
   app.post('/:id/email', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
-    const { cliente } = req.user
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const schemaBody = z.object({ email: z.string().email() })
     const schemaParams = z.object({ id: z.string().uuid() })

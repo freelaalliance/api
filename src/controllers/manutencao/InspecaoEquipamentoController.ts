@@ -12,6 +12,11 @@ import {
 } from '../../repositories/Manutencao/InspecaoEquipamentoRepository'
 import { salvarNovaManutencao } from '../../repositories/Manutencao/ManutencaoEquipamentoRepository'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class InspecaoEquipamentoController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.registrarInspecao, {
@@ -57,7 +62,7 @@ class InspecaoEquipamentoController {
     app.post('/equipamento/:id', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { id, cliente } = req.user
+      const { id, cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { iniciadoEm, finalizadoEm, inspecaoPeca, observacao } =
         await schemaDadosInspecao.parseAsync(req.body)
@@ -107,7 +112,7 @@ class InspecaoEquipamentoController {
 
     app.get('/equipamento/:equipamentoId', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { equipamentoId } = await schemaParamsEquipamento.parseAsync(
         req.params
@@ -130,7 +135,7 @@ class InspecaoEquipamentoController {
     app.get('/:id', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id: inspecaoId } = await schemaParamsInspecao.parseAsync(
         req.params
@@ -168,7 +173,7 @@ class InspecaoEquipamentoController {
     app.put('/:id', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { id, cliente } = req.user
+      const { id, cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { equipamentoId, finalizadoEm, inspecaoPeca, observacao } =
         await schemaDadosInspecao.parseAsync(req.body)
@@ -211,7 +216,7 @@ class InspecaoEquipamentoController {
   async agendaInspecoesEmpresa(app: FastifyInstance) {
     app.get('/agenda', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const inspecaoAgendadas = await consultarAgendaInspecaoEmpresa({
         empresaId: cliente,

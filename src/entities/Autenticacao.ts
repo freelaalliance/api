@@ -1,5 +1,6 @@
 import UsuarioEntity from '../entities/UsuarioEntity'
-import { RespostaAutenticacaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaAutenticacaoInterface } from '../interfaces/ResponseInterface'
+import PerfilEntity from './PerfilEntity'
 
 export type AutenticacaoUsuarioType = {
   id: string
@@ -21,7 +22,9 @@ class Autenticacao {
     return await usuarioEntity.recuperarDadosUsuarioPorEmail(this.email)
   }
 
-  async autenticar(): Promise<RespostaAutenticacaoInterface> {
+  async autenticar(
+    adminAuth?: boolean
+  ): Promise<RespostaAutenticacaoInterface> {
     const usuarioEntity = await this.recuperarDadosUsuario()
 
     if (!usuarioEntity) {
@@ -34,12 +37,26 @@ class Autenticacao {
     if (
       !(await usuarioEntity.compararSenhaCriptografada(
         this.senha,
-        usuarioEntity.getSenha(),
+        usuarioEntity.getSenha()
       ))
     ) {
       return {
         status: false,
         msg: 'Senha incorreta',
+      }
+    }
+
+    if (adminAuth) {
+      const perfil = new PerfilEntity()
+      const perfilDados = await perfil.buscarPerfilPorId(
+        usuarioEntity.getPerfilId()
+      )
+
+      if (!perfilDados.isAdministrativo()) {
+        return {
+          status: false,
+          msg: 'Usuário não possui permissão administrativa',
+        }
       }
     }
 

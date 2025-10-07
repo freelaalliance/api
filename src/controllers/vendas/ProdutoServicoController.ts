@@ -4,6 +4,11 @@ import { z } from 'zod'
 
 const prisma = new PrismaClient()
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid()
+})
+
 export async function produtoServicoRoutes(app: FastifyInstance) {
   // Criar
   app.post('/produtos-servicos', async (req, res) => {
@@ -16,7 +21,7 @@ export async function produtoServicoRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const body = await schemaBody.parseAsync(req.body)
 
@@ -46,7 +51,7 @@ export async function produtoServicoRoutes(app: FastifyInstance) {
   app.get('/produtos-servicos', async (req, res) => {
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const produtos = await prisma.produtoServico.findMany({
         where: {
@@ -78,7 +83,7 @@ export async function produtoServicoRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParam.parseAsync(req.params)
 
@@ -125,7 +130,7 @@ export async function produtoServicoRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParam.parseAsync(req.params)
       const body = await schemaBody.parseAsync(req.body)
@@ -158,13 +163,13 @@ export async function produtoServicoRoutes(app: FastifyInstance) {
 
     try {
       await req.jwtVerify({ onlyCookie: true })
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { id } = await schemaParam.parseAsync(req.params)
 
       await prisma.produtoServico.update({
         where: { id, empresaId: cliente },
-        data: { ativo: false }, 
+        data: { ativo: false },
       })
 
       return res.send({

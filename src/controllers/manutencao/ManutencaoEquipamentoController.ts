@@ -17,6 +17,11 @@ import {
   salvarNovaManutencao,
 } from '../../repositories/Manutencao/ManutencaoEquipamentoRepository'
 
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
+
 class ManutencaoEquipamentoController {
   constructor(fastifyInstance: FastifyInstance) {
     fastifyInstance.register(this.listarManutencoesEquipamento, {
@@ -68,7 +73,7 @@ class ManutencaoEquipamentoController {
     app.get('/equipamento/:idEquipamento', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { idEquipamento: id } = schemaParamsEquipamento.parse(req.params)
 
@@ -93,7 +98,7 @@ class ManutencaoEquipamentoController {
     app.post('/equipamento/:equipamentoId', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { id } = req.user
+      const { id } = await reqUserSchema.parseAsync(req.user)
 
       const { observacao } = await schemaBodyNovaManutencao.parseAsync(req.body)
       const { equipamentoId } = schemaParamsManutencao.parse(req.params)
@@ -197,7 +202,7 @@ class ManutencaoEquipamentoController {
     app.get('/equipamento/:idEquipamento/duracao', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const { idEquipamento } = await schemaParamsManutencao.parseAsync(
         req.params
@@ -216,25 +221,28 @@ class ManutencaoEquipamentoController {
     app.get('/equipamento/estatatisticas/status', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const equipamentoParado = await consultaQuantidadeEquipamentosParado({
         empresaId: cliente,
         equipamentoId: '',
       })
 
-      const equipamentoFuncionando =
+      const equipamentoFuncionando = await consultaQuantidadeEquipamentosFuncionando({
+        empresaId: cliente,
+        equipamentoId: '',
+      })
         await consultaQuantidadeEquipamentosFuncionando({
           empresaId: cliente,
           equipamentoId: '',
         })
 
       res.status(200).send({
-        qtd_equipamentos_parados: equipamentoParado[0]
-          ? Number(equipamentoParado[0].qtd_equipamentos_parados)
+        qtd_equipamentos_parados: equipamentoParado
+          ? Number(equipamentoParado.qtd_equipamentos_parados)
           : 0,
-        qtd_equipamentos_funcionando: equipamentoFuncionando[0]
-          ? Number(equipamentoFuncionando[0].qtd_equipamentos_funcionando)
+        qtd_equipamentos_funcionando: equipamentoFuncionando
+          ? Number(equipamentoFuncionando.qtd_equipamentos_funcionando)
           : 0,
       })
     })
@@ -244,7 +252,7 @@ class ManutencaoEquipamentoController {
     app.get('/estatisticas', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
       const manutencoesEmAndamento =
         await consultaQuantidadeManutencoesEmAndamento({
@@ -301,7 +309,7 @@ class ManutencaoEquipamentoController {
     app.get('/indicadores/equipamento', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
       const { equipamentoId } = await schemaQueryParams.parseAsync(req.query)
 
       const dadosIndicadores = await buscaEstatisticasManutencoes({
@@ -310,9 +318,9 @@ class ManutencaoEquipamentoController {
       })
 
       res.status(200).send({
-        total_tempo_parado: Number(dadosIndicadores[0].total_tempo_parado),
-        qtd_manutencoes: Number(dadosIndicadores[0].qtd_manutencoes),
-        total_tempo_operacao: Number(dadosIndicadores[0].total_tempo_operacao),
+        total_tempo_parado: Number(dadosIndicadores?.total_tempo_parado),
+        qtd_manutencoes: Number(dadosIndicadores?.qtd_manutencoes),
+        total_tempo_operacao: Number(dadosIndicadores?.total_tempo_operacao),
       })
     })
   }
@@ -321,16 +329,16 @@ class ManutencaoEquipamentoController {
     app.get('/indicadores/equipamentos/empresa', async (req, res) => {
       await req.jwtVerify({ onlyCookie: true })
 
-      const { cliente } = req.user
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
 
-      const dadosIndicadores =
+      const dadosIndicadores: unknown =
         await buscaEstatisticasManutencoesEquipamentosEmpresa({
           empresaId: cliente,
           equipamentoId: '',
         })
 
       res.status(200).send(
-        dadosIndicadores.map(equipamento => {
+        dadosIndicadores.map((equipamento: { nome: string; total_tempo_parado: number; qtd_manutencoes: number; total_tempo_operacao: number }) => {
           return {
             nome: equipamento.nome,
             total_tempo_parado: Number(equipamento.total_tempo_parado),

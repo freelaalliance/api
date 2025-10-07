@@ -18,10 +18,10 @@ import {
 } from './services/ContratacaoService'
 import { iniciarTreinamentosObrigatoriosCargo } from './services/TreinamentosColaborador'
 
-interface AuthenticatedUser {
-  cliente: string
-  id: string
-}
+const reqUserSchema = z.object({
+  id: z.string().uuid(),
+  cliente: z.string().uuid(),
+})
 
 export async function ContratacaoRoutes(app: FastifyInstance) {
 
@@ -100,7 +100,7 @@ export async function ContratacaoRoutes(app: FastifyInstance) {
     await req.jwtVerify({ onlyCookie: true })
 
     const dados = await bodySchema.parseAsync(req.body)
-    const { cliente, id: usuarioId } = req.user as AuthenticatedUser
+    const { cliente, id: usuarioId } = await reqUserSchema.parseAsync(req.user)
 
     try {
       const contratacaoId = await criarContratacao({
@@ -128,7 +128,7 @@ export async function ContratacaoRoutes(app: FastifyInstance) {
     await req.jwtVerify({ onlyCookie: true })
 
     const { ativas } = await querySchema.parseAsync(req.query)
-    const { cliente } = req.user as AuthenticatedUser
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
 
     const contratacoes = ativas
       ? await listarContratacaoAtivas(cliente)
