@@ -117,7 +117,7 @@ class AutenticacaoController {
               maxAge: 60 * 60 * 8, // 8 horas
               httpOnly: false,
               secure: false,
-              sameSite: 'none',
+              sameSite: 'strict',
             })
             .send({
               status: true,
