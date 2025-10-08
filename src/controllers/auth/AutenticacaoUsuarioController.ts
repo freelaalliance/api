@@ -115,7 +115,6 @@ class AutenticacaoController {
             .setCookie('sessionAdmin', tokenJWT, {
               path: '/',
               maxAge: 60 * 60 * 8, // 8 horas
-              domain: process.env.ENV_DOMAIN,
               httpOnly: false,
               sameSite: 'none',
             })
