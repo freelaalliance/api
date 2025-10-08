@@ -116,6 +116,7 @@ class AutenticacaoController {
               path: '/',
               maxAge: 60 * 60 * 8, // 8 horas
               httpOnly: false,
+              secure: false,
               sameSite: 'none',
             })
             .send({
