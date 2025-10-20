@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsup src",
-    "start": "node dist/index.cjs"
+    "start": "node dist/index.cjs",
+    "db:seed": "tsx prisma/seeds/dev.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seeds/dev.ts"
