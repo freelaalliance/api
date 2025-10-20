@@ -74,7 +74,7 @@ async function seed() {
       {
         id: '5974b902-728f-4a4d-8df4-a787e91e101d',
         nome: 'Documentos',
-        url: '/modulo/compras/[id]/painel',
+        url: '/modulo/documentos/[id]/painel',
       },
       {
         id: '572a442d-2a51-4b40-a401-4299b0b94869',
