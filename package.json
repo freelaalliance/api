@@ -11,7 +11,10 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsup src",
     "start": "node dist/index.cjs",
-    "db:seed": "tsx prisma/seeds/dev.ts"
+    "db:seed": "tsx prisma/seeds/dev.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push"
   },
   "prisma": {
     "seed": "tsx prisma/seeds/dev.ts"

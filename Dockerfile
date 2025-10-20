@@ -1,31 +1,52 @@
-FROM node:lts
+# Multi-stage build para otimizar o tamanho da imagem final
 
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+# Stage 1: Build
+FROM node:20-alpine AS builder
 
-RUN apt-get update && apt-get install -y \
-    chromium \
-    ca-certificates \
-    fonts-liberation \
-    libappindicator3-1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libcups2 \
-    libdbus-1-3 \
-    libgdk-pixbuf2.0-0 \
-    libnspr4 \
-    libnss3 \
-    libx11-xcb1 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
-    xdg-utils \
-    --no-install-recommends && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN npx puppeteer browsers install chrome
-
-COPY . /app
+# Define o diretório de trabalho
 WORKDIR /app
 
+# Copia os arquivos de dependências
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instala todas as dependências (incluindo devDependencies para o build)
+RUN npm ci
+
+# Copia o código fonte
+COPY . .
+
+RUN npm run build
+
+# Gera o cliente Prisma
+RUN npm run db:generate
+
+# Stage 2: Production
+FROM node:20-alpine AS production
+
+# Instala apenas as dependências necessárias para executar o Prisma
+RUN apk add --no-cache openssl
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Cria um usuário não-root para segurança
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copia os arquivos necessários do stage de build
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/src ./src
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+COPY --from=builder --chown=nodejs:nodejs /app/tsconfig.json ./
+
+# Muda para o usuário não-root
+USER nodejs
+
+# Define variáveis de ambiente para produção
+ENV NODE_ENV=production
+
+# Comando para iniciar a aplicação
 CMD ["npm", "start"]
