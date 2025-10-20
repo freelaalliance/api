@@ -198,19 +198,19 @@ async function seed() {
         url: '/modulo/rh/[id]/treinamentos',
       },
       {
-        id: '43f63eec-7473-4ed2-9476-777350f98841',
+        id: '3177d825-30a6-4aa1-b4d7-2747ac14f782',
         nome: 'Painel',
         moduloId: '6944a9cb-fb02-4b00-9566-ddd05a1c1c44',
         url: '/modulo/vendas/[id]/painel',
       },
       {
-        id: '16253414-d74c-4a9e-88e2-9fb472ec6141',
+        id: '74c699a2-59c5-45dc-9674-af55aa1504e2',
         nome: 'Clientes',
         moduloId: '6944a9cb-fb02-4b00-9566-ddd05a1c1c44',
         url: '/modulo/vendas/[id]/clientes',
       },
       {
-        id: '7820aa23-a866-40cf-ae79-93d5c2dc5bff',
+        id: '6e1c557b-b4fd-4344-be08-d4b2ee673a93',
         nome: 'Produtos',
         moduloId: '6944a9cb-fb02-4b00-9566-ddd05a1c1c44',
         url: '/modulo/vendas/[id]/produtos',
