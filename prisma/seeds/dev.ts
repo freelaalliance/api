@@ -3,8 +3,39 @@ import bcrypt from 'bcrypt'
 import { prisma } from '../../src/services/PrismaClientService'
 
 async function seed() {
-  const criaEmpresa = prisma.empresa.create({
-    data: {
+  const criaEmpresa = prisma.empresa.upsert({
+    where: { id: '00c99ee1-eccf-4d71-88fa-2e1d2c085867' },
+    update: {
+      cnpj: '16755495000107',
+      pessoa: {
+        update: {
+          nome: 'Alliance',
+          Endereco: {
+            upsert: {
+              create: {
+                logradouro: 'Rua Teste',
+                numero: '123',
+                bairro: 'Bairro Teste',
+                cidade: 'Cidade Teste',
+                estado: 'SP',
+                cep: '12345-678',
+                complemento: 'Complemento Teste',
+              },
+              update: {
+                logradouro: 'Rua Teste',
+                numero: '123',
+                bairro: 'Bairro Teste',
+                cidade: 'Cidade Teste',
+                estado: 'SP',
+                cep: '12345-678',
+                complemento: 'Complemento Teste',
+              },
+            },
+          },
+        },
+      },
+    },
+    create: {
       id: '00c99ee1-eccf-4d71-88fa-2e1d2c085867',
       cnpj: '16755495000107',
       pessoa: {
@@ -26,8 +57,14 @@ async function seed() {
     },
   })
 
-  const criaPerfil = prisma.perfil.create({
-    data: {
+  const criaPerfil = prisma.perfil.upsert({
+    where: { id: '477140dc-efa9-460b-8178-9d9bbe7ed0c5' },
+    update: {
+      nome: 'Administrador',
+      administrativo: true,
+      empresaId: '00c99ee1-eccf-4d71-88fa-2e1d2c085867',
+    },
+    create: {
       id: '477140dc-efa9-460b-8178-9d9bbe7ed0c5',
       nome: 'Administrador',
       administrativo: true,
@@ -35,15 +72,28 @@ async function seed() {
     },
   })
 
-  const pessoaUsuario = prisma.pessoa.create({
-    data: {
+  const pessoaUsuario = prisma.pessoa.upsert({
+    where: { id: '1cb25fa9-bacf-498d-b1e4-be4fd8c4a9b4' },
+    update: {
+      nome: 'Usuario Alliance',
+    },
+    create: {
       id: '1cb25fa9-bacf-498d-b1e4-be4fd8c4a9b4',
       nome: 'Usuario Alliance',
     },
   })
 
-  const criaUsuario = prisma.usuario.create({
-    data: {
+  const criaUsuario = prisma.usuario.upsert({
+    where: { id: '58e52268-445e-4c01-b8d9-d84d9a07f811' },
+    update: {
+      email: 'alliance@alliance.net',
+      senha: bcrypt.hashSync('mudar@123', 8),
+      ativo: true,
+      perfilId: '477140dc-efa9-460b-8178-9d9bbe7ed0c5',
+      empresaId: '00c99ee1-eccf-4d71-88fa-2e1d2c085867',
+      pessoaId: '1cb25fa9-bacf-498d-b1e4-be4fd8c4a9b4',
+    },
+    create: {
       id: '58e52268-445e-4c01-b8d9-d84d9a07f811',
       email: 'alliance@alliance.net',
       senha: bcrypt.hashSync('mudar@123', 8),
