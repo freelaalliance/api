@@ -51,6 +51,7 @@ class AutenticacaoController {
               domain: process.env.ENV_DOMAIN,
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',
+              sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             })
             .send({
               status: true,
@@ -74,6 +75,8 @@ class AutenticacaoController {
         reply.clearCookie('sessionUser', {
           path: '/',
           domain: process.env.ENV_DOMAIN,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         })
 
         return reply.status(200).send({
@@ -119,6 +122,7 @@ class AutenticacaoController {
               domain: process.env.ENV_DOMAIN,
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',
+              sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             })
             .send({
               status: true,
@@ -145,6 +149,8 @@ class AutenticacaoController {
         reply.clearCookie('sessionAdmin', {
           path: '/',
           domain: process.env.ENV_DOMAIN,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         })
 
         return reply.status(200).send({
