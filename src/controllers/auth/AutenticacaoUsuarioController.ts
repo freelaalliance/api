@@ -49,7 +49,8 @@ class AutenticacaoController {
               path: '/',
               maxAge: 60 * 60 * 24 * 1,
               domain: process.env.ENV_DOMAIN,
-              httpOnly: false,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
             })
             .send({
               status: true,
@@ -116,7 +117,8 @@ class AutenticacaoController {
               path: '/',
               maxAge: 60 * 60 * 24 * 1,
               domain: process.env.ENV_DOMAIN,
-              httpOnly: false,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
             })
             .send({
               status: true,
