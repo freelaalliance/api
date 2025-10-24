@@ -215,7 +215,7 @@ async function seed() {
     },
     {
       id: '67ab7f78-4bb1-41e2-9af3-b68d6fcc2ac0',
-      nome: 'Novo Documento',
+      nome: 'Expedições',
       moduloId: '572a442d-2a51-4b40-a401-4299b0b94869',
       url: '/modulo/expedicao/[id]/expedicoes',
     },
