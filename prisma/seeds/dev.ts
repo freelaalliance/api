@@ -184,18 +184,6 @@ async function seed() {
       url: '/modulo/compras/[id]/fornecedor',
     },
     {
-      id: '56d21fe0-38c0-415a-b7c8-eeeb06fbb64b',
-      nome: 'Pedidos',
-      moduloId: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
-      url: '/modulo/compras/[id]/pedido',
-    },
-    {
-      id: '5eaa6870-0d41-40b3-977f-f842bd0ea17b',
-      nome: 'Recebimentos',
-      moduloId: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
-      url: '/modulo/compras/[id]/recebimento',
-    },
-    {
       id: '69cdd583-2cfa-438c-9bb9-703b996911cd',
       nome: 'Painel',
       moduloId: '5974b902-728f-4a4d-8df4-a787e91e101d',
