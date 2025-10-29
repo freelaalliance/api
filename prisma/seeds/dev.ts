@@ -169,7 +169,7 @@ async function seed() {
       id: '2c07f0c1-6b1b-4915-9d37-aacba2771e95',
       nome: 'Equipamentos',
       moduloId: '0b917870-1142-4703-983c-475564b05527',
-      url: '/modulo/manutencao[id]/equipamento',
+      url: '/modulo/manutencao/[id]/equipamento',
     },
     {
       id: 'b100168b-d945-4fe2-ade6-7c4fbe2f2f16',

@@ -112,6 +112,7 @@ class AutenticacaoController {
       const autentica = await autenticacaoAdmin.autenticar()
 
       if (autentica.status && autentica.payload) {
+        
         try {
           const tokenJWT = await reply.jwtSign(autentica.payload)
 
