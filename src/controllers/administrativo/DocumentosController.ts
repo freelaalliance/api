@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { excluirCategoriaDocumento, listarCategoriasDocumentoEmpresa, novaCategoriaEmpresa } from '../../repositories/Documentos/CategoriaRepository'
-import { getDocumentosEmpresa, getUsuariosAcessoModuloDocumentos } from '../../repositories/Documentos/DocumentoRepository'
+import { cadastrarDocumento, cadastraRevisaoDocumento, getDocumentosEmpresa, getUsuariosAcessoModuloDocumentos, removerDocumentoEmpresa } from '../../repositories/Documentos/DocumentoRepository'
 
 export class AdministradorDocumentosController {
   constructor(fastifyInstance: FastifyInstance) {
@@ -17,12 +17,136 @@ export class AdministradorDocumentosController {
       prefix: '/api/admin/documentos',
     })
 
-    fastifyInstance.register(this.cadastrarCategoriasDocumento, { 
-      prefix: '/api/admin/documentos/categorias' 
+    fastifyInstance.register(this.excluirDocumento, {
+      prefix: '/api/admin/documentos',
     })
 
-    fastifyInstance.register(this.removerCategoria, { 
-      prefix: '/api/admin/documentos/categorias' 
+    fastifyInstance.register(this.cadastrarCategoriasDocumento, {
+      prefix: '/api/admin/documentos/categorias'
+    })
+
+    fastifyInstance.register(this.removerCategoria, {
+      prefix: '/api/admin/documentos/categorias'
+    })
+
+    fastifyInstance.register(this.novoDocumento, {
+      prefix: '/api/admin/documentos',
+    })
+  }
+
+  async novoDocumento(app: FastifyInstance) {
+    const schemaNovoDocumentoForm = z.object({
+      nome: z.string({
+        required_error: 'Codigo do documento é obrigatório',
+      }),
+      descricaoDocumento: z.string({
+        required_error: 'Descrição do documento é obrigatória',
+      }),
+      copias: z.coerce
+        .number({
+          required_error: 'Campo de cópias é obrigatório',
+          invalid_type_error: 'Campo de cópias deve ser um número',
+        })
+        .refine(value => value >= 0, {
+          message: 'O número de cópias não pode ser negativo',
+        })
+        .default(0),
+      recuperacao: z.string({
+        required_error: 'Campo de recuperação é obrigatório',
+      }),
+      elegibilidade: z.string({
+        required_error: 'Campo de elegibilidade é obrigatório',
+      }),
+      disposicao: z.string({
+        required_error: 'Campo de disposição é obrigatório',
+      }),
+      retencao: z.coerce.date(),
+      uso: z.string({
+        required_error: 'Campo uso é obrigatório',
+      }),
+      categoriaDocumento: z
+        .string({
+          required_error: 'Campo categoria é obrigatório',
+        })
+        .uuid(),
+      usuariosAcessos: z
+        .array(
+          z.object({
+            id: z.string().uuid(),
+            nome: z.string(),
+            email: z.string().email(),
+          })
+        )
+        .default([]),
+      arquivo: z.string(),
+      empresaId: z.string().uuid().optional()
+    })
+
+    app.post('/empresa', async (req, res) => {
+      await req.jwtVerify({ onlyCookie: true })
+      const { id } = await z.object({
+        id: z.string().uuid(),
+      }).parseAsync(req.user)
+
+      if (!id) {
+        res.status(401).send({
+          status: true,
+          msg: 'Sessão encerrada!',
+        })
+        return
+      }
+
+      const {
+        nome,
+        descricaoDocumento,
+        copias,
+        recuperacao,
+        elegibilidade,
+        disposicao,
+        retencao,
+        uso,
+        categoriaDocumento,
+        usuariosAcessos,
+        arquivo,
+        empresaId
+      } = await schemaNovoDocumentoForm.parseAsync(req.body)
+
+      try {
+        if (!empresaId) {
+          res.status(400).send({
+            status: false,
+            msg: 'Erro ao cadastrar documento!',
+          })
+          return
+        }
+
+        await cadastrarDocumento({
+          nome,
+          descricaoDocumento,
+          copias,
+          recuperacao,
+          elegibilidade,
+          disposicao,
+          retencao,
+          uso,
+          categoriaDocumento,
+          empresaId,
+          usuarioId: id,
+          usuariosAcessos,
+          arquivo,
+        })
+
+        res.status(201).send({
+          status: true,
+          msg: 'Documento criado com sucesso!'
+        })
+      }
+      catch (error) {
+        res.status(500).send({
+          status: false,
+          msg: 'Erro ao cadastrar documento!',
+        })
+      }
     })
   }
 
@@ -169,4 +293,33 @@ export class AdministradorDocumentosController {
       }
     })
   }
+
+  async excluirDocumento(app: FastifyInstance) {
+    const schemaParamDocumento = z.object({
+      id: z.string().uuid(),
+      idEmpresa: z.string().uuid()
+    })
+
+    app.delete('/:id/empresa/:idEmpresa', async (req, res) => {
+
+      const { id, idEmpresa } = await schemaParamDocumento.parseAsync(req.params)
+
+      try {
+
+        await removerDocumentoEmpresa(idEmpresa, id)
+
+        res.status(200).send({
+          status: true,
+          msg: 'Documento excluído com sucesso!',
+        })
+      }
+      catch (error) {
+        res.status(500).send({
+          status: false,
+          msg: 'Erro ao excluir documento!',
+        })
+      }
+    })
+  }
+
 }

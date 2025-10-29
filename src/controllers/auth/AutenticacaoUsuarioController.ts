@@ -117,7 +117,7 @@ class AutenticacaoController {
           const tokenJWT = await reply.jwtSign(autentica.payload)
 
           reply
-            .setCookie('sessionAdmin', tokenJWT, {
+            .setCookie('sessionUser', tokenJWT, {
               path: '/',
               maxAge: 60 * 60 * 24 * 1,
               domain: process.env.ENV_DOMAIN,
@@ -147,7 +147,7 @@ class AutenticacaoController {
   private async logoutAdmin(app: FastifyInstance) {
     app.post('/logout', async (_req, reply) => {
       try {
-        reply.clearCookie('sessionAdmin', {
+        reply.clearCookie('sessionUser', {
           path: '/',
           domain: process.env.ENV_DOMAIN,
           secure: process.env.NODE_ENV === 'production',

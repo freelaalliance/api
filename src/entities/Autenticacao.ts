@@ -5,6 +5,7 @@ import PerfilEntity from './PerfilEntity'
 export type AutenticacaoUsuarioType = {
   id: string
   cliente: string
+  isAdmin: boolean
 }
 
 class Autenticacao {
@@ -66,6 +67,7 @@ class Autenticacao {
       payload: {
         id: usuarioEntity.getId(),
         cliente: usuarioEntity.getEmpresaId(),
+        isAdmin: adminAuth,
       },
     }
   }

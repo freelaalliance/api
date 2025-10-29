@@ -84,7 +84,6 @@ class AutenticacaoAdmin {
       msg: 'Administrador autenticado com sucesso',
       payload: {
         id: usuario.getId(),
-        cliente: usuario.getEmpresaId(),
         isAdmin,
       },
     }
