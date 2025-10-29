@@ -35,7 +35,7 @@ class Servidor {
           id: sessaoUsuario.id,
         }
       },
-      secret: process.env.ENV_JWT_SECRET_ADMIN,
+      secret: process.env.ENV_JWT_SECRET,
       cookie: {
         cookieName: 'sessionUser',
         signed: false,
