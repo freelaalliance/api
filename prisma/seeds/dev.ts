@@ -113,7 +113,7 @@ async function seed() {
     {
       id: '0b917870-1142-4703-983c-475564b05527',
       nome: 'Manutenção',
-      url: '/modulo/manutencao/[id]/equipamento',
+      url: '/modulo/manutencao/[id]',
     },
     {
       id: '267bcd33-55fe-4c04-ba24-c88f1c35f224',
@@ -167,9 +167,9 @@ async function seed() {
     },
     {
       id: '2c07f0c1-6b1b-4915-9d37-aacba2771e95',
-      nome: 'Equipamentos',
+      nome: 'Painel',
       moduloId: '0b917870-1142-4703-983c-475564b05527',
-      url: '/modulo/manutencao/[id]/equipamento',
+      url: '/modulo/manutencao/[id]',
     },
     {
       id: 'b100168b-d945-4fe2-ade6-7c4fbe2f2f16',
