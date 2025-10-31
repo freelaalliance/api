@@ -33,6 +33,7 @@ class Servidor {
       formatUser: (sessaoUsuario: AutenticacaoUsuarioType) => {
         return {
           id: sessaoUsuario.id,
+          cliente: sessaoUsuario.cliente,
         }
       },
       secret: process.env.ENV_JWT_SECRET,
