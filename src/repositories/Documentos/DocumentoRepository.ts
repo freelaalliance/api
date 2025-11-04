@@ -85,8 +85,6 @@ export async function cadastraRevisaoDocumento({ id, arquivo, empresaId, usuario
     empresaId 
   })
 
-  console.log("🚀 ~ cadastraRevisaoDocumento ~ qtdRevisoesDocumento:", qtdRevisoesDocumento)
-
   const documento = await prisma.documentos.findUniqueOrThrow({
     where: {
       id,
