@@ -114,6 +114,9 @@ export async function getDocumentosEmpresa(empresaId: string) {
     where: {
       empresaId,
     },
+    orderBy: {
+      nome: 'asc',
+    },
     include: {
       Revisoes: {
         orderBy: {
@@ -145,6 +148,9 @@ export async function getDocumentosUsuario(usuarioId: string, empresaId: string)
         }
       },
       empresaId,
+    },
+    orderBy: {
+      nome: 'asc',
     },
     include: {
       Revisoes: {
