@@ -139,6 +139,7 @@ class ComprasController {
       try {
         await req.jwtVerify({ onlyCookie: true })
         const { cliente } = await reqUserSchema.parseAsync(req.user)
+        console.log("🚀 ~ ComprasController ~ cancelarPedidoFornecedor ~ cliente:", cliente)
         const { idPedido } = await schemaParam.parseAsync(req.params)
 
         const cancelaPedido = await cancelarPedido({
@@ -167,7 +168,7 @@ class ComprasController {
       idPedido: z.string().uuid(),
     })
 
-    app.delete('/:idPedido/excluir', async (req, res) => {
+    app.patch('/:idPedido/excluir', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
         const { cliente } = await reqUserSchema.parseAsync(req.user)
