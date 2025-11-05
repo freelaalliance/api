@@ -14,11 +14,8 @@ import { registrarRecebimentoPedido } from '../../repositories/Compras/Recebimen
 
 import { buscarItensAvaliacaoRecebimentoAtivoEmpresa } from '../../repositories/Compras/ItensAvaliacaoRecebimentoRepository'
 import { getNumeroPedido } from './utils/CompraUtil'
+import { reqUserSchema } from '../../schema/sessionUser'
 
-const reqUserSchema = z.object({
-  id: z.string().uuid(),
-  cliente: z.string().uuid(),
-})
 
 class ComprasController {
   constructor(fastifyInstance: FastifyInstance) {
@@ -141,7 +138,7 @@ class ComprasController {
     app.patch('/:idPedido/cancelar', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
-        const { cliente } = req.user
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
         const { idPedido } = await schemaParam.parseAsync(req.params)
 
         const cancelaPedido = await cancelarPedido({
@@ -170,7 +167,7 @@ class ComprasController {
       idPedido: z.string().uuid(),
     })
 
-    app.patch('/:idPedido/excluir', async (req, res) => {
+    app.delete('/:idPedido/excluir', async (req, res) => {
       try {
         await req.jwtVerify({ onlyCookie: true })
         const { cliente } = await reqUserSchema.parseAsync(req.user)
