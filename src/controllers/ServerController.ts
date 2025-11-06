@@ -22,6 +22,7 @@ class Servidor {
     this.servico.register(cors, {
       origin: true,
       credentials: true,
+      methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
     })
 
     this.servico.register(fastifyCookie, {
