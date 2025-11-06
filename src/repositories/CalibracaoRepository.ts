@@ -85,7 +85,10 @@ class CalibracaoInstrumentoRepository {
         },
       },
       where: {
-        instrumentoId,
+        instrumento: {
+          id: instrumentoId,
+          excluido: false,
+        },
         excluido: false,
       },
     })
@@ -161,9 +164,10 @@ class CalibracaoInstrumentoRepository {
       where: {
         excluido: false,
         numeroCertificado: numeroCertificados,
-        instrumentoId,
         instrumento: {
+          id: instrumentoId,
           empresaId,
+          excluido: false,
         },
       },
     })

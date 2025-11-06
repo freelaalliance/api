@@ -1,7 +1,7 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
-import { InstrumentoInterface } from '../interfaces/ModuloCalibracaoInterface'
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { InstrumentoInterface } from '../interfaces/ModuloCalibracaoInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import AgendaRepository from '../repositories/AgendaRepository'
 import InstrumentoRepository from '../repositories/InstrumentoRepository'
 
@@ -36,7 +36,7 @@ class InstrumentoEntity {
     empresaId?: string,
     criadoEm?: Date,
     atualizacao?: Date,
-    excluido?: boolean,
+    excluido?: boolean
   ) {
     this.id = id || ''
     this.codigo = codigo || ''
@@ -155,7 +155,7 @@ class InstrumentoEntity {
   }
 
   async atualizarDadosInstrumento(
-    id: string,
+    id: string
   ): Promise<RespostaRequisicaoInterface> {
     const instrumentoRepository = new InstrumentoRepository(this)
 
@@ -228,7 +228,7 @@ class InstrumentoEntity {
   }
 
   async buscarDadosInstrumentoEmpresaPorCodigo(
-    codigoInstrumento: string,
+    codigoInstrumento: string
   ): Promise<InstrumentoEntity> {
     const instrumentoRepository = new InstrumentoRepository(this)
 
@@ -242,7 +242,7 @@ class InstrumentoEntity {
   }
 
   async recuperarEstatisticasInstrumentoEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<EstatisticaInstrumentoEmpresaType> {
     const instrumentoRepository = new InstrumentoRepository(this)
 
@@ -251,7 +251,7 @@ class InstrumentoEntity {
 
     const listaInstrumentosEmpresaCadastradoMesAtual =
       await instrumentoRepository.consultarInstrumentosCadastradosEmpresaMesAtual(
-        empresaId,
+        empresaId
       )
 
     return {
