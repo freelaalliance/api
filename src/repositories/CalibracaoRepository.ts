@@ -1,12 +1,12 @@
-import CalibracaoEntity from '../entities/CalibracaoEntity'
-import { CalibracaoInterface } from '../interfaces/ModuloCalibracaoInterface'
-import {
+import type CalibracaoEntity from '../entities/CalibracaoEntity'
+import type { CalibracaoInterface } from '../interfaces/ModuloCalibracaoInterface'
+import type {
   PessoaInterface,
   PessoaUsuarioInterface,
 } from '../interfaces/PessoaInterface'
 import { prisma } from '../services/PrismaClientService'
 
-import {
+import type {
   FiltrosRelatorioPropsInterface,
   InstrumentoInterface,
 } from './../interfaces/ModuloCalibracaoInterface'
@@ -74,7 +74,7 @@ class CalibracaoInstrumentoRepository {
   }
 
   async buscarCalibracoesIntrumento(
-    instrumentoId: string,
+    instrumentoId: string
   ): Promise<HistoricoCalibracaoInstrumentoType[]> {
     return await prisma.calibracao.findMany({
       include: {
@@ -104,7 +104,7 @@ class CalibracaoInstrumentoRepository {
 
   async buscarCalibracaoInstrumentoPorDataRealizacao(
     realizadoEm: Date,
-    instrumentoId: string,
+    instrumentoId: string
   ): Promise<DataCalibracaoIntrumentoType[]> {
     return await prisma.calibracao.findMany({
       include: {
@@ -125,12 +125,12 @@ class CalibracaoInstrumentoRepository {
 
   async verificarRealizacaoCalibracaoInstrumentoEmpresa(
     dataAgendamento: Date,
-    instrumentoId: string,
+    instrumentoId: string
   ): Promise<CalibracaoInterface | null> {
     const dataMesAgendamento: Date = new Date(
       dataAgendamento.getFullYear(),
       dataAgendamento.getMonth(),
-      0,
+      0
     )
 
     return await prisma.calibracao.findFirst({
@@ -147,6 +147,7 @@ class CalibracaoInstrumentoRepository {
   async buscarCalibracaoInstrumentoPorCertificado(
     numeroCertificados: string,
     instrumentoId: string,
+    empresaId: string
   ): Promise<DataCalibracaoIntrumentoType[]> {
     return await prisma.calibracao.findMany({
       include: {
@@ -161,12 +162,15 @@ class CalibracaoInstrumentoRepository {
         excluido: false,
         numeroCertificado: numeroCertificados,
         instrumentoId,
+        instrumento: {
+          empresaId,
+        },
       },
     })
   }
 
   async buscarCalibracaoInstrumentoPorId(
-    id: string,
+    id: string
   ): Promise<CalibracaoInterface | null> {
     return await prisma.calibracao.findUnique({
       where: {
@@ -176,7 +180,7 @@ class CalibracaoInstrumentoRepository {
   }
 
   async buscarCalibracoesIntrumentosEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<DataCalibracaoIntrumentoType[]> {
     return await prisma.calibracao.findMany({
       include: {
@@ -200,7 +204,7 @@ class CalibracaoInstrumentoRepository {
   }
 
   async consultarCalibracoesAprovadosEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<DataCalibracaoIntrumentoType[]> {
     return await prisma.calibracao.findMany({
       include: {
@@ -222,7 +226,7 @@ class CalibracaoInstrumentoRepository {
   }
 
   async consultarCalibracoesReprovadosEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<DataCalibracaoIntrumentoType[]> {
     return await prisma.calibracao.findMany({
       include: {

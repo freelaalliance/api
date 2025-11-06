@@ -1,18 +1,18 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { differenceInDays } from 'date-fns'
 
-import {
+import type {
   AgendaInstrumentoInterface,
   CalibracaoInterface,
   FiltrosRelatorioPropsInterface,
 } from '../interfaces/ModuloCalibracaoInterface'
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import AgendaRepository, {
-  AgendaCalibracaoInstrumentoEmpresaType,
+  type AgendaCalibracaoInstrumentoEmpresaType,
 } from '../repositories/AgendaRepository'
 import CalibracaoInstrumentoRepository, {
-  DataCalibracaoIntrumentoType,
-  HistoricoCalibracaoInstrumentoType,
+  type DataCalibracaoIntrumentoType,
+  type HistoricoCalibracaoInstrumentoType,
 } from '../repositories/CalibracaoRepository'
 
 import InstrumentoEntity from './InstrumentoEntity'
@@ -77,7 +77,7 @@ class CalibracaoEntity extends InstrumentoEntity {
     empresaId?: string,
     criadoEm?: Date,
     atualizacao?: Date,
-    excluido?: boolean,
+    excluido?: boolean
   ) {
     super(
       id,
@@ -91,7 +91,7 @@ class CalibracaoEntity extends InstrumentoEntity {
       empresaId,
       criadoEm,
       atualizacao,
-      excluido,
+      excluido
     )
     this.idCalibracao = idCalibracao || ''
     this.numeroCertificado = numeroCertificado || ''
@@ -218,7 +218,7 @@ class CalibracaoEntity extends InstrumentoEntity {
     const novaDataCalibracao = new Date(dataUltimaCalibracao)
 
     novaDataCalibracao.setDate(
-      dataUltimaCalibracao.getDate() + this.getFrequencia() * 30,
+      dataUltimaCalibracao.getDate() + this.getFrequencia() * 30
     )
 
     return novaDataCalibracao
@@ -246,6 +246,7 @@ class CalibracaoEntity extends InstrumentoEntity {
         await this.calibracaoRepository.buscarCalibracaoInstrumentoPorCertificado(
           this.getNumeroCertificado(),
           instrumento.id,
+          this.getEmpresaId()
         )
 
       if (verificaExisteCalibracaoInstrumento.length > 0) {
@@ -257,7 +258,7 @@ class CalibracaoEntity extends InstrumentoEntity {
 
       const calibracoesInstrumento: HistoricoCalibracaoInstrumentoType[] =
         await this.calibracaoRepository.buscarCalibracoesIntrumento(
-          instrumento.id,
+          instrumento.id
         )
 
       if (calibracoesInstrumento.length >= instrumento.repeticao + 1) {
@@ -303,11 +304,11 @@ class CalibracaoEntity extends InstrumentoEntity {
   }
 
   async atualizarDadosCalibracao(
-    idCalibracao: string,
+    idCalibracao: string
   ): Promise<RespostaRequisicaoInterface> {
     const verificaExisteCalibracao: CalibracaoInterface | null =
       await this.calibracaoRepository.buscarCalibracaoInstrumentoPorId(
-        idCalibracao,
+        idCalibracao
       )
 
     if (!verificaExisteCalibracao) {
@@ -342,11 +343,11 @@ class CalibracaoEntity extends InstrumentoEntity {
   }
 
   async excluirCalibracao(
-    idCalibracao: string,
+    idCalibracao: string
   ): Promise<RespostaRequisicaoInterface> {
     const verificaExisteCalibracao: CalibracaoInterface | null =
       await this.calibracaoRepository.buscarCalibracaoInstrumentoPorId(
-        idCalibracao,
+        idCalibracao
       )
 
     if (!verificaExisteCalibracao) {
@@ -379,21 +380,21 @@ class CalibracaoEntity extends InstrumentoEntity {
   }
 
   async recuperarListaCalibracaoEmpresa(
-    idEmpresa: string,
+    idEmpresa: string
   ): Promise<DataCalibracaoIntrumentoType[]> {
     return await this.calibracaoRepository.buscarCalibracoesIntrumentosEmpresa(
-      idEmpresa,
+      idEmpresa
     )
   }
 
   async recuperarAgendamentosCalibracaoInstrumentosEmpresa(
-    idEmpresa: string,
+    idEmpresa: string
   ): Promise<Array<ListaCalibracoesVencidasType>> {
     const agendaRepository = new AgendaRepository()
 
     const agendaCalibracoesEmpresa =
       await agendaRepository.consultarAgendaCalibracaoInstrumentosEmpresa(
-        idEmpresa,
+        idEmpresa
       )
 
     const listaCalibracoesVencendo: AgendaCalibracaoInstrumentoEmpresaType[] =
@@ -403,7 +404,7 @@ class CalibracaoEntity extends InstrumentoEntity {
       const verificaExisteCalibracaoAgendado: CalibracaoInterface | null =
         await this.calibracaoRepository.verificarRealizacaoCalibracaoInstrumentoEmpresa(
           agenda.agendadoPara,
-          agenda.instrumentoId,
+          agenda.instrumentoId
         )
 
       if (!verificaExisteCalibracaoAgendado) {
@@ -411,7 +412,7 @@ class CalibracaoEntity extends InstrumentoEntity {
       }
     }
 
-    return listaCalibracoesVencendo.map((agenda) => {
+    return listaCalibracoesVencendo.map(agenda => {
       return {
         id: agenda.id,
         instrumento: agenda.instrumento.id,
@@ -423,13 +424,13 @@ class CalibracaoEntity extends InstrumentoEntity {
   }
 
   async recuperarEstatisticasAgendaCalibracaoEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<EstatisticaAgendaCalibracaoEmpresaType> {
     const agendaRepository = new AgendaRepository()
 
     const agendaCalibracoesEmpresa: AgendaCalibracaoInstrumentoEmpresaType[] =
       await agendaRepository.consultarAgendaCalibracaoInstrumentosEmpresa(
-        empresaId,
+        empresaId
       )
 
     const estatisticasAgenda: EstatisticaAgendaCalibracaoEmpresaType = {
@@ -442,7 +443,7 @@ class CalibracaoEntity extends InstrumentoEntity {
       const verificaExisteCalibracaoAgendado: CalibracaoInterface | null =
         await this.calibracaoRepository.verificarRealizacaoCalibracaoInstrumentoEmpresa(
           itemAgenda.agendadoPara,
-          itemAgenda.instrumentoId,
+          itemAgenda.instrumentoId
         )
 
       if (itemAgenda.agendadoPara < new Date()) {
@@ -466,16 +467,16 @@ class CalibracaoEntity extends InstrumentoEntity {
   }
 
   async recuperarEstatisticasCalibracoesEmpresa(
-    empresaId: string,
+    empresaId: string
   ): Promise<EstatisticaCalibracaoInstrumentoEmpresaType> {
     const listaCalibracoesAprovados =
       await this.calibracaoRepository.consultarCalibracoesAprovadosEmpresa(
-        empresaId,
+        empresaId
       )
 
     const listaCalibracoesReprovados =
       await this.calibracaoRepository.consultarCalibracoesReprovadosEmpresa(
-        empresaId,
+        empresaId
       )
 
     return {
@@ -485,20 +486,20 @@ class CalibracaoEntity extends InstrumentoEntity {
   }
 
   async recuperarHistoricoCalibracoesInstrumento(
-    idInstrumento: string,
+    idInstrumento: string
   ): Promise<HistoricoCalibracaoInstrumentoType[]> {
     return await this.calibracaoRepository.buscarCalibracoesIntrumento(
-      idInstrumento,
+      idInstrumento
     )
   }
 
   async recuperarAgendaCalibracoesInstrumento(
-    instrumentoId: string,
+    instrumentoId: string
   ): Promise<AgendaInstrumentoInterface[]> {
     const agendaRepository = new AgendaRepository()
 
     return await agendaRepository.buscarAgendamentoCalibracoesInstrumento(
-      instrumentoId,
+      instrumentoId
     )
   }
 
