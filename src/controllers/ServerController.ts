@@ -17,7 +17,6 @@ class Servidor {
     this.servico = fastify({
       logger: false,
       bodyLimit: 30 * 1024 * 1024,
-      ignoreTrailingSlash: true,
     })
 
     this.servico.register(cors, {
