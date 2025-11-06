@@ -41,6 +41,7 @@ import { expedicaoRoutes } from './controllers/vendas/ExpedicaoServicoController
 import { produtoServicoRoutes } from './controllers/vendas/ProdutoServicoController'
 import { vendasRoutes } from './controllers/vendas/VendaServicoController'
 import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
+import { itensAvaliacaoAdminExpedicaoRoutes } from './controllers/administrativo/ExpedicaoServicoController'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -81,6 +82,8 @@ server.servico.register(clienteRoutes,
   { prefix: '/pessoa/clientes', })
 server.servico.register(itensAvaliacaoExpedicaoRoutes,
   { prefix: '/admin/vendas/expedicao', })
+server.servico.register(itensAvaliacaoAdminExpedicaoRoutes,
+  { prefix: '/api/admin/vendas/expedicao', })
 server.servico.register(enderecoRoutes,
   { prefix: '/pessoa' })
 server.servico.register(emailRoutes,

@@ -10,19 +10,19 @@ import {
 export class AdministradorComprasController {
   constructor(fastify: FastifyInstance) {
     fastify.register(this.cadastrarNovoItemEmpresa, {
-      prefix: '/admin/compras/recebimento/avaliacao',
+      prefix: '/api/admin/compras/recebimento/avaliacao',
     })
 
     fastify.register(this.itensAvaliacaoRecebimentoEmpresa, {
-      prefix: '/admin/compras/recebimento/avaliacao',
+      prefix: '/api/admin/compras/recebimento/avaliacao',
     })
 
     fastify.register(this.atualizarItemAvaliacaoRecebimentoEmpresa, {
-      prefix: '/admin/compras/recebimento/avaliacao',
+      prefix: '/api/admin/compras/recebimento/avaliacao',
     })
 
     fastify.register(this.atualizarStatusItemAvaliacaoRecebimentoEmpresa, {
-      prefix: '/admin/compras/recebimento/avaliacao',
+      prefix: '/api/admin/compras/recebimento/avaliacao',
     })
   }
 
