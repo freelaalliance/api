@@ -511,7 +511,7 @@ export async function excluirPedido({
 export async function cancelarPedido({
   idPedido,
   empresaId,
-}: ConsultaPedidosFornecedorProps) {
+}: Pick<ConsultaPedidosFornecedorProps, 'idPedido' | 'empresaId'>) {
   return await prisma.compras.update({
     select: {
       id: true,

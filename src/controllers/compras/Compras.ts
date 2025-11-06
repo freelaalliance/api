@@ -140,8 +140,6 @@ class ComprasController {
         await req.jwtVerify({ onlyCookie: true })
         const { cliente } = await reqUserSchema.parseAsync(req.user)
         
-        console.log("🚀 ~ ComprasController ~ cancelarPedidoFornecedor ~ cliente:", cliente)
-        
         const { idPedido } = await schemaParam.parseAsync(req.params)
 
         const cancelaPedido = await cancelarPedido({
