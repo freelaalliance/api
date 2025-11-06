@@ -177,7 +177,7 @@ model Instrumento {
 
 model Calibracao {
   id                           String           @id @default(uuid())
-  numeroCertificado            String           @unique
+  numeroCertificado            String
   erroEncontrado               String
   incertezaTendenciaEncontrado String
   toleranciaEstabelicida       String
