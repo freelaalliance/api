@@ -245,6 +245,11 @@ class ComprasController {
             prazoEntrega: pedido.prazoEntrega,
             condicoesEntrega: pedido.condicoesEntrega,
             recebido: pedido.recebido,
+            frete: pedido.frete,
+            armazenamento: pedido.armazenamento,
+            localEntrega: pedido.localEntrega,
+            formaPagamento: pedido.formaPagamento,
+            imposto: pedido.imposto,
             itens: pedido.ItensCompra,
             cadastro: {
               usuario: pedido.usuario.pessoa.nome,
