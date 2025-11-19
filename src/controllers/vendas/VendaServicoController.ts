@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { buscarConfiguracaoPorChave, buscarConfiguracoesPorEmpresa } from '../../repositories/ConfiguracaoEmpresaRepository'
 import { prisma } from '../../services/PrismaClientService'
 import { getNumeroPedido } from '../compras/utils/CompraUtil'
 import { buscarVendaPorClienteId, buscarVendaPorId, buscarVendasPendente, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
@@ -83,17 +84,23 @@ export async function vendasRoutes(app: FastifyInstance) {
           })
         )
         .min(1, { message: 'É necessário pelo menos um item' }),
+
       condicoes: z.string().optional().nullable(),
       permiteEntregaParcial: z.boolean().default(false),
       prazoEntrega: z.coerce.date({
         required_error: 'Obrigatório informar o prazo de entrega',
       }),
-      codigo: z.string()
+      codigo: z.string(),
+      frete: z.string().optional(),
+      armazenamento: z.string().optional(),
+      localEntrega: z.string().optional(),
+      formaPagamento: z.string().optional(),
+      imposto: z.string().optional(),
     })
 
     try {
       const { id: clienteId } = await schemaParam.parseAsync(req.params)
-      const { itens, condicoes, codigo, permiteEntregaParcial, prazoEntrega } = await schemaBody.parseAsync(
+      const { itens, condicoes, codigo, permiteEntregaParcial, prazoEntrega, frete, armazenamento, localEntrega, formaPagamento, imposto } = await schemaBody.parseAsync(
         req.body
       )
       const { id: usuarioId, cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
@@ -110,7 +117,12 @@ export async function vendasRoutes(app: FastifyInstance) {
         itens,
         codigo: codigoVenda.toUpperCase(),
         numPedido,
-        condicoes
+        condicoes,
+        frete,
+        armazenamento,
+        localEntrega,
+        formaPagamento,
+        imposto,
       })
 
       return res.status(201).send({
@@ -416,6 +428,31 @@ export async function vendasRoutes(app: FastifyInstance) {
         status: false,
         msg: 'Erro ao consultar venda',
         error,
+      })
+    }
+  })
+
+  app.get('/vendas/configuracao', async (req, reply) => {
+
+    try {
+      await req.jwtVerify({ onlyCookie: true })
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
+
+      const configuracao = await buscarConfiguracoesPorEmpresa(cliente)
+
+      if (!configuracao) {
+        return reply.status(404).send({
+          status: false,
+          msg: 'Configuração não encontrada',
+        })
+      }
+
+      return reply.status(200).send(configuracao)
+    } catch (error) {
+      return reply.status(500).send({
+        status: false,
+        msg: 'Erro ao buscar configuração',
+        error: error instanceof Error ? error.message : 'Erro desconhecido',
       })
     }
   })

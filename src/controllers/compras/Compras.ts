@@ -13,8 +13,9 @@ import {
 import { registrarRecebimentoPedido } from '../../repositories/Compras/RecebimentoRepository'
 
 import { buscarItensAvaliacaoRecebimentoAtivoEmpresa } from '../../repositories/Compras/ItensAvaliacaoRecebimentoRepository'
-import { getNumeroPedido } from './utils/CompraUtil'
+import { buscarConfiguracoesPorEmpresa } from '../../repositories/ConfiguracaoEmpresaRepository'
 import { reqUserSchema } from '../../schema/sessionUser'
+import { getNumeroPedido } from './utils/CompraUtil'
 
 
 class ComprasController {
@@ -54,6 +55,10 @@ class ComprasController {
     fastifyInstance.register(this.itensAvaliacaoRecebimentoEmpresa, {
       prefix: 'pedido/recebimento',
     })
+
+    fastifyInstance.register(this.buscarConfiguracaoCompra, {
+      prefix: '/pedido',
+    })
   }
 
   async cadastrarNovaCompra(app: FastifyInstance) {
@@ -66,6 +71,11 @@ class ComprasController {
       codigo: z.string({
         required_error: 'Obrigatório informar o código do pedido',
       }),
+      frete: z.string().optional(),
+      armazenamento: z.string().optional(),
+      localEntrega: z.string().optional(),
+      formaPagamento: z.string().optional(),
+      imposto: z.string().optional(),
       itens: z.array(
         z.object({
           descricao: z.string({
@@ -98,6 +108,11 @@ class ComprasController {
           prazoEntrega,
           condicoesEntrega,
           codigo,
+          frete,
+          armazenamento,
+          localEntrega,
+          formaPagamento,
+          imposto,
           itens,
         } = await schemaBody.parseAsync(req.body)
 
@@ -111,6 +126,11 @@ class ComprasController {
           numPedido: numeroPedido,
           fornecedorId,
           usuarioId: id,
+          frete,
+          armazenamento,
+          localEntrega,
+          formaPagamento,
+          imposto,
           itens,
         })
 
@@ -139,7 +159,7 @@ class ComprasController {
       try {
         await req.jwtVerify({ onlyCookie: true })
         const { cliente } = await reqUserSchema.parseAsync(req.user)
-        
+
         const { idPedido } = await schemaParam.parseAsync(req.params)
 
         const cancelaPedido = await cancelarPedido({
@@ -582,6 +602,32 @@ class ComprasController {
         })
 
       return reply.status(200).send(listaItensRecebimento)
+    })
+  }
+
+  async buscarConfiguracaoCompra(app: FastifyInstance) {
+    app.get('/configuracao', async (req, reply) => {
+      try {
+        await req.jwtVerify({ onlyCookie: true })
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
+
+        const configuracao = await buscarConfiguracoesPorEmpresa(cliente)
+
+        if (!configuracao) {
+          return reply.status(404).send({
+            status: false,
+            msg: 'Configuração não encontrada',
+          })
+        }
+
+        return reply.status(200).send(configuracao)
+      } catch (error) {
+        return reply.status(500).send({
+          status: false,
+          msg: 'Erro ao buscar configuração',
+          error: error instanceof Error ? error.message : 'Erro desconhecido',
+        })
+      }
     })
   }
 }

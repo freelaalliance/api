@@ -19,6 +19,11 @@ interface NovaVendaParams {
   clienteId: string
   usuarioId: string
   empresaId: string
+  frete?: string
+  armazenamento?: string
+  localEntrega?: string
+  formaPagamento?: string
+  imposto?: string
   itens: ItemVenda[]
 }
 
@@ -31,6 +36,11 @@ export async function criarVenda({
   clienteId,
   usuarioId,
   empresaId,
+  frete,
+  armazenamento,
+  localEntrega,
+  formaPagamento,
+  imposto,
   itens,
 }: NovaVendaParams) {
   const vendaCriada = await prisma.venda.create({
@@ -40,6 +50,11 @@ export async function criarVenda({
       condicoes,
       codigo,
       numPedido,
+      frete,
+      armazenamento,
+      localEntrega,
+      formaPagamento,
+      imposto,
       clientesId: clienteId,
       usuariosId: usuarioId,
       empresasId: empresaId,
@@ -302,7 +317,7 @@ export async function gerarPdfVendaHTML(dados: {
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH  || '/usr/bin/chromium',
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
   });
   const page = await browser.newPage();
   await page.setContent(html);

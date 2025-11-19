@@ -8,6 +8,11 @@ interface NovaCompraProps {
   numPedido: number
   fornecedorId: string
   usuarioId: string
+  frete?: string
+  armazenamento?: string
+  localEntrega?: string
+  formaPagamento?: string
+  imposto?: string
   itens: Array<{
     descricao: string
     quantidade: number
@@ -32,6 +37,11 @@ export async function cadastrarPedido({
   numPedido,
   fornecedorId,
   usuarioId,
+  frete,
+  armazenamento,
+  localEntrega,
+  formaPagamento,
+  imposto,
   itens,
 }: NovaCompraProps) {
   return await prisma.compras.create({
@@ -45,6 +55,11 @@ export async function cadastrarPedido({
       condicoesEntrega,
       codigo,
       numPedido,
+      frete,
+      armazenamento,
+      localEntrega,
+      formaPagamento,
+      imposto,
       fornecedor: { connect: { id: fornecedorId } },
       usuario: { connect: { id: usuarioId } },
       ItensCompra: { createMany: { data: itens } },

@@ -42,6 +42,7 @@ import { produtoServicoRoutes } from './controllers/vendas/ProdutoServicoControl
 import { vendasRoutes } from './controllers/vendas/VendaServicoController'
 import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
 import { itensAvaliacaoAdminExpedicaoRoutes } from './controllers/administrativo/ExpedicaoServicoController'
+import { ConfiguracaoEmpresaController } from './controllers/administrativo/ConfiguracaoEmpresaController'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -63,6 +64,7 @@ new FornecedorController(server.servico)
 new ComprasController(server.servico)
 new RelatorioComprasController(server.servico)
 new AdministradorComprasController(server.servico)
+new ConfiguracaoEmpresaController(server.servico)
 new CategoriasDocumentosController(server.servico)
 new DocumentosController(server.servico)
 new AdministradorCalibracaoController(server.servico)
