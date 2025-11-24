@@ -153,7 +153,7 @@ class InstrumentoRepository {
     return await prisma.instrumento.count({
       where: {
         Calibracao: {
-          every: {
+          some: {
             excluido: false,
           },
         },
@@ -175,7 +175,7 @@ class InstrumentoRepository {
         empresaId,
         excluido: false,
         Calibracao: {
-          every: {
+          some: {
             excluido: false
           }
         },
