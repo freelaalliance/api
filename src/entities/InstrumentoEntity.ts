@@ -255,9 +255,9 @@ class InstrumentoEntity {
       )
 
     return {
-      quantidadeInstrumentosEmpresa: listaInstrumentosEmpresa.length,
+      quantidadeInstrumentosEmpresa: listaInstrumentosEmpresa,
       quantidadeInstrumentosCadastradoAtual:
-        listaInstrumentosEmpresaCadastradoMesAtual.length,
+        listaInstrumentosEmpresaCadastradoMesAtual,
     }
   }
 }

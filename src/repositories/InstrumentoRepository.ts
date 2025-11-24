@@ -1,10 +1,10 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
 import InstrumentoEntity from '../entities/InstrumentoEntity'
-import { InstrumentoInterface } from '../interfaces/ModuloCalibracaoInterface'
+import type { InstrumentoInterface } from '../interfaces/ModuloCalibracaoInterface'
 import { prisma } from '../services/PrismaClientService'
 
-import { RespostaRequisicaoInterface } from './../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from './../interfaces/ResponseInterface'
 
 class InstrumentoRepository {
   private instrumentoEntity: InstrumentoEntity
@@ -35,12 +35,12 @@ class InstrumentoRepository {
       dadosInstrumento.empresaId,
       dadosInstrumento.criadoEm,
       dadosInstrumento.atualizacao,
-      dadosInstrumento.excluido,
+      dadosInstrumento.excluido
     )
   }
 
   async consultarIntrumentoPorCodigo(
-    codigo: string,
+    codigo: string
   ): Promise<InstrumentoEntity> {
     const dadosInstrumento: InstrumentoInterface | null =
       await prisma.instrumento.findUnique({
@@ -65,7 +65,7 @@ class InstrumentoRepository {
       dadosInstrumento.empresaId,
       dadosInstrumento.criadoEm,
       dadosInstrumento.atualizacao,
-      dadosInstrumento.excluido,
+      dadosInstrumento.excluido
     )
   }
 
@@ -149,11 +149,14 @@ class InstrumentoRepository {
     }
   }
 
-  async consultarTodosInstrumentosEmpresa(
-    empresaId: string,
-  ): Promise<InstrumentoInterface[]> {
-    return await prisma.instrumento.findMany({
+  async consultarTodosInstrumentosEmpresa(empresaId: string) {
+    return await prisma.instrumento.count({
       where: {
+        Calibracao: {
+          every: {
+            excluido: false,
+          },
+        },
         excluido: false,
         empresaId,
       },
@@ -161,16 +164,21 @@ class InstrumentoRepository {
   }
 
   async consultarInstrumentosCadastradosEmpresaMesAtual(
-    empresaId: string,
-  ): Promise<InstrumentoInterface[]> {
+    empresaId: string
+  ) {
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
-    return await prisma.instrumento.findMany({
+    return await prisma.instrumento.count({
       where: {
         empresaId,
         excluido: false,
+        Calibracao: {
+          every: {
+            excluido: false
+          }
+        },
         criadoEm: {
           gte: startOfMonth,
           lte: endOfMonth,

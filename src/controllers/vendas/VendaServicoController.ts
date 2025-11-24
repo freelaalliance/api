@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { buscarConfiguracaoPorChave, buscarConfiguracoesPorEmpresa } from '../../repositories/ConfiguracaoEmpresaRepository'
+import { buscarConfiguracoesPorEmpresa } from '../../repositories/ConfiguracaoEmpresaRepository'
 import { prisma } from '../../services/PrismaClientService'
 import { getNumeroPedido } from '../compras/utils/CompraUtil'
 import { buscarVendaPorClienteId, buscarVendaPorId, buscarVendasPendente, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
@@ -301,6 +301,9 @@ export async function vendasRoutes(app: FastifyInstance) {
       where: {
         empresasId: empresaId,
         cancelado: false,
+        cliente: {
+          excluido: false
+        }
       },
       _count: {
         _all: true,
@@ -322,7 +325,7 @@ export async function vendasRoutes(app: FastifyInstance) {
     }
 
     const clienteDetalhes = await prisma.cliente.findUnique({
-      where: { id: topCliente[0].clientesId },
+      where: { id: topCliente[0].clientesId, excluido: false },
       include: {
         pessoa: true,
       },
@@ -350,6 +353,9 @@ export async function vendasRoutes(app: FastifyInstance) {
           empresasId: empresaId,
           cancelado: false,
         },
+        produtoServico: {
+          ativo: true,
+        }
       },
       _sum: {
         quantidade: true,
@@ -387,14 +393,29 @@ export async function vendasRoutes(app: FastifyInstance) {
   app.get('/estatisticas/empresa/clientes', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
     const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
-    const totalClientes = await prisma.cliente.count({ where: { empresaId, excluido: false } })
+
+    const totalClientes = await prisma.cliente.count({
+      where: {
+        empresaId,
+        excluido: false
+      }
+    })
+
     return res.send({ status: true, dados: { totalClientes } })
   })
 
   app.get('/estatisticas/empresa/produtos', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
+
     const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
-    const totalProdutos = await prisma.produtoServico.count({ where: { empresaId } })
+
+    const totalProdutos = await prisma.produtoServico.count({
+      where: {
+        empresaId,
+        ativo: true
+      }
+    })
+
     return res.send({ status: true, dados: { totalProdutos } })
   })
 
