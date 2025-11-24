@@ -16,6 +16,8 @@ type NovoDocumentoFormType = {
     email: string;
   }[];
   arquivo: string;
+  numeroRevisao?: number;
+  dataRevisao?: Date;
   empresaId: string;
   usuarioId: string;
 }
@@ -23,12 +25,17 @@ type NovoDocumentoFormType = {
 type NovaRevisaoDocumentoFormType = {
   id: string;
   arquivo: string;
+  numeroRevisao?: number;
+  dataRevisao?: Date;
   empresaId: string;
   usuarioId: string;
 }
 
 export async function getQtdRevisoesDocumento({ documentoId, empresaId }: { documentoId: string, empresaId: string }) {
-  return await prisma.revisoes.count({
+  return await prisma.revisoes.findFirstOrThrow({
+    orderBy: {
+      revisadoEm: 'desc'
+    },
     where: {
       documentoId,
       documentos: {
@@ -63,8 +70,8 @@ export async function cadastrarDocumento(documento: NovoDocumentoFormType) {
       Revisoes: {
         create: {
           usuarioId: documento.usuarioId,
-          numeroRevisao: 1,
-          revisadoEm: new Date(),
+          numeroRevisao: documento.numeroRevisao || 1,
+          revisadoEm: documento.dataRevisao || new Date(),
           arquivoId: arquivoDocumento.id,
         },
       },
@@ -79,7 +86,7 @@ export async function cadastrarDocumento(documento: NovoDocumentoFormType) {
   })
 }
 
-export async function cadastraRevisaoDocumento({ id, arquivo, empresaId, usuarioId }: NovaRevisaoDocumentoFormType) {
+export async function cadastraRevisaoDocumento({ id, arquivo, empresaId, usuarioId, numeroRevisao, dataRevisao }: NovaRevisaoDocumentoFormType) {
   const qtdRevisoesDocumento = await getQtdRevisoesDocumento({ 
     documentoId: id, 
     empresaId 
@@ -99,7 +106,8 @@ export async function cadastraRevisaoDocumento({ id, arquivo, empresaId, usuario
       Revisoes: {
         create: {
           usuarioId,
-          numeroRevisao: qtdRevisoesDocumento + 1,
+          numeroRevisao: numeroRevisao || (qtdRevisoesDocumento.numeroRevisao + 1),
+          revisadoEm: dataRevisao || new Date(),
           documentoId: id,
         }
       }

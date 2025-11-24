@@ -74,6 +74,8 @@ export class DocumentosController {
         )
         .default([]),
       arquivo: z.string(),
+      numeroRevisao: z.coerce.number().optional(),
+      dataRevisao: z.coerce.date().optional(),
       empresaId: z.string().uuid().optional()
     })
 
@@ -101,6 +103,8 @@ export class DocumentosController {
         categoriaDocumento,
         usuariosAcessos,
         arquivo,
+        numeroRevisao,
+        dataRevisao,
         empresaId
       } = await schemaNovoDocumentoForm.parseAsync(req.body)
 
@@ -118,6 +122,8 @@ export class DocumentosController {
           empresaId: empresaId ?? cliente,
           usuarioId: id,
           usuariosAcessos,
+          numeroRevisao,
+          dataRevisao,
           arquivo,
         })
 
@@ -140,6 +146,8 @@ export class DocumentosController {
       arquivo: z.string({
         required_error: 'Arquivo é obrigatório',
       }),
+      numeroRevisao: z.coerce.number().optional(),
+      dataRevisao: z.coerce.date().optional(),
     })
 
     const schemaParamDocumentoRevisao = z.object({
@@ -159,7 +167,7 @@ export class DocumentosController {
       }
 
       const { id: documentoId } = await schemaParamDocumentoRevisao.parseAsync(req.params)
-      const { arquivo } = await schemaNovaRevisaoDocumentoForm.parseAsync(req.body)
+      const { arquivo, numeroRevisao, dataRevisao } = await schemaNovaRevisaoDocumentoForm.parseAsync(req.body)
 
       try {
 
@@ -168,6 +176,8 @@ export class DocumentosController {
           arquivo,
           empresaId: cliente,
           usuarioId,
+          numeroRevisao,
+          dataRevisao
         })
 
         res.status(201).send({
