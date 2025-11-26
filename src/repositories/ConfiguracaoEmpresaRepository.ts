@@ -14,8 +14,10 @@ export async function criarConfiguracao(
   try {
     await prisma.configuracaoEmpresa.upsert({
       where: {
-        chave: data.chave,
-        empresaId: data.empresaId,
+        empresaId_chave:{
+          empresaId: data.empresaId,
+          chave: data.chave,
+        }
       },
       update: {
         valor: data.valor,
