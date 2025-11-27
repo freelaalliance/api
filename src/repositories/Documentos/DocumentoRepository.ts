@@ -70,7 +70,7 @@ export async function cadastrarDocumento(documento: NovoDocumentoFormType) {
       Revisoes: {
         create: {
           usuarioId: documento.usuarioId,
-          numeroRevisao: documento.numeroRevisao || 1,
+          numeroRevisao: documento.numeroRevisao ?? 0,
           revisadoEm: documento.dataRevisao || new Date(),
           arquivoId: arquivoDocumento.id,
         },
