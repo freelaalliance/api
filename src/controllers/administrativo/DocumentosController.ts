@@ -79,6 +79,8 @@ export class AdministradorDocumentosController {
         )
         .default([]),
       arquivo: z.string(),
+      numeroRevisao: z.coerce.number().optional(),
+      dataRevisao: z.coerce.date().optional(),
       empresaId: z.string().uuid().optional()
     })
 
@@ -108,6 +110,8 @@ export class AdministradorDocumentosController {
         categoriaDocumento,
         usuariosAcessos,
         arquivo,
+        dataRevisao,
+        numeroRevisao,
         empresaId
       } = await schemaNovoDocumentoForm.parseAsync(req.body)
 
@@ -133,6 +137,8 @@ export class AdministradorDocumentosController {
           empresaId,
           usuarioId: id,
           usuariosAcessos,
+          dataRevisao,
+          numeroRevisao,
           arquivo,
         })
 
