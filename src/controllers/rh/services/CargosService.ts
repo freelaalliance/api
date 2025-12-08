@@ -96,7 +96,8 @@ export async function excluirCargo(cargoId: string) {
   const contratacoes = await prisma.contratacaoColaborador.findMany({
     where: {
       cargoId: cargoId,
-      demitidoEm: null
+      demitidoEm: null,
+      excluido: false
     }
   })
 
@@ -182,7 +183,8 @@ export async function listarColaboradoresAtivosCargo(cargoId: string) {
   return await prisma.contratacaoColaborador.findMany({
     where: {
       cargoId: cargoId,
-      demitidoEm: null
+      demitidoEm: null,
+      excluido: false
     },
     include: {
       colaborador: {

@@ -119,6 +119,7 @@ export async function getDocumentosEmpresa(empresaId: string) {
   return await prisma.documentos.findMany({
     where: {
       empresaId,
+      excluido: false,
     },
     orderBy: {
       nome: 'asc',
@@ -153,6 +154,7 @@ export async function getDocumentosUsuario(usuarioId: string, empresaId: string)
           }
         }
       },
+      excluido: false,
       empresaId,
     },
     orderBy: {
@@ -178,10 +180,14 @@ export async function getDocumentosUsuario(usuarioId: string, empresaId: string)
 }
 
 export async function removerDocumentoEmpresa(empresaId: string, documentoId: string) {
-  await prisma.documentos.deleteMany({
+  await prisma.documentos.updateMany({
     where: {
       id: documentoId,
       empresaId,
+    },
+    data: {
+      excluido: true,
+      excluidoEm: new Date(),
     }
   })
 }

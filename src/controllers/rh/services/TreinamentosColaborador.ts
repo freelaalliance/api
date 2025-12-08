@@ -369,7 +369,10 @@ export async function listarTreinamentosNaoRealizados(contratacaoColaboradorId: 
 
   // Buscar a contratação para verificar o cargo
   const contratacao = await prisma.contratacaoColaborador.findUnique({
-    where: { id: contratacaoColaboradorId },
+    where: {
+      id: contratacaoColaboradorId,
+      excluido: false
+    },
     select: {
       cargoId: true,
       empresaId: true
@@ -440,7 +443,10 @@ export async function listarTreinamentosNaoRealizados(contratacaoColaboradorId: 
 export async function iniciarTreinamentosObrigatoriosCargo(contratacaoColaboradorId: string) {
   // Buscar os treinamentos obrigatórios do cargo
   const contratacao = await prisma.contratacaoColaborador.findUnique({
-    where: { id: contratacaoColaboradorId },
+    where: {
+      id: contratacaoColaboradorId,
+      excluido: false
+    },
     include: {
       cargo: {
         include: {

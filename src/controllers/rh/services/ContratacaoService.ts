@@ -144,7 +144,8 @@ export async function criarContratacao(data: ContratacaoData) {
 export async function listarContratacoes(empresaId: string) {
   return await prisma.contratacaoColaborador.findMany({
     where: {
-      empresaId: empresaId
+      empresaId: empresaId,
+      excluido: false
     },
     include: {
       colaborador: {
@@ -183,7 +184,8 @@ export async function listarContratacaoAtivas(empresaId: string) {
   return await prisma.contratacaoColaborador.findMany({
     where: {
       empresaId: empresaId,
-      demitidoEm: null
+      demitidoEm: null,
+      excluido: false
     },
     include: {
       colaborador: {
@@ -221,7 +223,8 @@ export async function listarContratacaoAtivas(empresaId: string) {
 export async function buscarContratacaoPorId(contratacaoId: string) {
   return await prisma.contratacaoColaborador.findUnique({
     where: {
-      id: contratacaoId
+      id: contratacaoId,
+      excluido: false
     },
     include: {
       colaborador: {
@@ -356,7 +359,10 @@ export async function transferirColaborador(contratacaoId: string, novoCargoId: 
   return await prisma.$transaction(async (tx) => {
     // Buscar cargo anterior para o histórico
     const contratacaoAtual = await tx.contratacaoColaborador.findUnique({
-      where: { id: contratacaoId },
+      where: {
+        id: contratacaoId,
+        excluido: false
+      },
       include: {
         cargo: { select: { nome: true } }
       }
@@ -453,7 +459,8 @@ export async function listarColaboradoresPorCargo(cargoId: string) {
   return await prisma.contratacaoColaborador.findMany({
     where: {
       cargoId: cargoId,
-      demitidoEm: null
+      demitidoEm: null,
+      excluido: false
     },
     include: {
       colaborador: {
@@ -538,7 +545,10 @@ interface DadosColaborador {
 export async function atualizarDadosColaborador(contratacaoId: string, dados: DadosColaborador) {
   // Buscar a contratação para obter o colaborador
   const contratacao = await prisma.contratacaoColaborador.findUnique({
-    where: { id: contratacaoId },
+    where: {
+      id: contratacaoId,
+      excluido: false
+    },
     include: {
       colaborador: {
         include: {

@@ -67,7 +67,7 @@ class Autenticacao {
       payload: {
         id: usuarioEntity.getId(),
         cliente: usuarioEntity.getEmpresaId(),
-        isAdmin: adminAuth,
+        isAdmin: adminAuth ?? false,
       },
     }
   }

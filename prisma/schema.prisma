@@ -500,6 +500,8 @@ model Documentos {
   retencao                DateTime                  @db.Date
   uso                     String
   cadastradoEm            DateTime                  @default(now())
+  excluidoEm              DateTime?
+  excluido                Boolean                   @default(false)
   categoriaDocumentoId    String
   categoriasDocumento     CategoriasDocumento       @relation(fields: [categoriaDocumentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   usuarioId               String
@@ -738,6 +740,8 @@ model ContratacaoColaborador {
   empresa                         Empresa                           @relation(fields: [empresaId], references: [id])
   cargo                           Cargo                             @relation(fields: [cargoId], references: [id])
   colaborador                     Colaborador                       @relation(fields: [colaboradoresId], references: [id])
+  excluido                        Boolean                           @default(false)
+  excluidoEm                      DateTime?
   treinamentosRealizados          TreinamentoRealizado[]
   documentosContrato              DocumentosContrato[]
   HistoricoContratacaoColaborador HistoricoContratacaoColaborador[]

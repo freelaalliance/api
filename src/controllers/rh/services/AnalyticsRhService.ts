@@ -49,7 +49,8 @@ export async function getAnalyticsColaboradores(empresaId: string): Promise<Anal
   const colaboradoresAtivos = await prisma.contratacaoColaborador.count({
     where: {
       empresaId: empresaId,
-      demitidoEm: null
+      demitidoEm: null,
+      excluido: false
     }
   })
 
@@ -59,7 +60,8 @@ export async function getAnalyticsColaboradores(empresaId: string): Promise<Anal
       empresaId: empresaId,
       demitidoEm: {
         not: null
-      }
+      },
+      excluido: false
     }
   })
 
@@ -67,6 +69,7 @@ export async function getAnalyticsColaboradores(empresaId: string): Promise<Anal
   const colaboradoresContratacosMesAtual = await prisma.contratacaoColaborador.count({
     where: {
       empresaId: empresaId,
+      excluido: false,
       admitidoEm: {
         gte: inicioMesAtual
       }
@@ -77,6 +80,7 @@ export async function getAnalyticsColaboradores(empresaId: string): Promise<Anal
   const colaboradoresContratacosMesAnterior = await prisma.contratacaoColaborador.count({
     where: {
       empresaId: empresaId,
+      excluido: false,
       admitidoEm: {
         gte: inicioMesAnterior,
         lte: fimMesAnterior
@@ -109,6 +113,7 @@ export async function getAnalyticsRotatividade(
   const admissoes = await prisma.contratacaoColaborador.count({
     where: {
       empresaId: empresaId,
+      excluido: false,
       admitidoEm: {
         gte: periodo.inicio,
         lte: periodo.fim
@@ -120,6 +125,7 @@ export async function getAnalyticsRotatividade(
   const demissoes = await prisma.contratacaoColaborador.count({
     where: {
       empresaId: empresaId,
+      excluido: false,
       demitidoEm: {
         gte: periodo.inicio,
         lte: periodo.fim
@@ -131,7 +137,8 @@ export async function getAnalyticsRotatividade(
   const totalColaboradores = await prisma.contratacaoColaborador.count({
     where: {
       empresaId: empresaId,
-      demitidoEm: null
+      demitidoEm: null,
+      excluido: false
     }
   })
 
@@ -232,7 +239,8 @@ export async function listarColaboradoresAtivos(empresaId: string) {
   return await prisma.contratacaoColaborador.findMany({
     where: {
       empresaId: empresaId,
-      demitidoEm: null
+      demitidoEm: null,
+      excluido: false
     },
     include: {
       colaborador: {
@@ -272,6 +280,7 @@ export async function listarColaboradoresDemitidos(empresaId: string) {
   return await prisma.contratacaoColaborador.findMany({
     where: {
       empresaId: empresaId,
+      excluido: false,
       demitidoEm: {
         not: null
       }

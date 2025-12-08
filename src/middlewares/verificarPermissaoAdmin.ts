@@ -12,6 +12,8 @@ export async function verificarPermissaoAdmin(
       isAdmin: boolean
     }>({ onlyCookie: true })
 
+    console.log('Payload do token:', payload)
+
     // Verifica se o usuário tem permissão administrativa
     if (!payload.isAdmin) {
       return reply.code(403).send({

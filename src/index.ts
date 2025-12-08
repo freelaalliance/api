@@ -5,9 +5,12 @@ import Servidor from './controllers/ServerController'
 import { AdministradorCalibracaoController } from './controllers/administrativo/CalibracaoController'
 import { AdministradorComprasAdminController } from './controllers/administrativo/ComprasAdminController'
 import { AdministradorComprasController } from './controllers/administrativo/ComprasController'
+import { ConfiguracaoEmpresaController } from './controllers/administrativo/ConfiguracaoEmpresaController'
 import { AdministradorDocumentosController } from './controllers/administrativo/DocumentosController'
 import EmpresaController from './controllers/administrativo/EmpresaController'
+import { ExclusaoController } from './controllers/administrativo/ExclusaoController'
 import { AdministradorExpedicaoController } from './controllers/administrativo/ExpedicaoController'
+import { itensAvaliacaoAdminExpedicaoRoutes } from './controllers/administrativo/ExpedicaoServicoController'
 import { AdministradorManutencaoController } from './controllers/administrativo/ManutencaoController'
 import PerfilController from './controllers/administrativo/PerfilController'
 import { AdministradorRecebimentosController } from './controllers/administrativo/RecebimentosController'
@@ -41,8 +44,6 @@ import { expedicaoRoutes } from './controllers/vendas/ExpedicaoServicoController
 import { produtoServicoRoutes } from './controllers/vendas/ProdutoServicoController'
 import { vendasRoutes } from './controllers/vendas/VendaServicoController'
 import { notificarVencimentoCalibracao } from './jobs/calibracao/VencimentoCalibracaoJob'
-import { itensAvaliacaoAdminExpedicaoRoutes } from './controllers/administrativo/ExpedicaoServicoController'
-import { ConfiguracaoEmpresaController } from './controllers/administrativo/ConfiguracaoEmpresaController'
 
 const server = new Servidor(
   process.env.ENV_HOST_SERVER || '0.0.0.0',
@@ -75,6 +76,7 @@ new AdministradorManutencaoController(server.servico)
 new AdministradorRhController(server.servico)
 new AdministradorVendasController(server.servico)
 new AdministradorDocumentosController(server.servico)
+new ExclusaoController(server.servico)
 
 server.servico.register(vendasRoutes)
 server.servico.register(produtoServicoRoutes)

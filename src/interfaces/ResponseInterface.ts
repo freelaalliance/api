@@ -1,4 +1,4 @@
-import { AutenticacaoUsuarioType } from '../auth/Autenticacao'
+import type { AutenticacaoUsuarioType } from '../entities/Autenticacao'
 
 export interface RespostaRequisicaoInterface {
   status: boolean
