@@ -1,8 +1,8 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
 import PessoaEntity from '../entities/PessoaEntity'
-import { PessoaInterface } from '../interfaces/PessoaInterface'
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { PessoaInterface } from '../interfaces/PessoaInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import { prisma } from '../services/PrismaClientService'
 
 class PessoaRepository {

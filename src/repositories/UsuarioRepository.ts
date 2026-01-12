@@ -17,8 +17,20 @@ class UsuarioRepository {
 
   async criarUsuario(): Promise<RespostaRequisicaoInterface> {
     try {
-      await prisma.usuario.create({
-        data: {
+      await prisma.usuario.upsert({
+        where: {
+          email: this.usuarioEntity.getEmail(),
+          ativo: false,
+        },
+        update: {
+          email: this.usuarioEntity.getEmail(),
+          senha: this.usuarioEntity.getSenha(),
+          ativo: this.usuarioEntity.isAtivo(),
+          pessoaId: this.usuarioEntity.getIdPessoa(),
+          perfilId: this.usuarioEntity.getPerfilId(),
+          empresaId: this.usuarioEntity.getEmpresaId(),
+        },
+        create: {
           email: this.usuarioEntity.getEmail(),
           senha: this.usuarioEntity.getSenha(),
           ativo: this.usuarioEntity.isAtivo(),
