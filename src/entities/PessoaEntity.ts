@@ -1,4 +1,4 @@
-import { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
+import type { RespostaRequisicaoInterface } from '../interfaces/ResponseInterface'
 import PessoaRepository from '../repositories/PessoaRepository'
 
 class PessoaEntity {
@@ -50,29 +50,29 @@ class PessoaEntity {
   }
 
   validarCNPJ(cnpj: string): boolean {
-    cnpj = cnpj.replace(/[^\d]+/g, '')
+    const cnpjApenasNumero = cnpj.replace(/[^\d]+/g, '')
 
-    if (cnpj === '') return false
+    if (cnpjApenasNumero === '') return false
 
-    if (cnpj.length !== 14) return false
+    if (cnpjApenasNumero.length !== 14) return false
 
     if (
-      cnpj === '00000000000000' ||
-      cnpj === '11111111111111' ||
-      cnpj === '22222222222222' ||
-      cnpj === '33333333333333' ||
-      cnpj === '44444444444444' ||
-      cnpj === '55555555555555' ||
-      cnpj === '66666666666666' ||
-      cnpj === '77777777777777' ||
-      cnpj === '88888888888888' ||
-      cnpj === '99999999999999'
+      cnpjApenasNumero === '00000000000000' ||
+      cnpjApenasNumero === '11111111111111' ||
+      cnpjApenasNumero === '22222222222222' ||
+      cnpjApenasNumero === '33333333333333' ||
+      cnpjApenasNumero === '44444444444444' ||
+      cnpjApenasNumero === '55555555555555' ||
+      cnpjApenasNumero === '66666666666666' ||
+      cnpjApenasNumero === '77777777777777' ||
+      cnpjApenasNumero === '88888888888888' ||
+      cnpjApenasNumero === '99999999999999'
     )
       return false
 
-    let tamanho = cnpj.length - 2
-    let numeros = cnpj.substring(0, tamanho)
-    const digitos = cnpj.substring(tamanho)
+    let tamanho = cnpjApenasNumero.length - 2
+    let numeros = cnpjApenasNumero.substring(0, tamanho)
+    const digitos = cnpjApenasNumero.substring(tamanho)
     let soma = 0
     let pos = tamanho - 7
     for (let i = tamanho; i >= 1; i--) {
@@ -83,7 +83,7 @@ class PessoaEntity {
     if (resultado !== Number(digitos.charAt(0))) return false
 
     tamanho = tamanho + 1
-    numeros = cnpj.substring(0, tamanho)
+    numeros = cnpjApenasNumero.substring(0, tamanho)
     soma = 0
     pos = tamanho - 7
     for (let i = tamanho; i >= 1; i--) {
