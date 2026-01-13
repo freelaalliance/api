@@ -338,7 +338,7 @@ export async function recuperarAvaliacoesFornecedor({
       avaliadoEm: true,
     },
     orderBy: {
-      avaliadoEm: 'asc',
+      avaliadoEm: 'desc',
     },
   })
 
