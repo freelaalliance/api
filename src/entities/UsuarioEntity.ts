@@ -88,15 +88,15 @@ class UsuarioEntity extends PessoaEntity {
   }
 
   async cadastrarUsuario(): Promise<RespostaRequisicaoInterface> {
-    const verificaExisteUsuario: UsuarioEntity =
-      await this.usuarioRepository.buscarUsuarioPorEmail(this.email)
+    /*const verificaExisteUsuario: UsuarioEntity =
+      await this.usuarioRepository.buscarUsuarioPorEmail(this.email)*/
 
-    if (verificaExisteUsuario.getId() !== '') {
+    /*if (verificaExisteUsuario.getId() !== '') {
       return {
         status: false,
         msg: 'Já existe um usuário cadastrado com esse e-mail',
       }
-    }
+    }*/
 
     const perfilEntity: PerfilEntity = new PerfilEntity()
     const verficaExistePerfil = await perfilEntity.buscarPerfilPorId(
