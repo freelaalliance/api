@@ -26,6 +26,7 @@ import FornecedorController from './controllers/compras/Fornecedor'
 import RelatorioComprasController from './controllers/compras/Relatorio'
 import { CategoriasDocumentosController } from './controllers/documentos/categorias'
 import { DocumentosController } from './controllers/documentos/documentos'
+import { PastasController } from './controllers/documentos/pastas'
 import EquipamentoController from './controllers/manutencao/EquipamentoController'
 import InspecaoEquipamentoController from './controllers/manutencao/InspecaoEquipamentoController'
 import ManutencaoEquipamentoController from './controllers/manutencao/ManutencaoEquipamentoController'
@@ -68,6 +69,7 @@ new AdministradorComprasController(server.servico)
 new ConfiguracaoEmpresaController(server.servico)
 new CategoriasDocumentosController(server.servico)
 new DocumentosController(server.servico)
+new PastasController(server.servico)
 new AdministradorCalibracaoController(server.servico)
 new AdministradorComprasAdminController(server.servico)
 new AdministradorRecebimentosController(server.servico)

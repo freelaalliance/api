@@ -277,11 +277,11 @@ export async function finalizarManutencaoEquipamento({
 
     const duracaoManutencaoEmMinutos = differenceInMinutes(
       new Date(finalizadoEm),
-      new Date(dadosManutencao.iniciadoEm),
+      new Date(dadosManutencao.iniciadoEm)
     )
     const duracaoEquipamentoParadoEmMinutos = differenceInMinutes(
       new Date(finalizadoEm),
-      new Date(dadosManutencao.criadoEm),
+      new Date(dadosManutencao.criadoEm)
     )
 
     return await tx.manutencao.update({

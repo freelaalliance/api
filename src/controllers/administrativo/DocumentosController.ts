@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { excluirCategoriaDocumento, listarCategoriasDocumentoEmpresa, novaCategoriaEmpresa } from '../../repositories/Documentos/CategoriaRepository'
-import { cadastrarDocumento, cadastraRevisaoDocumento, getDocumentosEmpresa, getUsuariosAcessoModuloDocumentos, removerDocumentoEmpresa } from '../../repositories/Documentos/DocumentoRepository'
+import { cadastrarDocumento, getDocumentosEmpresa, getUsuariosAcessoModuloDocumentos, removerDocumentoEmpresa } from '../../repositories/Documentos/DocumentoRepository'
+import { prisma } from '../../services/PrismaClientService'
 
 export class AdministradorDocumentosController {
   constructor(fastifyInstance: FastifyInstance) {
@@ -31,6 +32,10 @@ export class AdministradorDocumentosController {
 
     fastifyInstance.register(this.novoDocumento, {
       prefix: '/api/admin/documentos',
+    })
+
+    fastifyInstance.register(this.listarPastasPorEmpresa, {
+      prefix: '/api/admin/documentos/pastas',
     })
   }
 
@@ -264,7 +269,11 @@ export class AdministradorDocumentosController {
             arquivoNome: revisao.arquivos.nome,
             arquivoUrl: revisao.arquivos.url,
             usuario: revisao.usuario.pessoa.nome,
-          }))
+          })),
+          pasta: documento.pastaDocumento ? {
+            id: documento.pastaDocumento.id,
+            nome: documento.pastaDocumento.nome,
+          } : null,
         })))
       } catch (error) {
         res.status(500).send({
@@ -323,6 +332,55 @@ export class AdministradorDocumentosController {
         res.status(500).send({
           status: false,
           msg: 'Erro ao excluir documento!',
+        })
+      }
+    })
+  }
+
+  async listarPastasPorEmpresa(app: FastifyInstance) {
+    const schemaParams = z.object({
+      empresaId: z.string().uuid(),
+    })
+
+    app.get('/empresa/:empresaId', async (req, res) => {
+      await req.jwtVerify({ onlyCookie: true })
+
+      const { empresaId } = await schemaParams.parseAsync(req.params)
+
+      try {
+        const pastas = await prisma.pastaDocumento.findMany({
+          where: {
+            empresaId,
+            excluido: false,
+          },
+          orderBy: {
+            nome: 'asc',
+          },
+          select: {
+            id: true,
+            nome: true,
+            empresaId: true,
+            _count: {
+              select: {
+                documentos: {
+                  where: {
+                    excluido: false,
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        return res.status(200).send(pastas.map(pasta => ({
+          id: pasta.id,
+          nome: pasta.nome,
+          empresaId: pasta.empresaId,
+        })))
+      } catch (error) {
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao listar pastas!',
         })
       }
     })

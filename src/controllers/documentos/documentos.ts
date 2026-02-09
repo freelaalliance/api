@@ -55,7 +55,7 @@ export class DocumentosController {
       disposicao: z.string({
         required_error: 'Campo de disposição é obrigatório',
       }),
-      retencao: z.coerce.date(),
+      retencao: z.coerce.date().optional(),
       uso: z.string({
         required_error: 'Campo uso é obrigatório',
       }),
@@ -76,7 +76,8 @@ export class DocumentosController {
       arquivo: z.string(),
       numeroRevisao: z.coerce.number().optional(),
       dataRevisao: z.coerce.date().optional(),
-      empresaId: z.string().uuid().optional()
+      empresaId: z.string().uuid().optional(),
+      pastaDocumentoId: z.string().uuid().optional()
     })
 
     app.post('/', async (req, res) => {
@@ -105,7 +106,8 @@ export class DocumentosController {
         arquivo,
         numeroRevisao,
         dataRevisao,
-        empresaId
+        empresaId,
+        pastaDocumentoId
       } = await schemaNovoDocumentoForm.parseAsync(req.body)
 
       try {
@@ -125,6 +127,7 @@ export class DocumentosController {
           numeroRevisao,
           dataRevisao,
           arquivo,
+          pastaDocumentoId,
         })
 
         res.status(201).send({
@@ -235,7 +238,11 @@ export class DocumentosController {
             arquivoNome: revisao.arquivos.nome,
             arquivoUrl: revisao.arquivos.url,
             usuario: revisao.usuario.pessoa.nome,
-          }))
+          })),
+          pasta: documento.pastaDocumento ? {
+            id: documento.pastaDocumento.id,
+            nome: documento.pastaDocumento.nome,
+          } : null,
         })))
       } catch (error) {
         res.status(500).send({
@@ -282,7 +289,11 @@ export class DocumentosController {
             arquivoNome: revisao.arquivos.nome,
             arquivoUrl: revisao.arquivos.url,
             usuario: revisao.usuario.pessoa.nome,
-          }))
+          })),
+          pasta: documento.pastaDocumento ? {
+            id: documento.pastaDocumento.id,
+            nome: documento.pastaDocumento.nome,
+          } : null,
         })))
       } catch (error) {
         res.status(500).send({

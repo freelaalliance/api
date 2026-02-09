@@ -7,7 +7,7 @@ type NovoDocumentoFormType = {
   recuperacao: string;
   elegibilidade: string;
   disposicao: string;
-  retencao: Date;
+  retencao?: Date;
   uso: string;
   categoriaDocumento: string;
   usuariosAcessos: {
@@ -20,6 +20,7 @@ type NovoDocumentoFormType = {
   dataRevisao?: Date;
   empresaId: string;
   usuarioId: string;
+  pastaDocumentoId?: string;
 }
 
 type NovaRevisaoDocumentoFormType = {
@@ -67,11 +68,12 @@ export async function cadastrarDocumento(documento: NovoDocumentoFormType) {
       categoriaDocumentoId: documento.categoriaDocumento,
       empresaId: documento.empresaId,
       usuarioId: documento.usuarioId,
+      pastaDocumentoId: documento.pastaDocumentoId,
       Revisoes: {
         create: {
           usuarioId: documento.usuarioId,
           numeroRevisao: documento.numeroRevisao ?? 0,
-          revisadoEm: documento.dataRevisao || new Date(),
+          revisadoEm: documento.dataRevisao,
           arquivoId: arquivoDocumento.id,
         },
       },
@@ -125,6 +127,7 @@ export async function getDocumentosEmpresa(empresaId: string) {
       nome: 'asc',
     },
     include: {
+      pastaDocumento: true,
       Revisoes: {
         orderBy: {
           numeroRevisao: 'desc'
@@ -161,6 +164,7 @@ export async function getDocumentosUsuario(usuarioId: string, empresaId: string)
       nome: 'asc',
     },
     include: {
+      pastaDocumento: true,
       Revisoes: {
         include: {
           arquivos: true,
