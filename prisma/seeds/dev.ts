@@ -291,6 +291,22 @@ async function seed() {
     })
   )
 
+  const vinculaModulosEmpresa = modulosData.map((modulo) =>
+    prisma.moduloEmpresa.upsert({
+      where: {
+        empresaId_moduloId: {
+          empresaId: '00c99ee1-eccf-4d71-88fa-2e1d2c085867',
+          moduloId: modulo.id,
+        },
+      },
+      update: {},
+      create: {
+        empresaId: '00c99ee1-eccf-4d71-88fa-2e1d2c085867',
+        moduloId: modulo.id,
+      },
+    })
+  )
+
   await prisma.$transaction([
     criaEmpresa,
     criaPerfil,
@@ -299,6 +315,7 @@ async function seed() {
     ...criaModulosApp,
     ...criaFuncoesModulo,
     ...vinculaFuncoesAoPerfil,
+    ...vinculaModulosEmpresa,
   ])
 }
 
