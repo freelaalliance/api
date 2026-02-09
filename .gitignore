@@ -9,3 +9,6 @@ migrations/migrations_lock.toml
 .vscode/settings.json
 .vscode
 .early.coverage
+docs
+coverage
+logs
