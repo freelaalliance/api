@@ -70,6 +70,7 @@ model Empresa {
   Treinamento                        Treinamento[]
   ContratacaoColaborador             ContratacaoColaborador[]
   configuracaoEmpresas               ConfiguracaoEmpresa[]
+  pastaDocumentos                    PastaDocumento[]
 
   @@map("empresas")
 }
@@ -489,6 +490,17 @@ model CategoriasDocumento {
   @@map("categorias_documento")
 }
 
+model PastaDocumento {
+  id         String       @id @default(uuid())
+  nome       String
+  empresa    Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  empresaId  String
+  documentos Documentos[]
+  excluido   Boolean      @default(false)
+
+  @@map("pasta_documento")
+}
+
 model Documentos {
   id                      String                    @id @default(uuid())
   nome                    String
@@ -497,7 +509,7 @@ model Documentos {
   recuperacao             String
   presElegibilidade       String
   disposicao              String
-  retencao                DateTime                  @db.Date
+  retencao                DateTime?                 @db.Date
   uso                     String
   cadastradoEm            DateTime                  @default(now())
   excluidoEm              DateTime?
@@ -507,6 +519,8 @@ model Documentos {
   usuarioId               String
   usuario                 Usuario                   @relation(fields: [usuarioId], references: [id])
   UsuarioAcessoDocumentos UsuarioAcessoDocumentos[]
+  pastaDocumentoId        String?
+  pastaDocumento          PastaDocumento?           @relation(fields: [pastaDocumentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   Revisoes                Revisoes[]
   empresaId               String
   empresa                 Empresa                   @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -537,7 +551,7 @@ model Arquivos {
 model Revisoes {
   id            String     @id @default(uuid())
   numeroRevisao Int
-  revisadoEm    DateTime   @default(now())
+  revisadoEm    DateTime?  @default(now())
   usuarioId     String
   usuario       Usuario    @relation(fields: [usuarioId], references: [id])
   documentoId   String
