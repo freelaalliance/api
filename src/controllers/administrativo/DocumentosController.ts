@@ -37,6 +37,10 @@ export class AdministradorDocumentosController {
     fastifyInstance.register(this.listarPastasPorEmpresa, {
       prefix: '/api/admin/documentos/pastas',
     })
+
+    fastifyInstance.register(this.criarPasta, {
+      prefix: '/api/admin/documentos/pastas',
+    })
   }
 
   async novoDocumento(app: FastifyInstance) {
@@ -381,6 +385,50 @@ export class AdministradorDocumentosController {
         return res.status(500).send({
           status: false,
           msg: 'Erro ao listar pastas!',
+        })
+      }
+    })
+  }
+
+  async criarPasta(app: FastifyInstance) {
+    const schemaParams = z.object({
+      empresaId: z.string().uuid(),
+    })
+
+    const schemaNovaPasta = z.object({
+      nome: z.string({
+        required_error: 'Nome da pasta é obrigatório',
+      }).min(1, 'Nome da pasta não pode ser vazio'),
+    })
+
+    app.post('/empresa/:empresaId', async (req, res) => {
+      await req.jwtVerify({ onlyCookie: true })
+
+      const { empresaId } = await schemaParams.parseAsync(req.params)
+
+      const { nome } = await schemaNovaPasta.parseAsync(req.body)
+
+      try {
+        const pasta = await prisma.pastaDocumento.create({
+          data: {
+            nome,
+            empresaId,
+          },
+        })
+
+        return res.status(201).send({
+          status: true,
+          msg: 'Pasta criada com sucesso!',
+          data: {
+            id: pasta.id,
+            nome: pasta.nome,
+            empresaId: pasta.empresaId,
+          },
+        })
+      } catch (error) {
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao criar pasta!',
         })
       }
     })
