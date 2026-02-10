@@ -41,6 +41,10 @@ export class AdministradorDocumentosController {
     fastifyInstance.register(this.criarPasta, {
       prefix: '/api/admin/documentos/pastas',
     })
+
+    fastifyInstance.register(this.atualizarPasta, {
+      prefix: '/api/admin/documentos/pastas',
+    })
   }
 
   async novoDocumento(app: FastifyInstance) {
@@ -429,6 +433,61 @@ export class AdministradorDocumentosController {
         return res.status(500).send({
           status: false,
           msg: 'Erro ao criar pasta!',
+        })
+      }
+    })
+  }
+
+  async atualizarPasta(app: FastifyInstance) {
+    const schemaParams = z.object({
+      id: z.string().uuid(),
+    })
+
+    const schemaBody = z.object({
+      nome: z.string({
+        required_error: 'Nome da pasta é obrigatório',
+      }).min(1, 'Nome da pasta não pode ser vazio'),
+    })
+
+    app.put('/:id', async (req, res) => {
+      await req.jwtVerify({ onlyCookie: true })
+
+      const { id } = await schemaParams.parseAsync(req.params)
+      const { nome } = await schemaBody.parseAsync(req.body)
+
+      try {
+        const pasta = await prisma.pastaDocumento.findFirst({
+          where: {
+            id,
+            excluido: false,
+          },
+        })
+
+        if (!pasta) {
+          return res.status(404).send({
+            status: false,
+            msg: 'Pasta não encontrada',
+          })
+        }
+
+        const pastaAtualizada = await prisma.pastaDocumento.update({
+          where: { id },
+          data: { nome },
+        })
+
+        return res.status(200).send({
+          status: true,
+          msg: 'Pasta atualizada com sucesso!',
+          data: {
+            id: pastaAtualizada.id,
+            nome: pastaAtualizada.nome,
+            empresaId: pastaAtualizada.empresaId,
+          },
+        })
+      } catch (error) {
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao atualizar pasta!',
         })
       }
     })
