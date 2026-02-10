@@ -73,7 +73,7 @@ export class AdministradorDocumentosController {
       disposicao: z.string({
         required_error: 'Campo de disposição é obrigatório',
       }),
-      retencao: z.coerce.date(),
+      retencao: z.coerce.date().optional(),
       uso: z.string({
         required_error: 'Campo uso é obrigatório',
       }),
