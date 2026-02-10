@@ -94,7 +94,8 @@ export class AdministradorDocumentosController {
       arquivo: z.string(),
       numeroRevisao: z.coerce.number().optional(),
       dataRevisao: z.coerce.date().optional(),
-      empresaId: z.string().uuid().optional()
+      empresaId: z.string().uuid().optional(),
+      pastaDocumentoId: z.string().uuid().optional()
     })
 
     app.post('/empresa', async (req, res) => {
@@ -125,7 +126,8 @@ export class AdministradorDocumentosController {
         arquivo,
         dataRevisao,
         numeroRevisao,
-        empresaId
+        empresaId,
+        pastaDocumentoId
       } = await schemaNovoDocumentoForm.parseAsync(req.body)
 
       try {
@@ -153,6 +155,7 @@ export class AdministradorDocumentosController {
           dataRevisao,
           numeroRevisao,
           arquivo,
+          pastaDocumentoId
         })
 
         res.status(201).send({
