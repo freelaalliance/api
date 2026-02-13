@@ -48,6 +48,15 @@ interface novoAnexoProps {
   anexo: AnexoFornecedorProps
 }
 
+function getConceitoAvaliacaoForncedor(media: number): string {
+  
+  if (media === 100) return 'A'
+
+  if (media <= 99 && media >= 50) return 'B'
+
+  return 'C'
+}
+
 export async function cadastrarFornecedor({
   nome,
   documento,
@@ -205,6 +214,16 @@ export async function recuperarFornecedoresEmpresa({
       critico: true,
       aprovado: true,
       desempenho: true,
+      AvaliacoesFornecedor: {
+        select: {
+          nota: true,
+          validade: true,
+          avaliadoEm: true,
+        },
+        orderBy: {
+          avaliadoEm: 'desc',
+        },
+      }
     },
     where: {
       empresaId,
@@ -213,6 +232,11 @@ export async function recuperarFornecedoresEmpresa({
   })
 
   return listaFornecedores.map(fornecedor => {
+    const avaliacoes = fornecedor.AvaliacoesFornecedor
+    const mediaAvaliacoes = avaliacoes.length > 0
+      ? avaliacoes.reduce((soma, avaliacao) => soma + avaliacao.nota, 0) / avaliacoes.length
+      : null
+
     return {
       id: fornecedor.id,
       nome: fornecedor.pessoa.nome,
@@ -220,6 +244,15 @@ export async function recuperarFornecedoresEmpresa({
       critico: fornecedor.critico,
       aprovado: fornecedor.aprovado,
       desempenho: fornecedor.desempenho,
+      mediaAvaliacoes,
+      conceito: mediaAvaliacoes === null ? null : getConceitoAvaliacaoForncedor(mediaAvaliacoes),
+      avaliacao: avaliacoes[0]
+        ? {
+          validade: avaliacoes[0].validade,
+          avaliadoEm: avaliacoes[0].avaliadoEm,
+          nota: avaliacoes[0].nota,
+        }
+        : null,
     }
   })
 }
@@ -532,6 +565,65 @@ export async function removerAnexo({ id, empresaId }: DadosFornecedorProps) {
       },
     },
   })
+}
+
+export async function excluirAvaliacaoFornecedor({
+  avaliacaoId,
+  fornecedorId,
+  empresaId,
+}: {
+  avaliacaoId: string
+  fornecedorId: string
+  empresaId: string
+}) {
+  const avaliacao = await prisma.avaliacoesFornecedor.findFirst({
+    where: {
+      id: avaliacaoId,
+      fornecedorId,
+      fornecedor: {
+        empresaId,
+      },
+    },
+  })
+
+  if (!avaliacao) {
+    return null
+  }
+
+  await prisma.avaliacoesFornecedor.delete({
+    where: {
+      id: avaliacaoId,
+    },
+  })
+
+  const ultimaAvaliacao = await prisma.avaliacoesFornecedor.findFirst({
+    where: {
+      fornecedorId,
+    },
+    orderBy: {
+      avaliadoEm: 'desc',
+    },
+  })
+
+  if (ultimaAvaliacao) {
+    await prisma.fornecedor.update({
+      where: { id: fornecedorId },
+      data: {
+        aprovado: ultimaAvaliacao.aprovado,
+        ultimaAvaliacao: ultimaAvaliacao.avaliadoEm,
+      },
+    })
+  } else {
+    await prisma.fornecedor.update({
+      where: { id: fornecedorId },
+      data: {
+        aprovado: false,
+        ultimaAvaliacao: null,
+      },
+    })
+  }
+
+  return avaliacao
 }
 
 export async function buscaResumoFornecedorEmpresa({

@@ -6,6 +6,7 @@ import {
   adicionarNovoEmail,
   adicionarNovoTelefone,
   cadastrarFornecedor,
+  excluirAvaliacaoFornecedor,
   recuperarAvaliacoesEntregaFornecedor,
   recuperarAvaliacoesFornecedor,
   recuperarDadosFornecedor,
@@ -71,6 +72,9 @@ class FornecedorController {
       prefix: '/fornecedor',
     })
     fastifyInstance.register(this.removerAnexoFornecedor, {
+      prefix: '/fornecedor',
+    })
+    fastifyInstance.register(this.excluirAvaliacaoFornecedor, {
       prefix: '/fornecedor',
     })
   }
@@ -609,6 +613,48 @@ class FornecedorController {
         return res.status(500).send({
           status: false,
           msg: 'Erro ao adicionar o anexo',
+          error,
+        })
+      }
+    })
+  }
+
+  async excluirAvaliacaoFornecedor(app: FastifyInstance) {
+    const schemaParams = z.object({
+      id: z.string().uuid(),
+      avaliacaoId: z.string().uuid(),
+    })
+
+    app.delete('/:id/avaliacao/:avaliacaoId', async (req, res) => {
+      await req.jwtVerify({ onlyCookie: true })
+
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
+
+      const { id: fornecedorId, avaliacaoId } =
+        await schemaParams.parseAsync(req.params)
+
+      try {
+        const avaliacaoExcluida = await excluirAvaliacaoFornecedor({
+          avaliacaoId,
+          fornecedorId,
+          empresaId: cliente,
+        })
+
+        if (!avaliacaoExcluida) {
+          return res.status(404).send({
+            status: false,
+            msg: 'Avaliação não encontrada',
+          })
+        }
+
+        res.status(200).send({
+          status: true,
+          msg: 'Avaliação excluída com sucesso!',
+        })
+      } catch (error) {
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao excluir avaliação do fornecedor',
           error,
         })
       }

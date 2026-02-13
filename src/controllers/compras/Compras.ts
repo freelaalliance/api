@@ -15,6 +15,7 @@ import { registrarRecebimentoPedido } from '../../repositories/Compras/Recebimen
 import { buscarItensAvaliacaoRecebimentoAtivoEmpresa } from '../../repositories/Compras/ItensAvaliacaoRecebimentoRepository'
 import { buscarConfiguracoesPorEmpresa } from '../../repositories/ConfiguracaoEmpresaRepository'
 import { reqUserSchema } from '../../schema/sessionUser'
+import { gerarPdfCompraHTML } from './services/ComprasPdfService'
 import { getNumeroPedido } from './utils/CompraUtil'
 
 
@@ -57,6 +58,10 @@ class ComprasController {
     })
 
     fastifyInstance.register(this.buscarConfiguracaoCompra, {
+      prefix: '/pedido',
+    })
+
+    fastifyInstance.register(this.gerarPdfPedido, {
       prefix: '/pedido',
     })
   }
@@ -631,6 +636,82 @@ class ComprasController {
           status: false,
           msg: 'Erro ao buscar configuração',
           error: error instanceof Error ? error.message : 'Erro desconhecido',
+        })
+      }
+    })
+  }
+  async gerarPdfPedido(app: FastifyInstance) {
+    const schemaParams = z.object({
+      idPedido: z.string().uuid(),
+    })
+
+    app.get('/:idPedido/pdf', async (req, res) => {
+      try {
+        await req.jwtVerify({ onlyCookie: true })
+        const { cliente } = await reqUserSchema.parseAsync(req.user)
+
+        const { idPedido } = await schemaParams.parseAsync(req.params)
+
+        const pedido = await buscarDadosPedido({
+          idPedido,
+          empresaId: cliente,
+        })
+
+        const pdf = await gerarPdfCompraHTML({
+          numPedido: pedido.numPedido,
+          codigo: pedido.codigo,
+          permiteEntregaParcial: pedido.permiteEntregaParcial,
+          prazoEntrega: pedido.prazoEntrega,
+          condicoesEntrega: pedido.condicoesEntrega ?? null,
+          cadastradoEm: pedido.cadastradoEm,
+          frete: pedido.frete ?? null,
+          armazenamento: pedido.armazenamento ?? null,
+          localEntrega: pedido.localEntrega ?? null,
+          formaPagamento: pedido.formaPagamento ?? null,
+          imposto: pedido.imposto ?? null,
+          recebido: pedido.recebido,
+          cancelado: pedido.excluido,
+          usuario: pedido.usuario.pessoa.nome,
+          empresa: {
+            nome: pedido.fornecedor.empresa.pessoa.nome,
+            documento: pedido.fornecedor.empresa.cnpj,
+            endereco: pedido.fornecedor.empresa.pessoa.Endereco
+              ? {
+                logradouro:
+                  pedido.fornecedor.empresa.pessoa.Endereco.logradouro,
+                numero: pedido.fornecedor.empresa.pessoa.Endereco.numero,
+                complemento:
+                  pedido.fornecedor.empresa.pessoa.Endereco.complemento,
+                bairro: pedido.fornecedor.empresa.pessoa.Endereco.bairro,
+                cidade: pedido.fornecedor.empresa.pessoa.Endereco.cidade,
+                estado: pedido.fornecedor.empresa.pessoa.Endereco.estado,
+                cep: pedido.fornecedor.empresa.pessoa.Endereco.cep,
+              }
+              : null,
+          },
+          fornecedor: {
+            nome: pedido.fornecedor.pessoa.nome,
+            documento: pedido.fornecedor.documento,
+          },
+          itens: pedido.ItensCompra.map((item) => ({
+            descricao: item.descricao,
+            quantidade: item.quantidade,
+          })),
+        })
+
+        res
+          .header('Content-Type', 'application/pdf')
+          .header(
+            'Content-Disposition',
+            `inline; filename="pedido-${pedido.codigo}.pdf"`
+          )
+          .send(Buffer.from(pdf))
+      } catch (error) {
+        console.error('Erro ao gerar PDF do pedido:', error)
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao gerar PDF do pedido',
+          error,
         })
       }
     })
