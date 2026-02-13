@@ -12,3 +12,4 @@ migrations/migrations_lock.toml
 docs
 coverage
 logs
+chrome
