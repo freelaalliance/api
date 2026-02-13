@@ -21,6 +21,7 @@ export interface EmailFornecedorProps {
 export interface AnexoFornecedorProps {
   nome: string
   arquivo: string
+  observacao?: string | null
 }
 
 export interface NovoFornecedorProps {

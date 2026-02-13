@@ -49,7 +49,7 @@ interface novoAnexoProps {
 }
 
 function getConceitoAvaliacaoForncedor(media: number): string {
-  
+
   if (media === 100) return 'A'
 
   if (media <= 99 && media >= 50) return 'B'
@@ -339,6 +339,7 @@ export async function recuperarDocumentosFornecedor({
       id: documento.id,
       nome: documento.nome,
       arquivo: documento.arquivo,
+      observacao: documento.observacao,
     }
   })
 }
@@ -547,11 +548,13 @@ export async function adicionarNovoAnexo({
       id: true,
       nome: true,
       arquivo: true,
+      observacao: true,
     },
     data: {
       fornecedorId: dadosFornecedor.id,
       nome: anexo.nome,
       arquivo: anexo.arquivo,
+      observacao: anexo.observacao,
     },
   })
 }

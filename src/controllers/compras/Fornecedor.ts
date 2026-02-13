@@ -580,6 +580,7 @@ class FornecedorController {
     const schemaBody = z.object({
       nome: z.string(),
       arquivo: z.string(),
+      observacao: z.string().optional().nullable(),
     })
 
     const schemaParams = z.object({
@@ -591,7 +592,7 @@ class FornecedorController {
 
       const { cliente } = await reqUserSchema.parseAsync(req.user)
 
-      const { nome, arquivo } = await schemaBody.parseAsync(req.body)
+      const { nome, arquivo, observacao } = await schemaBody.parseAsync(req.body)
       const { id: fornecedorId } = await schemaParams.parseAsync(req.params)
 
       try {
@@ -601,6 +602,7 @@ class FornecedorController {
           anexo: {
             nome,
             arquivo,
+            observacao,
           },
         })
 
