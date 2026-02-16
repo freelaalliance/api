@@ -308,6 +308,7 @@ model PontosInspecaoEquipamento {
   pecasEquipamento    PecasEquipamento    @relation(fields: [pecaEquipamentoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   aprovado            Boolean             @default(false)
   inspecionadoEm      DateTime?
+  observacao          String?             @db.LongText
 
   @@id([inspecaoId, equipamentoId, pecaEquipamentoId])
   @@map("pontos_inspecao_equipamento")

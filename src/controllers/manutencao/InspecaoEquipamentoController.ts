@@ -51,6 +51,7 @@ class InspecaoEquipamentoController {
           aprovado: z.boolean(),
           inspecionadoEm: z.coerce.date().optional().nullable(),
           inspecionado: z.boolean(),
+          observacao: z.string().optional().nullable(),
         })
       ),
     })

@@ -1,6 +1,6 @@
 import { addDays } from 'date-fns'
 
-import { EquipamentoProps } from '../../interfaces/Manutencao/EquipamentoInterface'
+import type { EquipamentoProps } from '../../interfaces/Manutencao/EquipamentoInterface'
 import { prisma } from '../../services/PrismaClientService'
 
 interface salvarInspecaoProps {
@@ -14,6 +14,7 @@ interface salvarInspecaoProps {
     aprovado: boolean
     inspecionadoEm?: Date | null
     inspecionado: boolean
+    observacao?: string | null
   }>
 }
 
@@ -22,11 +23,13 @@ interface finalizarInspecaoProps {
   equipamentoId: string
   status: 'aprovado' | 'reprovado'
   finalizadoEm: Date
+  observacao?: string | null
   inspecaoPeca: Array<{
     pecaEquipamentoId: string
     aprovado: boolean
     inspecionadoEm: Date
     inspecionado: boolean
+    observacao?: string | null
   }>
 }
 
@@ -72,6 +75,7 @@ export async function listaInspecoesEquipamentoEmpresa({
         select: {
           pecaEquipamentoId: true,
           inspecionadoEm: true,
+          observacao: true,
         },
       },
       usuario: {
@@ -98,7 +102,7 @@ export async function listaInspecoesEquipamentoEmpresa({
 
 export async function listaPontosInspecionadoEquipamento(
   idInspecao: string,
-  empresaId: string,
+  empresaId: string
 ) {
   return await prisma.pontosInspecaoEquipamento.findMany({
     select: {
@@ -153,6 +157,7 @@ export async function salvarInspecao({
         select: {
           pecaEquipamentoId: true,
           inspecionadoEm: true,
+          observacao: true,
         },
       },
       usuario: {
@@ -173,12 +178,13 @@ export async function salvarInspecao({
       statusInspecao: status,
       PontosInspecaoEquipamento: {
         createMany: {
-          data: inspecaoPeca.map((peca) => {
+          data: inspecaoPeca.map(peca => {
             return {
               equipamentoId,
               pecaEquipamentoId: peca.pecaEquipamentoId,
               aprovado: peca.aprovado,
               inspecionadoEm: peca.inspecionadoEm,
+              observacao: peca.observacao,
             }
           }),
         },
@@ -217,13 +223,14 @@ export async function finalizarInspecao({
   })
 
   const atualizaPontosInspecao = prisma.pontosInspecaoEquipamento.createMany({
-    data: inspecaoPeca.map((peca) => {
+    data: inspecaoPeca.map(peca => {
       return {
         inspecaoId,
         equipamentoId,
         pecaEquipamentoId: peca.pecaEquipamentoId,
         aprovado: peca.aprovado,
         inspecionadoEm: peca.inspecionadoEm,
+        observacao: peca.observacao,
       }
     }),
   })
