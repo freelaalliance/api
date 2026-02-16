@@ -61,12 +61,12 @@ const VendaDetalhadaSchema = z.object({
   codigo: z.string(),
   condicoes: z.string().nullable(),
   permiteEntregaParcial: z.boolean(),
-  frete: z.string().optional(),
-  armazenamento: z.string().optional(),
-  localEntrega: z.string().optional(),
-  formaPagamento: z.string().optional(),
-  imposto: z.string().optional(),
-  prazoEntrega: z.coerce.date(),
+  frete: z.string().optional().nullable(),
+  armazenamento: z.string().optional().nullable(),
+  localEntrega: z.string().optional().nullable(),
+  formaPagamento: z.string().optional().nullable(),
+  imposto: z.string().optional().nullable(),
+  prazoEntrega: z.coerce.date().nullable(),
   cliente: ClienteSchema,
   itensVenda: z.array(ItemVendaSchema),
   cadastradoEm: z.coerce.date()
@@ -274,21 +274,58 @@ export async function vendasRoutes(app: FastifyInstance) {
       id: z.string().uuid(),
     })
 
-    await req.jwtVerify({ onlyCookie: true })
-    const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
+    try {
+      await req.jwtVerify({ onlyCookie: true })
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
 
-    const { id: vendaId } = await schemaParams.parseAsync(req.params)
+      const { id: vendaId } = await schemaParams.parseAsync(req.params)
 
-    const venda = await buscarVendaPorId(vendaId, empresaId)
+      const venda = await buscarVendaPorId(vendaId, empresaId)
 
-    const pdfVenda = await gerarPdfVendaHTML(venda)
+      const pdfVenda = await gerarPdfVendaHTML({
+        numeroVenda: venda.numeroVenda,
+        codigoVenda: venda.codigoVenda,
+        permiteEntregaParcial: venda.entregaParcial,
+        prazoEntrega: venda.prazoEntrega,
+        condicoes: venda.condicoes ?? null,
+        dataVenda: venda.dataVenda,
+        frete: venda.frete ?? null,
+        armazenamento: venda.armazenamento ?? null,
+        localEntrega: venda.localEntrega ?? null,
+        formaPagamento: venda.formaPagamento ?? null,
+        imposto: venda.imposto ?? null,
+        expedido: venda.expedido,
+        cancelado: venda.cancelado,
+        usuario: venda.usuario,
+        empresa: {
+          nome: venda.empresa.nome,
+          documento: venda.empresa.documento,
+          endereco: venda.empresa.endereco,
+        },
+        cliente: {
+          nome: venda.cliente.nome,
+          documento: venda.cliente.documento,
+          observacoes: venda.cliente.observacoes,
+        },
+        itens: venda.itens,
+        total: venda.total,
+      })
 
-    res.header('Content-Type', 'application/pdf');
-    res.header(
-      'Content-Disposition',
-      `attachment; filename="venda-${vendaId}.pdf"`
-    );
-    res.send(pdfVenda);
+      res
+        .header('Content-Type', 'application/pdf')
+        .header(
+          'Content-Disposition',
+          `inline; filename="venda-${venda.codigoVenda}.pdf"`
+        )
+        .send(Buffer.from(pdfVenda))
+    } catch (error) {
+      console.error('Erro ao gerar PDF da venda:', error)
+      return res.status(500).send({
+        status: false,
+        msg: 'Erro ao gerar PDF da venda',
+        error,
+      })
+    }
   })
 
   app.get('/estatisticas/vendas/cliente-top', async (req, res) => {
