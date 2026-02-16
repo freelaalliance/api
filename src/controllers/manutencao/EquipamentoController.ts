@@ -5,6 +5,7 @@ import {
   consultaCodigoEquipamento,
   consultarAgendaEquipamento,
   consultarDadosEquipamento,
+  copiarEquipamento,
   inserirNovoEquipamento,
   inserirPecaEquipamento,
   listarEquipamentosEmpresa,
@@ -63,6 +64,10 @@ class EquipamentoController {
     })
 
     fastifyInstance.register(this.buscarDadosEquipamento, {
+      prefix: '/equipamento',
+    })
+
+    fastifyInstance.register(this.copiarEquipamento, {
       prefix: '/equipamento',
     })
   }
@@ -368,6 +373,44 @@ class EquipamentoController {
       })
 
       res.status(200).send(dadosEquipamento)
+    })
+  }
+
+  async copiarEquipamento(app: FastifyInstance) {
+    const schemaParams = z.object({
+      id: z
+        .string({
+          required_error: 'Necessário informar o id do equipamento',
+        })
+        .uuid({
+          message: 'Id do equipamento é inválido!',
+        }),
+    })
+
+    app.post('/:id/copiar', async (req, res) => {
+      await req.jwtVerify({ onlyCookie: true })
+
+      const { id } = await schemaParams.parseAsync(req.params)
+      const { cliente } = await reqUserSchema.parseAsync(req.user)
+
+      try {
+        const equipamentoCopiado = await copiarEquipamento({
+          id,
+          empresaId: cliente,
+        })
+
+        res.status(201).send({
+          status: true,
+          msg: 'Equipamento copiado com sucesso!',
+          dados: equipamentoCopiado,
+        })
+      } catch (error) {
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao copiar equipamento',
+          error,
+        })
+      }
     })
   }
 }

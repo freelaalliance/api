@@ -244,3 +244,52 @@ export async function consultarDadosEquipamento({
     },
   })
 }
+
+export async function copiarEquipamento({
+  id,
+  empresaId,
+}: EquipamentoProps) {
+  const equipamentoOriginal = await prisma.equipamento.findUniqueOrThrow({
+    where: {
+      id,
+      empresaId,
+    },
+    include: {
+      PecasEquipamento: {
+        select: {
+          nome: true,
+          descricao: true,
+        },
+      },
+    },
+  })
+
+  const codigoCopia = `${equipamentoOriginal.codigo}-copia`
+
+  return await prisma.equipamento.create({
+    data: {
+      codigo: codigoCopia,
+      nome: equipamentoOriginal.nome,
+      especificacao: equipamentoOriginal.especificacao,
+      frequencia: equipamentoOriginal.frequencia,
+      empresaId,
+      tempoOperacao: 0,
+      PecasEquipamento: {
+        createMany: {
+          data: equipamentoOriginal.PecasEquipamento.map((peca) => ({
+            nome: peca.nome,
+            descricao: peca.descricao,
+          })),
+        },
+      },
+      AgendaInspecaoEquipamento: {
+        create: {
+          agendadoPara: addDays(new Date(), equipamentoOriginal.frequencia),
+        },
+      },
+    },
+    include: {
+      PecasEquipamento: true,
+    },
+  })
+}
