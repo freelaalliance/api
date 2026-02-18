@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client'
+
+const environment = process.env.NODE_ENV || 'development'
+
 export const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
-  // debug: true, Enable to log all queries, mutations and errors to the console.
+  log: ['info', 'warn', 'error'],
 })
