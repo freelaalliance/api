@@ -706,6 +706,7 @@ model Treinamento {
   id                           String                         @id @default(uuid()) @db.Char(36)
   nome                         String                         @db.VarChar(255)
   tipo                         TipoTreinamento                @default(integracao)
+  grupo                        GrupoTreinamento               @default(interno)
   excluido                     Boolean                        @default(false)
   empresasId                   String                         @db.Char(36)
   empresa                      Empresa                        @relation(fields: [empresasId], references: [id])
@@ -719,6 +720,12 @@ model Treinamento {
 enum TipoTreinamento {
   integracao
   capacitacao
+  reciclagem
+}
+
+enum GrupoTreinamento {
+  interno
+  externo
 }
 
 model PlanoTreinamento {
