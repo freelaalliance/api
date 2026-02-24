@@ -24,9 +24,14 @@ RUN npm run db:generate
 # Stage 2: Production
 FROM node:20-alpine AS production
 
-# Instala apenas as dependências necessárias para executar o Prisma
-RUN apk add --no-cache openssl
+# Instala Chromium e dependências necessárias para o Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    openssl
 
+ENV NODE_ENV=production
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 # Define o diretório de trabalho
 WORKDIR /app
 
