@@ -2,8 +2,10 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import {
+  type TreinamentoRealizadoComDetalhes,
   atualizarTreinamentoRealizado,
   buscarTreinamentoRealizadoPorId,
+  cadastrarTreinamentoComRealizados,
   cancelarTreinamento,
   finalizarTreinamento,
   iniciarTreinamento,
@@ -12,7 +14,8 @@ import {
   listarTreinamentosEmpresa,
   listarTreinamentosFinalizados,
   listarTreinamentosNaoRealizados,
-  listarTreinamentosPendentes
+  listarTreinamentosPendentes,
+  listarTreinamentosPorCargo,
 } from './services/TreinamentosColaborador'
 
 const reqUserSchema = z.object({
@@ -86,8 +89,7 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
     const { status } = await querySchema.parseAsync(req.query)
     const { cliente } = await reqUserSchema.parseAsync(req.user)
 
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    let treinamentos: Array<any> = []
+    let treinamentos: TreinamentoRealizadoComDetalhes[] = []
 
     switch (status) {
       case 'pendentes':
@@ -110,7 +112,8 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
         treinamento: {
           id: tr.treinamento.id,
           nome: tr.treinamento.nome,
-          tipo: tr.treinamento.tipo
+          tipo: tr.treinamento.tipo,
+          grupo: tr.treinamento.grupo
         },
         colaborador: tr.contratacaoColaborador.colaborador.pessoa.nome,
         cargo: tr.contratacaoColaborador.cargo.nome
@@ -371,6 +374,100 @@ export async function TreinamentosColaboradorRoutes(app: FastifyInstance) {
       return res.status(400).send({
         status: false,
         msg: errorMessage
+      })
+    }
+  })
+
+  // Listar treinamentos vinculados a um cargo
+  app.get('/cargo/:cargoId', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    const paramCargoSchema = z.object({
+      cargoId: z.string().uuid('ID do cargo deve ser um UUID válido'),
+    })
+
+    const { cargoId } = await paramCargoSchema.parseAsync(req.params)
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
+
+    const treinamentos = await listarTreinamentosPorCargo(cargoId, cliente)
+
+    return res.send({
+      status: true,
+      dados: treinamentos.map((item) => ({
+        id: item.treinamento.id,
+        nome: item.treinamento.nome,
+        tipo: item.treinamento.tipo,
+        grupo: item.treinamento.grupo,
+      })),
+    })
+  })
+
+  // Cadastrar treinamento com realizações para múltiplos colaboradores
+  app.post('/cadastrar', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    const cadastrarSchema = z
+      .object({
+        treinamentosId: z.string().uuid('ID do treinamento deve ser um UUID válido').optional(),
+        treinamento: z
+          .object({
+            nome: z.string().min(1, 'Nome do treinamento é obrigatório'),
+            tipo: z.enum(['integracao', 'capacitacao', 'reciclagem']),
+            grupo: z.enum(['interno', 'externo']).default('interno'),
+          })
+          .optional(),
+        cargoId: z.string().uuid('ID do cargo deve ser um UUID válido'),
+        realizados: z
+          .array(
+            z.object({
+              contratacaoColaboradorId: z.string().uuid('ID da contratação deve ser um UUID válido'),
+              iniciadoEm: z.string().transform((str) => new Date(str)),
+              finalizadoEm: z.string().transform((str) => new Date(str)).optional(),
+              certificado: z.string().optional(),
+            })
+          )
+          .min(1, 'É necessário informar pelo menos um colaborador'),
+      })
+      .refine((data) => data.treinamentosId || data.treinamento, {
+        message: 'Informe o ID do treinamento existente ou os dados de um novo treinamento',
+      })
+
+    const { cliente } = await reqUserSchema.parseAsync(req.user)
+
+    try {
+      const dados = await cadastrarSchema.parseAsync(req.body)
+
+      const realizados = await cadastrarTreinamentoComRealizados({
+        treinamentosId: dados.treinamentosId,
+        treinamento: dados.treinamento,
+        cargoId: dados.cargoId,
+        empresaId: cliente,
+        realizados: dados.realizados,
+      })
+
+      return res.status(201).send({
+        status: true,
+        msg: `${realizados.length} treinamento(s) realizado(s) cadastrado(s) com sucesso!`,
+        dados: realizados.map((tr) => ({
+          id: tr.id,
+          iniciadoEm: tr.iniciadoEm,
+          finalizadoEm: tr.finalizadoEm,
+          certificado: tr.certificado,
+          treinamento: {
+            id: tr.treinamento.id,
+            nome: tr.treinamento.nome,
+            tipo: tr.treinamento.tipo,
+            grupo: tr.treinamento.grupo,
+          },
+          colaborador: tr.contratacaoColaborador.colaborador.pessoa.nome,
+          cargo: tr.contratacaoColaborador.cargo.nome,
+        })),
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      return res.status(400).send({
+        status: false,
+        msg: errorMessage,
       })
     }
   })

@@ -22,7 +22,6 @@ export async function CargosRoutes(app: FastifyInstance) {
   const bodySchema = z.object({
     nome: z.string().min(1, 'Nome do cargo é obrigatório'),
     atribuicoes: z.string().min(1, 'Atribuições são obrigatórias'),
-    superior: z.boolean().default(false),
     experienciaMinima: z.string().min(1, 'Experiência mínima é obrigatória'),
     escolaridadeMinima: z.string().min(1, 'Escolaridade mínima é obrigatória'),
     treinamentos: z.array(
@@ -35,7 +34,6 @@ export async function CargosRoutes(app: FastifyInstance) {
   const updateBodySchema = z.object({
     nome: z.string().min(1, 'Nome do cargo é obrigatório'),
     atribuicoes: z.string().min(1, 'Atribuições são obrigatórias'),
-    superior: z.boolean().optional(),
     experienciaMinima: z.string().min(1, 'Experiência mínima é obrigatória').optional(),
     escolaridadeMinima: z.string().min(1, 'Escolaridade mínima é obrigatória').optional(),
     treinamentos: z.array(
@@ -53,7 +51,7 @@ export async function CargosRoutes(app: FastifyInstance) {
   app.post('/', async (req, res) => {
     await req.jwtVerify({ onlyCookie: true })
 
-    const { nome, atribuicoes, superior, experienciaMinima, escolaridadeMinima, treinamentos } =
+    const { nome, atribuicoes,  experienciaMinima, escolaridadeMinima, treinamentos } =
       await bodySchema.parseAsync(req.body)
 
     const { cliente } = await reqUserSchema.parseAsync(req.user)
@@ -61,7 +59,6 @@ export async function CargosRoutes(app: FastifyInstance) {
     await criarCargo({
       nome,
       atribuicoes,
-      superior,
       experienciaMinima,
       escolaridadeMinima,
       empresasId: cliente,
@@ -88,7 +85,6 @@ export async function CargosRoutes(app: FastifyInstance) {
         id: cargo.id,
         nome: cargo.nome,
         atribuicoes: cargo.atribuicoes,
-        superior: cargo.superior,
         experienciaMinima: cargo.experienciaMinima,
         escolaridadeMinima: cargo.escolaridadeMinima,
         treinamentos: cargo.treinamentosIntegracaoCargos.map(t => ({
@@ -120,7 +116,6 @@ export async function CargosRoutes(app: FastifyInstance) {
         id: cargo.id,
         nome: cargo.nome,
         atribuicoes: cargo.atribuicoes,
-        superior: cargo.superior,
         experienciaMinima: cargo.experienciaMinima,
         escolaridadeMinima: cargo.escolaridadeMinima,
         treinamentos: cargo.treinamentosIntegracaoCargos.map(t => ({
@@ -258,18 +253,7 @@ export async function CargosRoutes(app: FastifyInstance) {
           telefones: contratacao.colaborador.pessoa.TelefonePessoa,
           emails: contratacao.colaborador.pessoa.EmailPessoa,
           endereco: contratacao.colaborador.pessoa.Endereco
-        },
-        treinamentosRealizados: contratacao.treinamentosRealizados.map(tr => ({
-          id: tr.id,
-          iniciadoEm: tr.iniciadoEm,
-          finalizadoEm: tr.finalizadoEm,
-          certificado: tr.certificado,
-          treinamento: {
-            id: tr.treinamento.id,
-            nome: tr.treinamento.nome,
-            tipo: tr.treinamento.tipo
-          }
-        }))
+        }
       }))
     })
   })

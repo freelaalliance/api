@@ -1,3 +1,4 @@
+import type { TipoTreinamento } from '@prisma/client'
 import { prisma } from "../../../services/PrismaClientService"
 
 interface IniciarTreinamentoData {
@@ -16,6 +17,51 @@ interface AtualizarTreinamentoData {
   iniciadoEm?: Date
   finalizadoEm?: Date
   certificado?: string
+}
+
+interface DadosNovoTreinamento {
+  nome: string
+  tipo: 'integracao' | 'capacitacao' | 'reciclagem'
+  grupo: 'interno' | 'externo'
+}
+
+interface RealizadoData {
+  contratacaoColaboradorId: string
+  iniciadoEm: Date
+  finalizadoEm?: Date
+  certificado?: string
+}
+
+interface CadastrarTreinamentoRealizadoData {
+  treinamentosId?: string
+  treinamento?: DadosNovoTreinamento
+  cargoId: string
+  empresaId: string
+  realizados: RealizadoData[]
+}
+
+export interface TreinamentoRealizadoComDetalhes {
+  id: string
+  iniciadoEm: Date
+  finalizadoEm: Date | null
+  certificado: string | null
+  treinamento: {
+    id: string
+    nome: string
+    tipo: TipoTreinamento
+    grupo: string
+  }
+  contratacaoColaborador: {
+    id: string
+    colaborador: {
+      pessoa: {
+        nome: string
+      }
+    }
+    cargo: {
+      nome: string
+    }
+  }
 }
 
 export async function iniciarTreinamento(data: IniciarTreinamentoData) {
@@ -42,7 +88,8 @@ export async function iniciarTreinamento(data: IniciarTreinamentoData) {
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
+          grupo: true
         }
       },
       contratacaoColaborador: {
@@ -98,6 +145,7 @@ export async function finalizarTreinamento(treinamentoRealizadoId: string, data:
           id: true,
           nome: true,
           tipo: true,
+          grupo: true
         }
       },
       contratacaoColaborador: {
@@ -133,7 +181,8 @@ export async function listarTreinamentosColaborador(contratacaoColaboradorId: st
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
+          grupo: true
         }
       }
     },
@@ -155,7 +204,8 @@ export async function listarTreinamentosEmpresa(empresaId: string) {
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
+          grupo: true
         }
       },
       contratacaoColaborador: {
@@ -194,7 +244,8 @@ export async function buscarTreinamentoRealizadoPorId(treinamentoRealizadoId: st
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
+          grupo: true
         }
       },
       contratacaoColaborador: {
@@ -242,7 +293,8 @@ export async function atualizarTreinamentoRealizado(treinamentoRealizadoId: stri
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
+          grupo: true
         }
       },
       contratacaoColaborador: {
@@ -283,11 +335,13 @@ export async function listarTreinamentosPendentes(empresaId: string) {
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
+          grupo: true
         }
       },
       contratacaoColaborador: {
         select: {
+          id: true,
           colaborador: {
             select: {
               pessoa: {
@@ -326,11 +380,13 @@ export async function listarTreinamentosFinalizados(empresaId: string) {
         select: {
           id: true,
           nome: true,
-          tipo: true
+          tipo: true,
+          grupo: true
         }
       },
       contratacaoColaborador: {
         select: {
+          id: true,
           colaborador: {
             select: {
               pessoa: {
@@ -411,7 +467,8 @@ export async function listarTreinamentosNaoRealizados(contratacaoColaboradorId: 
     select: {
       id: true,
       nome: true,
-      tipo: true
+      tipo: true,
+      grupo: true
     },
     orderBy: {
       nome: 'asc'
@@ -506,4 +563,137 @@ export async function iniciarTreinamentosObrigatoriosCargo(contratacaoColaborado
     treinamentosIniciados: treinamentosParaIniciar.length,
     treinamentosJaExistentes: idsJaIniciados.length
   }
+}
+
+export async function listarTreinamentosPorCargo(cargoId: string, empresaId: string) {
+  return await prisma.treinamentosIntegracaoCargos.findMany({
+    where: {
+      cargosId: cargoId,
+      treinamento: {
+        empresasId: empresaId,
+        excluido: false,
+      },
+    },
+    select: {
+      treinamento: {
+        select: {
+          id: true,
+          nome: true,
+          tipo: true,
+          grupo: true,
+        },
+      },
+    },
+  })
+}
+
+export async function cadastrarTreinamentoComRealizados(data: CadastrarTreinamentoRealizadoData) {
+  return await prisma.$transaction(async (tx) => {
+    let treinamentoId: string
+
+    if (data.treinamentosId) {
+      const treinamentoExistente = await tx.treinamento.findUnique({
+        where: { id: data.treinamentosId, excluido: false },
+      })
+
+      if (!treinamentoExistente) {
+        throw new Error('Treinamento não encontrado')
+      }
+
+      treinamentoId = treinamentoExistente.id
+    } else if (data.treinamento) {
+      const novoTreinamento = await tx.treinamento.create({
+        data: {
+          nome: data.treinamento.nome,
+          tipo: data.treinamento.tipo,
+          grupo: data.treinamento.grupo,
+          empresasId: data.empresaId,
+        },
+      })
+
+      treinamentoId = novoTreinamento.id
+    } else {
+      throw new Error(
+        'Informe o ID do treinamento existente ou os dados de um novo treinamento'
+      )
+    }
+
+    const vinculoExistente = await tx.treinamentosIntegracaoCargos.findUnique({
+      where: {
+        treinamentosId_cargosId: {
+          treinamentosId: treinamentoId,
+          cargosId: data.cargoId,
+        },
+      },
+    })
+
+    if (!vinculoExistente) {
+      await tx.treinamentosIntegracaoCargos.create({
+        data: {
+          treinamentosId: treinamentoId,
+          cargosId: data.cargoId,
+        },
+      })
+    }
+
+    const realizadosCriados: TreinamentoRealizadoComDetalhes[] = []
+
+    for (const realizado of data.realizados) {
+      const existente = await tx.treinamentoRealizado.findFirst({
+        where: {
+          treinamentosId: treinamentoId,
+          contratacaoColaboradorId: realizado.contratacaoColaboradorId,
+        },
+      })
+
+      if (existente) {
+        throw new Error(
+          `Treinamento já registrado para o colaborador com contratação ${realizado.contratacaoColaboradorId}`
+        )
+      }
+
+      const treinamentoRealizado = await tx.treinamentoRealizado.create({
+        data: {
+          treinamentosId: treinamentoId,
+          contratacaoColaboradorId: realizado.contratacaoColaboradorId,
+          iniciadoEm: realizado.iniciadoEm,
+          finalizadoEm: realizado.finalizadoEm,
+          certificado: realizado.certificado,
+        },
+        include: {
+          treinamento: {
+            select: {
+              id: true,
+              nome: true,
+              tipo: true,
+              grupo: true,
+            },
+          },
+          contratacaoColaborador: {
+            select: {
+              id: true,
+              colaborador: {
+                select: {
+                  pessoa: {
+                    select: {
+                      nome: true,
+                    },
+                  },
+                },
+              },
+              cargo: {
+                select: {
+                  nome: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      realizadosCriados.push(treinamentoRealizado)
+    }
+
+    return realizadosCriados
+  })
 }

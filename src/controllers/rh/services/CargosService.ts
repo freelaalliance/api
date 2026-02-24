@@ -3,7 +3,6 @@ import { prisma } from "../../../services/PrismaClientService"
 interface CargosData {
   nome: string
   atribuicoes: string
-  superior: boolean
   experienciaMinima: string
   escolaridadeMinima: string
   empresasId: string
@@ -15,7 +14,6 @@ interface CargosData {
 interface AtualizarCargoData {
   nome?: string
   atribuicoes: string
-  superior?: boolean
   experienciaMinima?: string
   escolaridadeMinima?: string
   treinamentos?: Array<{
@@ -190,13 +188,11 @@ export async function listarColaboradoresAtivosCargo(cargoId: string) {
       colaborador: {
         include: {
           pessoa: {
-            include: {
+            select: {
+              nome: true,
               TelefonePessoa: true,
               Endereco: true,
               EmailPessoa: true
-            },
-            select: {
-              nome: true,
             }
           }
         }
@@ -207,7 +203,8 @@ export async function listarColaboradoresAtivosCargo(cargoId: string) {
             select: {
               id: true,
               nome: true,
-              tipo: true
+              tipo: true,
+              grupo: true
             }
           }
         }

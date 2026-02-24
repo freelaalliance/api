@@ -243,7 +243,6 @@ export async function buscarContratacaoPorId(contratacaoId: string) {
           id: true,
           nome: true,
           atribuicoes: true,
-          superior: true,
           experienciaMinima: true,
           escolaridadeMinima: true
         }

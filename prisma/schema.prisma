@@ -690,7 +690,6 @@ model Cargo {
   id                           String                         @id @default(uuid()) @db.Char(36)
   nome                         String                         @db.VarChar(255)
   atribuicoes                  String                         @db.Text
-  superior                     Boolean                        @default(false)
   experienciaMinima            String                         @db.Text
   escolaridadeMinima           String                         @db.Text
   excluido                     Boolean                        @default(false)
