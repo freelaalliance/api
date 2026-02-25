@@ -119,6 +119,37 @@ export async function buscarVendaPorClienteId(clienteId: string, empresaId: stri
   return venda
 }
 
+export async function buscarVendaPorEmpresa(empresaId: string) {
+  const venda = await prisma.venda.findMany({
+    where: {
+      empresasId: empresaId,
+    },
+    include: {
+      expedicoes: true,
+      usuario: {
+        include: {
+          pessoa: true,
+        },
+      },
+      cliente: {
+        include: {
+          pessoa: true,
+        },
+      },
+      itensVenda: {
+        include: {
+          produtoServico: true,
+        },
+      },
+    },
+    orderBy: {
+      cadastradoEm: 'desc',
+    }
+  })
+
+  return venda
+}
+
 export async function buscarVendaPorId(vendaId: string, empresaId: string) {
   const venda = await prisma.venda.findUniqueOrThrow({
     where: { id: vendaId, cancelado: false, empresasId: empresaId },

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { buscarConfiguracoesPorEmpresa } from '../../repositories/ConfiguracaoEmpresaRepository'
 import { prisma } from '../../services/PrismaClientService'
 import { getNumeroPedido } from '../compras/utils/CompraUtil'
-import { buscarVendaPorClienteId, buscarVendaPorId, buscarVendasPendente, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
+import { buscarVendaPorClienteId, buscarVendaPorEmpresa, buscarVendaPorId, buscarVendasPendente, cancelarVenda, criarVenda, gerarPdfVendaHTML } from './services/VendasService'
 
 const reqUserSchema = z.object({
   id: z.string().uuid(),
@@ -183,6 +183,47 @@ export async function vendasRoutes(app: FastifyInstance) {
       return res.status(500).send({
         status: false,
         msg: 'Erro ao consultar venda',
+        error,
+      })
+    }
+  })
+
+  app.get('/vendas', async (req, res) => {
+    await req.jwtVerify({ onlyCookie: true })
+
+    try {
+      const { cliente: empresaId } = await reqUserSchema.parseAsync(req.user)
+
+      const vendas = await buscarVendaPorEmpresa(empresaId)
+
+      if (!vendas) {
+        return res.status(200).send({
+          status: false,
+          msg: 'Vendas não encontradas',
+          dados: [],
+        })
+      }
+
+      return res.status(200).send({
+        status: true,
+        dados: vendas.map((venda) => ({
+          id: venda.id,
+          codigo: venda.codigo,
+          numeroPedido: venda.numPedido,
+          dataCadastro: venda.cadastradoEm,
+          usuario: venda.usuario.pessoa.nome,
+          prazoEntrega: venda.prazoEntrega,
+          permiteEntregaParcial: venda.permiteEntregaParcial,
+          condicoes: venda.condicoes,
+          expedido: venda.expedido,
+          qtdExpedicoes: venda.expedicoes.length,
+          cliente: venda.cliente,
+        })),
+      })
+    } catch (error) {
+      return res.status(500).send({
+        status: false,
+        msg: 'Erro ao consultar vendas',
         error,
       })
     }
