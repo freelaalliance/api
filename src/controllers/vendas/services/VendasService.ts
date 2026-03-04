@@ -464,14 +464,14 @@ export async function gerarPdfVendaHTML(dados: DadosVendaPdf) {
           <div>
             <div class="campo"><strong>Entrega parcial:</strong> ${dados.permiteEntregaParcial ? 'Sim' : 'Não'}</div>
             <div class="campo"><strong>Prazo de entrega:</strong> ${format(dados.prazoEntrega, 'P', { locale: ptBR })}</div>
-            <div class="campo"><strong>Condições:</strong> ${dados.condicoes || '—'}</div>
-            <div class="campo"><strong>Local de entrega:</strong> ${dados.localEntrega || '—'}</div>
           </div>
           <div>
-            <div class="campo"><strong>Frete:</strong> ${dados.frete || '—'}</div>
-            <div class="campo"><strong>Armazenamento:</strong> ${dados.armazenamento || '—'}</div>
-            <div class="campo"><strong>Forma de pagamento:</strong> ${dados.formaPagamento || '—'}</div>
-            <div class="campo"><strong>Imposto:</strong> ${dados.imposto || '—'}</div>
+            ${dados.condicoes && `<div class="campo"><strong>Condições de entrega:</strong> ${dados.condicoes}</div>`}
+            ${dados.formaPagamento && `<div class="campo"><strong>Forma de pagamento:</strong> ${dados.formaPagamento}</div>`}
+            ${dados.frete && `<div class="campo"><strong>Frete:</strong> ${dados.frete}</div>`}
+            ${dados.armazenamento && `<div class="campo"><strong>Armazenamento:</strong> ${dados.armazenamento}</div>`}
+            ${dados.localEntrega && `<div class="campo"><strong>Local de entrega:</strong> ${dados.localEntrega}</div>`}
+            ${dados.imposto && `<div class="campo"><strong>Imposto:</strong> ${dados.imposto}</div>`}
           </div>
         </div>
       </div>

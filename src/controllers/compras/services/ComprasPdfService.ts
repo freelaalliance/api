@@ -16,6 +16,7 @@ interface EnderecoCompraPdf {
 interface ItemCompraPdf {
   descricao: string
   quantidade: number
+  unidade: string
 }
 
 interface DadosCompraPdf {
@@ -181,6 +182,7 @@ export async function gerarPdfCompraHTML(dados: DadosCompraPdf) {
           <thead>
             <tr>
               <th style="width: 50px;">#</th>
+              <th style="width: 100px;">Unidade</th>
               <th>Descrição</th>
               <th style="width: 100px;">Quantidade</th>
             </tr>
@@ -191,6 +193,7 @@ export async function gerarPdfCompraHTML(dados: DadosCompraPdf) {
         (item, i) => `
               <tr>
                 <td>${i + 1}</td>
+                <td>${item.unidade}</td>
                 <td>${item.descricao}</td>
                 <td>${item.quantidade}</td>
               </tr>
@@ -207,7 +210,14 @@ export async function gerarPdfCompraHTML(dados: DadosCompraPdf) {
           <div>
             <div class="campo"><strong>Entrega parcial:</strong> ${dados.permiteEntregaParcial ? 'Sim' : 'Não'}</div>
             <div class="campo"><strong>Prazo de entrega:</strong> ${format(dados.prazoEntrega, 'P', { locale: ptBR })}</div>
-            <div class="campo"><strong>Condições de entrega:</strong> ${dados.condicoesEntrega || '—'}</div>
+          </div>
+          <div>
+            ${dados.condicoesEntrega && `<div class="campo"><strong>Condições de entrega:</strong> ${dados.condicoesEntrega}</div>`}
+            ${dados.formaPagamento && `<div class="campo"><strong>Forma de pagamento:</strong> ${dados.formaPagamento}</div>`}
+            ${dados.frete && `<div class="campo"><strong>Frete:</strong> ${dados.frete}</div>`}
+            ${dados.armazenamento && `<div class="campo"><strong>Armazenamento:</strong> ${dados.armazenamento}</div>`}
+            ${dados.localEntrega && `<div class="campo"><strong>Local de entrega:</strong> ${dados.localEntrega}</div>`}
+            ${dados.imposto && `<div class="campo"><strong>Imposto:</strong> ${dados.imposto}</div>`}
           </div>
         </div>
       </div>

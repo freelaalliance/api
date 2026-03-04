@@ -16,6 +16,7 @@ interface NovaCompraProps {
   itens: Array<{
     descricao: string
     quantidade: number
+    unidade: string
   }>
 }
 
@@ -97,6 +98,7 @@ export async function listarPedidosFornecedor({
           id: true,
           descricao: true,
           quantidade: true,
+          unidade: true,
         },
       },
       fornecedor: {
@@ -257,6 +259,7 @@ export async function listarPedidosPendentesEmpresa({
           id: true,
           descricao: true,
           quantidade: true,
+          unidade: true,
         },
       },
       fornecedor: {
@@ -356,6 +359,7 @@ export async function listarPedidosRecebidosEmpresa({
           id: true,
           descricao: true,
           quantidade: true,
+          unidade: true,
         },
       },
       fornecedor: {
@@ -461,6 +465,7 @@ export async function buscarDadosPedido({
           id: true,
           descricao: true,
           quantidade: true,
+          unidade: true,
         },
       },
       fornecedor: {
@@ -610,4 +615,22 @@ export async function resumoPedidosEmpresa({
     totalRecebidos: totalComprasRecebidas._count._all,
     totalNaoRecebidos: totalComprasPendentes._count._all,
   }
+}
+
+export async function buscarDescricaoItensVendidosEmpresa({
+  empresaId,
+}: Pick<ConsultaPedidosFornecedorProps, 'empresaId'>) {
+  const itens = await prisma.itensCompra.groupBy({
+    by: ['descricao'],
+    where: {
+      compra: {
+        fornecedor: {
+          empresaId,
+        },
+        excluido: false,
+      },
+    },
+  })
+
+  return itens.map((item) => item.descricao)
 }

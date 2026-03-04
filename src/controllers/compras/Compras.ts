@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import {
   buscarDadosPedido,
+  buscarDescricaoItensVendidosEmpresa,
   cadastrarPedido,
   cancelarPedido,
   excluirPedido,
@@ -64,6 +65,10 @@ class ComprasController {
     fastifyInstance.register(this.gerarPdfPedido, {
       prefix: '/pedido',
     })
+
+    fastifyInstance.register(this.listarDescricaoItensComprados, {
+      prefix: '/pedido',
+    })
   }
 
   async cadastrarNovaCompra(app: FastifyInstance) {
@@ -83,6 +88,9 @@ class ComprasController {
       imposto: z.string().optional(),
       itens: z.array(
         z.object({
+          unidade: z.string({
+            required_error: 'Obrigatório informar a unidade do item',
+          }),
           descricao: z.string({
             required_error: 'Obrigatório informar a descrição do item',
           }),
@@ -696,6 +704,7 @@ class ComprasController {
           itens: pedido.ItensCompra.map((item) => ({
             descricao: item.descricao,
             quantidade: item.quantidade,
+            unidade: item.unidade,
           })),
         })
 
@@ -711,6 +720,31 @@ class ComprasController {
         return res.status(500).send({
           status: false,
           msg: 'Erro ao gerar PDF do pedido',
+          error,
+        })
+      }
+    })
+  }
+
+  async listarDescricaoItensComprados(app: FastifyInstance) {
+    app.get('/itens/vendidos', async (req, res) => {
+      try {
+        await req.jwtVerify({ onlyCookie: true })
+        const { cliente: empresaId } = reqUserSchema.parse(req.user)
+
+        const descricoes = await buscarDescricaoItensVendidosEmpresa({
+          empresaId,
+        })
+
+        return res.status(200).send({
+          status: true,
+          msg: 'Descrições dos itens comprados encontradas',
+          dados: descricoes,
+        })
+      } catch (error) {
+        return res.status(500).send({
+          status: false,
+          msg: 'Erro ao buscar descrições dos itens comprados',
           error,
         })
       }

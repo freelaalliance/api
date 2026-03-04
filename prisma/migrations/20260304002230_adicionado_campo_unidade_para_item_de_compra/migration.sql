@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `itens_compra` ADD COLUMN `unidade` VARCHAR(191) NOT NULL DEFAULT 'un';
