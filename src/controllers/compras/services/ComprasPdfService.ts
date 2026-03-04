@@ -210,9 +210,9 @@ export async function gerarPdfCompraHTML(dados: DadosCompraPdf) {
           <div>
             <div class="campo"><strong>Entrega parcial:</strong> ${dados.permiteEntregaParcial ? 'Sim' : 'Não'}</div>
             <div class="campo"><strong>Prazo de entrega:</strong> ${format(dados.prazoEntrega, 'P', { locale: ptBR })}</div>
+            <div class="campo"><strong>Condições de entrega:</strong> ${dados.condicoesEntrega ? dados.condicoesEntrega : 'Não informadas'}</div>
           </div>
           <div>
-            ${dados.condicoesEntrega && `<div class="campo"><strong>Condições de entrega:</strong> ${dados.condicoesEntrega}</div>`}
             ${dados.formaPagamento && `<div class="campo"><strong>Forma de pagamento:</strong> ${dados.formaPagamento}</div>`}
             ${dados.frete && `<div class="campo"><strong>Frete:</strong> ${dados.frete}</div>`}
             ${dados.armazenamento && `<div class="campo"><strong>Armazenamento:</strong> ${dados.armazenamento}</div>`}
