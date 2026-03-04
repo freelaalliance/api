@@ -92,6 +92,7 @@ export async function buscarVendaPorClienteId(clienteId: string, empresaId: stri
     where: {
       clientesId: clienteId,
       empresasId: empresaId,
+      cancelado: false,
     },
     include: {
       expedicoes: true,
@@ -123,6 +124,7 @@ export async function buscarVendaPorEmpresa(empresaId: string) {
   const venda = await prisma.venda.findMany({
     where: {
       empresasId: empresaId,
+      cancelado: false,
     },
     include: {
       expedicoes: true,
