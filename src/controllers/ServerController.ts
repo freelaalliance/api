@@ -20,7 +20,7 @@ class Servidor {
     })
 
     this.servico.register(cors, {
-      origin: true,
+      origin: process.env.ENV_DOMAIN ?? true,
       credentials: true,
       methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
     })

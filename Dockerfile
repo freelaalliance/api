@@ -1,7 +1,7 @@
 # Multi-stage build para otimizar o tamanho da imagem final
 
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Define o diretório de trabalho
 WORKDIR /app
@@ -22,7 +22,7 @@ RUN npm run build
 RUN npm run db:generate
 
 # Stage 2: Production
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 
 # Instala Chromium e dependências necessárias para o Puppeteer
 RUN apk add --no-cache \
